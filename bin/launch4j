@@ -1,0 +1,13 @@
+<launch4jConfig>
+  <headerType>console</headerType>
+  <jar>JAR</jar>
+  <outfile>REplicanVERSION.exe</outfile>
+  <errTitle>REplican</errTitle>
+  <customProcName>true</customProcName>
+  <supportUrl>http://replican.sourceforge.net/</supportUrl>
+  <priority>idle</priority>
+  <jre>
+    <minVersion>1.2.0</minVersion>
+    <!-- <opt>-Djava.util.logging.config.file=all.finest</opt> -->
+  </jre>
+</launch4jConfig>
