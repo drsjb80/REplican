@@ -35,7 +35,6 @@ Argument|Explanation
 --PrintAccept[=*TRUE*/*FALSE*] --PrintReject[=*TRUE*/*FALSE*] --PrintExamine[=*TRUE*/*FALSE*] --PrintIgnore[=*TRUE*/*FALSE*] --PrintSave[=*TRUE*/*FALSE*] --PrintRefuse[=*TRUE*/*FALSE*] --PrintAdd[=*TRUE*/*FALSE*] | Whether to display the results of specific operations. By default, only --PrintSave is active.
 --Help  | Print the command line options and exit.
 --Version   | Print the version and exit.
-
 --IfNewerThan=file  | Save if remote is newer than file
 --Directory=String  | The directory to replicate to, instead of the current working directory.
 --UserAgent=String  | Set the User-Agent identifier. Default: Java/version
