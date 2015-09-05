@@ -8,8 +8,6 @@ NEWER	= $?
 # gcj -source 1.2 -target 1.2 $(DEPENDS)
 
 .java.class : 
-	# javac -Xlint:unchecked $(DEPENDS)
-	# javac -source 1.6 -target 1.6 $(DEPENDS)
 	javac $(DEPENDS)
 
 VERSION	= $(shell cat VERSION)
@@ -18,23 +16,10 @@ V	= $(shell cat VERSION | sed -e 's/\.//g')
 HTTPFILE= edu/mscd/cs/httpfile
 FTPURL	= edu/mscd/cs/ftp
 
-SOURCES	= REplican.java DelimitedBufferedInputStream.java Cookie.java \
-	  Cookies.java Utils.java YouAreElham.java WebFile.java \
-	  MyAuthenticator.java REplicanArgs.java Plist.java \
-	  $(HTTPFILE)/Handler.java $(HTTPFILE)/HandlerFactory.java \
-	  $(HTTPFILE)/HttpfileURLConnection.java \
-	  $(FTPURL)/Handler.java $(FTPURL)/HandlerFactory.java \
-	  $(FTPURL)/FtpURLConnection.java \
-	  Version.java
+SOURCES	= $(shell ls *.java) $(shell ls $(HTTPFILE)/*.java) \
+	  $(shell ls $(FTPURL)/*.java)
 
-CLASSES = $(SOURCES:.java=.class) Cookie.class
-
-MISC	= Makefile Manifest index index.html DOIT UPLOAD \
-	  tests/*.good tests/*/*.good tests/Makefile \
-	  tests/*.httpfile tests/*/*.httpfile tests/*/*.in \
-	  VERSION bin/launch4j bin/Makefile bin/launch4l
-
-FILES	= $(SOURCES) $(CLASSES) $(JARS) $(MISC) 
+CLASSES = $(SOURCES:.java=.class)
 
 JAR	= REplican-$(VERSION).jar
 
@@ -45,7 +30,6 @@ all : $(ALL)
 
 clean :
 	rm -f $(ALL)
-	rm -rf trash
 
 $(JAR) : $(CLASSES) 
 	jar -cmf Manifest $(TARGET) $(CLASSES) edu/mscd/cs/javaln edu/mscd/cs/jclo
@@ -65,7 +49,12 @@ Version.java : VERSION
 	echo 'public class Version { public static String getVersion() { return ("$(VERSION)"); } public static void main (String args[]) { System.out.println (getVersion()); }}' > $(TARGET)
 
 bin/REplican-$(VERSION) : $(JAR)
-	cd bin; make `basename $(TARGET)`
+	bin/launch4l $(JAR)
+	mv REplican-$(VERSION) $(TARGET)
+	chmod 755 $(TARGET)
 
-bin/REplican$(V).exe : $(JAR)
-	cd bin; make `basename $(TARGET)`
+bin/launch4j.xml : bin/launch4j VERSION
+	sed -e "s/VERSION/$(V)/" -e "s,JAR,$(JAR)," < $(DEPENDS) > $(TARGET)
+
+bin/REplican$(V).exe : $(JAR) bin/launch4j.xml
+	~/src/launch4j/launch4j bin/launch4j.xml
