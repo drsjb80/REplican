@@ -1,0 +1,7 @@
+--PathAccept=[http://www.mscd.edu/]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: http://www.mscd.edu/
+Adding: http://www.mscd.edu/
+Saving path: http://www.mscd.edu/
+Stopping on return code: 200

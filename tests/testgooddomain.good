@@ -1,0 +1,7 @@
+--PathAccept=[httpfile:Cookies/GoodDomain.httpfile]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: httpfile:Cookies/GoodDomain.httpfile
+Adding: httpfile:Cookies/GoodDomain.httpfile
+Saving path: httpfile:Cookies/GoodDomain.httpfile
+Examining MIME: httpfile:Cookies/GoodDomain.httpfile

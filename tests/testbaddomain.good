@@ -1,0 +1,10 @@
+--PathAccept=[httpfile:Cookies/BadDomain.httpfile]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: httpfile:Cookies/BadDomain.httpfile
+Adding: httpfile:Cookies/BadDomain.httpfile
+Saving path: httpfile:Cookies/BadDomain.httpfile
+badomain.com does not start with .
+Not adding to cookie jar: Domain=badomain.com
+Examining MIME: httpfile:Cookies/BadDomain.httpfile
+Not overwriting: trash/Cookies/BadDomain.httpfile

@@ -1,0 +1,6 @@
+--PathAccept=[ftp://anonymous@clem.mscd.edu/outgoing/csi1300/Web/index.html]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: ftp://anonymous@clem.mscd.edu/outgoing/csi1300/Web/index.html
+Saving path: ftp://anonymous@clem.mscd.edu/outgoing/csi1300/Web/index.html
+java.io.IOException: FTP error: 550 /outgoing/csi1300/Web/index.html: No such file or directory.

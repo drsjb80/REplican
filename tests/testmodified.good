@@ -1,0 +1,38 @@
+--PathAccept=[httpfile:empty.httpfile]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: httpfile:empty.httpfile
+Adding: httpfile:empty.httpfile
+Saving path: httpfile:empty.httpfile
+Examining MIME: httpfile:empty.httpfile
+--PathAccept=[httpfile:empty.httpfile]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: httpfile:empty.httpfile
+Adding: httpfile:empty.httpfile
+Saving path: httpfile:empty.httpfile
+Examining MIME: httpfile:empty.httpfile
+Not overwriting: tmp/empty.httpfile
+--PathAccept=[httpfile:empty.httpfile]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: httpfile:empty.httpfile
+Adding: httpfile:empty.httpfile
+Saving path: httpfile:empty.httpfile
+Examining MIME: httpfile:empty.httpfile
+Not overwriting: tmp/empty.httpfile
+--PathAccept=[httpfile:empty.httpfile]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: httpfile:empty.httpfile
+Adding: httpfile:empty.httpfile
+Saving path: httpfile:empty.httpfile
+Examining MIME: httpfile:empty.httpfile
+--PathAccept=[httpfile:empty.httpfile]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: httpfile:empty.httpfile
+Adding: httpfile:empty.httpfile
+Saving path: httpfile:empty.httpfile
+Examining MIME: httpfile:empty.httpfile
+Not modified: tmp/empty.httpfile

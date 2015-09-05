@@ -1,0 +1,9 @@
+--PathAccept=[httpfile:Cookies/BadPath.httpfile]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: httpfile:Cookies/BadPath.httpfile
+Adding: httpfile:Cookies/BadPath.httpfile
+Saving path: httpfile:Cookies/BadPath.httpfile
+Path "Cookies/BadPath.httpfile" does not start with "/this/is/bad"
+Not adding to cookie jar
+Examining MIME: httpfile:Cookies/BadPath.httpfile

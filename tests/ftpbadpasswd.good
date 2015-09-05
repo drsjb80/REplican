@@ -1,0 +1,6 @@
+--PathAccept=[ftp://clem.mscd.edu/outgoing/csi1300/Web/index.htm]
+--MIMEExamine=[text/.*]
+--PathSave=[.*]
+Accepting path: ftp://clem.mscd.edu/outgoing/csi1300/Web/index.htm
+Saving path: ftp://clem.mscd.edu/outgoing/csi1300/Web/index.htm
+java.io.IOException: FTP error: 530 Login incorrect. 
