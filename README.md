@@ -9,9 +9,11 @@ Usage: java REplican-1.5.1.jar [args...] URL [URL...]
 
 N.B.: the URL(s) are automatically added to PathAccept.
 
+## Arguments
 There are a lot of arguments to let you tune exactly what is examined and
 saved
 
+### Simple arguments
 Argument|Explanation
 --------|-----------
 --PathAccept=*RE*   | a *RE* of URL paths to accept.
@@ -40,8 +42,7 @@ Argument|Explanation
 --UserAgent=String  | Set the User-Agent identifier. Default: Java/version
 --LoadCookies=String... | Load cookies from file(s).
 --SaveCookies=String    | Save cookies to file.
---IgnoreCookies[=*TRUE*/*FALSE*]    | If you want to ignore all cookies. Default:
-FALSE
+--IgnoreCookies[=*TRUE*/*FALSE*]    | If you want to ignore all cookies. Default: FALSE
 --IndexName=String  | The file name to save paths ending with a '/'. Default: index.html
 --FollowRedirects[=*TRUE*/*FALSE*]  | Follow redirections. Default: TRUE.
 --SaveProgress[=*TRUE*/*FALSE*] | Show a progress bar for saves. Default: FALSE.
@@ -52,16 +53,17 @@ FALSE
 --PauseAfterSave=#  | Pause for # milliseconds after each file saved.
 --Interesting=*RE*gular expression...   | Any number of regular expressions that match patterns inside <...> pairs for consideration by REplican. The capturing group(s) contain the URLs to be considered. If you specify any, they override all the defaults, which are: `[hH][rR][eE][fF]\s*=\s*[\"']?([^\"'#>]*)` and `[sS][rR][cC]\s*=\s*[\"']?([^\"'#>]*)`
 
---FilenameRewrite=String --FilenameRewrite=String   | These arguments must
-come in pairs. The first is a pattern to match, and the second is a
-replacement string. For example, if you want to remove anything after a
+
+### Paired arguments
+Several argurments must always come in pairs as both values are used. The first is a regular expression to match and the second is a replacement string.
+--FilenameRewrite=String --FilenameRewrite=String
+For example, if you want to remove anything after a
 '.wmv', you can do:
 ```
 --FilenameRewrite="\\.wmv.*"
 --FilenameRewrite=".wmv"
 ```
-If you want to combine all find from a content distribution network in to
-one directory:
+If you want to combine all found in a content distribution network into one directory:
 ```
 --FilenameRewrite="[1234].cdn.site.com"
 --FilenameRewrite="cdn.site.com"
@@ -77,12 +79,15 @@ If you want to remove certain characters from saved files:
 --FilenameRewrite="\\?"
 --FilenameRewrite="QUES"
 ```
---URLRewrite=String --URLRewrite=String | Rewrite the URLs as with the
+```
+--URLRewrite=String
+--URLRewrite=String
+```
+Rewrite the URLs as with the
 FilenameRewrite above. Useful if a site dynamically rewrites or randomizes
 URLs
---URLFixUp=String --URLFixUp=String | Fix up URLs before matching to
-reduce the complexity of regular expressions to match URLs. The defaults
-are:
+--URLFixUp=String --URLFixUp=String
+Fix up URLs before matching to reduce the complexity of regular expressions to match URLs. The defaults are:
 ```
 --URLFixUp="[\s]+"
 --URLFixUp=" "
