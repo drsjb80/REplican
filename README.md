@@ -56,7 +56,12 @@ Argument|Explanation
 
 ### Paired arguments
 Several argurments must always come in pairs as both values are used. The first is a regular expression to match and the second is a replacement string.
---FilenameRewrite=String --FilenameRewrite=String
+
+*
+```
+--FilenameRewrite=String
+--FilenameRewrite=String
+```
 For example, if you want to remove anything after a
 '.wmv', you can do:
 ```
@@ -79,6 +84,7 @@ If you want to remove certain characters from saved files:
 --FilenameRewrite="\\?"
 --FilenameRewrite="QUES"
 ```
+*
 ```
 --URLRewrite=String
 --URLRewrite=String
@@ -86,6 +92,7 @@ If you want to remove certain characters from saved files:
 Rewrite the URLs as with the
 FilenameRewrite above. Useful if a site dynamically rewrites or randomizes
 URLs
+*
 --URLFixUp=String --URLFixUp=String
 Fix up URLs before matching to reduce the complexity of regular expressions to match URLs. The defaults are:
 ```
