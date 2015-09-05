@@ -101,9 +101,7 @@ which removes white space and condense multiple spaces into a single space.
 
 ## Method
 First, a URL is checked to see whether it should be accepted or rejected.
-The initial URL(s) from the command line are accepted by default.  Also
-note: if you don't specify to accept a certain set of URLs (or reject a
-set), only the command line URLs will be examined.
+The initial URL(s) from the command line are accepted by default.
 
 You control acceptance via the --PathAccept, --PathReject, --MIMEAccept,
 and --MINEReject command line regular expression arguments.  The Path
@@ -113,8 +111,8 @@ can be a subset of what is Accept'ed.
 
 Once a URL is accepted, it is added to the list to be examined or saved.
 
-The --PathExamine, --PathIgnore, --MIMEExamine, and --MIMEIgnore control
-whether a given document is searched for links to other documents and
+The --PathExamine, --PathIgnore, --MIMEExamine, and --MIMEIgnore arguments
+control whether a given document is searched for links to other documents and
 objects to be saved.
 
 The --PathSave, --PathRefuse, --MIMESave, and --MIMERefuse regular
@@ -146,7 +144,7 @@ with a backslash.
 ## Examples
 Save a single file that is the one URL specified:
 ```
-$ java -jar ~/src/REplican/REplican-*VERSION*.jar http://coloradmin.com/steve/resume/
+$ java -jar ~/src/REplican/REplican-VERSION.jar http://coloradmin.com/steve/resume/
 --PathSave=[http://coloradmin\.com/steve/resume/]
 Saving path: http://coloradmin.com/steve/resume/
 Saving to coloradmin.com/steve/resume/index.html
@@ -154,7 +152,7 @@ Saving to coloradmin.com/steve/resume/index.html
 
 Save all the PDFs from a site, but nothing else, printing lots of status:
 ```
-java -jar ~/src/REplican/REplican-*VERSION*.jar \
+java -jar ~/src/REplican/REplican-VERSION.jar \
 --PathAccept='http://coloradmin\.com/steve/.*' \
 --PathSave='.*\.pdf' \
 --PathExamine='.*\.[hH][tT][mM][lL]*' \
@@ -168,7 +166,7 @@ Built into Java (not just REplican), is the ability to have all network
 traffic be proxied through a SOCKS proxy. There are two command line
 arguments to java to make this work:
 ```
-java -DsocksProxyHost=*hostname* -DsocksProxyPort=*portnumber* -jar REplican-*VERSION*.jar [...]
+java -DsocksProxyHost=hostname -DsocksProxyPort=portnumber -jar REplican-VERSION.jar [...]
 ```
 Important: as with all other options to java, these must appear before the
 class or jar file on the command line or they will be taken as arguments to
@@ -177,6 +175,7 @@ without using SOCKS, which might not be what you want.
 
 ## Detailed Steps
 For each URL
+
 1. Check against PathAccept and PathReject.
   * If accepted and not rejected, add to list of URL's to consider.
   * When fetched, open URL and check against MIMEAccept and MIMEIgnore. 
