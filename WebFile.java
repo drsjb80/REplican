@@ -110,7 +110,6 @@ public class WebFile
         
         path = REplican.replaceAll (path, args.FilenameRewrite);
         path = path.replaceFirst ("^~", System.getProperty("user.home"));
-		logger.severe ("Saving to " + path);
 
         file = new File (path);
 
