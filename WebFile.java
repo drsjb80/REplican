@@ -111,6 +111,9 @@ public class WebFile
         path = REplican.replaceAll (path, args.FilenameRewrite);
         path = path.replaceFirst ("^~", System.getProperty("user.home"));
 
+        if (args.PrintSavePath)
+            logger.info ("Saving to: " + path);
+
         file = new File (path);
 
         String directoryPath = null;
@@ -157,8 +160,29 @@ public class WebFile
             }
         }
 
-        if (file.exists() && ! dealWithExistingFile (yrl.getLastModified()))
-            return;
+        if (file.exists())
+        {
+            logger.info ("Files exists");
+
+            if (args.OverwriteIfLarger)
+                if (yrl.getContentLength() > file.length())
+                {
+                    logger.info ("Overwriting because " + 
+                        yrl.getContentLength() + " is larger than " +
+                        file.length());
+                }
+                else
+                {
+                    logger.info ("Not overwriting because " + 
+                        yrl.getContentLength() + " is smaller than " +
+                        file.length());
+                    return;
+                }
+            else if (! dealWithExistingFile (yrl.getLastModified()))
+            {
+                return;
+            }
+        }
 
         try
         {

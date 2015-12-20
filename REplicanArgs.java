@@ -17,6 +17,7 @@ class REplicanArgs
     boolean PrintAccept;
     boolean PrintReject;
     boolean PrintSave = true;
+    boolean PrintSavePath;
     boolean PrintRefuse;
     boolean PrintExamine;
     boolean PrintIgnore;
@@ -43,6 +44,7 @@ class REplicanArgs
     String IndexName = "index.html";
     boolean IgnoreCookies;
     boolean Overwrite;
+    boolean OverwriteIfLarger;
     boolean FollowRedirects = true;
     boolean SetLastModified;
     boolean IfModifiedSince;
