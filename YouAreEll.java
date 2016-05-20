@@ -14,7 +14,7 @@ import edu.mscd.cs.jclo.JCLO;
 
 import edu.mscd.cs.javaln.*;
 
-public class YouAreElham
+public class YouAreEll
 {
     private JavaLN logger = REplican.logger;
     private URLConnection uc;
@@ -27,7 +27,7 @@ public class YouAreElham
     private Cookies cookies;
     private Hashtable urls;
 
-    public YouAreElham (String url, Hashtable urls,
+    public YouAreEll (String url, Hashtable urls,
         Cookies cookies, REplicanArgs args)
     {
         this.url = url;

@@ -482,7 +482,7 @@ public class REplican
     ** read from an input stream, optionally write to an output stream, and
     ** optionally look at all the URL's found in the input stream.
     */
-    private boolean examineORsave (YouAreElham yrl, InputStream is,
+    private boolean examineORsave (YouAreEll yrl, InputStream is,
         BufferedOutputStream bos, boolean examine, boolean save, String url)
     {
         logger.entering (is);
@@ -572,7 +572,7 @@ public class REplican
         return (true);
     }
 
-    private void fetchOne (boolean examine, boolean save, YouAreElham yrl,
+    private void fetchOne (boolean examine, boolean save, YouAreEll yrl,
         InputStream is)
     {
         logger.entering (examine);
@@ -697,10 +697,10 @@ public class REplican
          * header.  in either case, we need an InputStream.
          */
         InputStream is = null;
-        YouAreElham yrl = null;
+        YouAreEll yrl = null;
         for (int t = 0; t < args.Tries; t++)
         {
-            yrl = new YouAreElham (url, urls, cookies, args);
+            yrl = new YouAreEll (url, urls, cookies, args);
             is = yrl.getInputStream();
             if (is != null)
                 break;

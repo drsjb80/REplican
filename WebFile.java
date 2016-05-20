@@ -12,7 +12,7 @@ import edu.mscd.cs.javaln.JavaLN;
 public class WebFile
 {
     private REplicanArgs args;
-    private YouAreElham yrl;
+    private YouAreEll yrl;
     private JavaLN logger = (JavaLN) JavaLN.getLogger ("REplican");
     private File file;
     private BufferedOutputStream bos;
@@ -20,7 +20,7 @@ public class WebFile
     File getFile() { return (file); }
     BufferedOutputStream getBOS() { return (bos); }
 
-    WebFile (YouAreElham yrl, REplicanArgs args)
+    WebFile (YouAreEll yrl, REplicanArgs args)
     {
         this.yrl = yrl;
         this.args = args;
