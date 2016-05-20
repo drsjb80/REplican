@@ -8,7 +8,7 @@ NEWER	= $?
 # gcj -source 1.2 -target 1.2 $(DEPENDS)
 
 .java.class : 
-	javac $(DEPENDS)
+	javac -Xlint:unchecked $(DEPENDS)
 
 VERSION	= $(shell cat VERSION)
 V	= $(shell cat VERSION | sed -e 's/\.//g')
@@ -54,7 +54,13 @@ bin/REplican-$(VERSION) : $(JAR)
 	chmod 755 $(TARGET)
 
 bin/launch4j.xml : bin/launch4j VERSION
-	sed -e "s/VERSION/$(V)/" -e "s,JAR,$(JAR)," < $(DEPENDS) > $(TARGET)
+	sed -e "s/VERSION/$(V)/" -e "s,JAR,$(JAR)," < bin/launch4j > $(TARGET)
 
 bin/REplican$(V).exe : $(JAR) bin/launch4j.xml
 	~/src/launch4j/launch4j bin/launch4j.xml
+
+org :
+	java -jar REplican-*jar https://jsoup.org/packages/jsoup-1.9.2.jar
+	mv jsoup.org/packages/jsoup-1.9.2.jar .
+	rm -rm jsoup.org
+	jar xvf jsoup-1.9.2.jar org

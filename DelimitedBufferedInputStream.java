@@ -54,33 +54,33 @@ public class DelimitedBufferedInputStream extends BufferedInputStream
     public int read() throws IOException
     {
         int c = in.read();
-	logger.finest ((char) c);
+        logger.finest ((char) c);
 
         if (count++ > 10000)
         {
-	    logger.fine ("String too long without ending delimiter");
+            logger.fine ("String too long without ending delimiter");
             count = 0;
             inString = false;
             current = "";
         }
-        
-	if (inString && !inQuotes && c == '"')
-	{
-	    inQuotes = true;
-            current += (char) c;
-	    return (c);
-	}
-	else if (inString && inQuotes && c == '"')
-	{
-	    inQuotes = false;
-            current += (char) c;
-	    return (c);
-	}
-	else if (inString && inQuotes)
-	{
-            current += (char) c;
-	    return (c);
-	}
+
+        if (inString && !inQuotes && c == '"')
+        {
+            inQuotes = true;
+                current += (char) c;
+            return (c);
+        }
+        else if (inString && inQuotes && c == '"')
+        {
+            inQuotes = false;
+                current += (char) c;
+            return (c);
+        }
+        else if (inString && inQuotes)
+        {
+                current += (char) c;
+                return (c);
+        }
         else if (!inString && c == start)
         {
             logger.finest ("start");

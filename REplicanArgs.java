@@ -45,6 +45,7 @@ class REplicanArgs
     boolean IgnoreCookies;
     boolean Overwrite;
     boolean OverwriteIfLarger;
+    boolean OverwriteIfSmaller;
     boolean FollowRedirects = true;
     boolean SetLastModified;
     boolean IfModifiedSince;

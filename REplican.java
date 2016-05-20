@@ -19,6 +19,8 @@ import java.util.regex.Matcher;
 import edu.mscd.cs.jclo.JCLO;
 import edu.mscd.cs.javaln.*;
 
+import org.jsoup.*;
+
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 
 public class REplican
@@ -165,7 +167,12 @@ public class REplican
 
         if (args.URLFixUp == null)
         {
-            args.URLFixUp = new String[]{"\\s+", " ", "\\\\", ""};
+            // so, i don't remember why i collasped multiple spaces and
+            // removed \'s. must have been important and i should have
+            // documented. 's confuse URLs...
+            // args.URLFixUp = new String[]{"\\s+", " ", "\\\\", ""};
+            args.URLFixUp = new String[]{"\\s+", " ", "\\\\", "",
+                "\'", "%27"};
         }
 
         // if they don't specify anything, look at only text.
@@ -411,7 +418,6 @@ public class REplican
 
             String possible[] = interesting (next);
 
-            // refactor!!!
             for (int j = 0; j < args.Interesting.length; j++)
             {
                 if (possible[j] != null)
@@ -485,6 +491,7 @@ public class REplican
         logger.entering (new Boolean (save));
         logger.entering (url);
 
+
         try
         {
             int c;
@@ -493,8 +500,13 @@ public class REplican
             int content_length = yrl.getContentLength();
             int ten_percent = content_length > 0 ? content_length / 10 : 0;
             int count = 1;
+            boolean percent = args.SaveProgress && save && ten_percent > 0;
+            boolean spin = args.SaveProgress && save && ten_percent == 0;
+            long start = new java.util.Date().getTime();
 
-            if (args.SaveProgress && save) System.out.print ("0..");
+            if (percent) System.out.print ("0..");
+            if (spin) System.out.print ("|");
+
             while ((c = is.read()) != -1)
             {
                 if (save)
@@ -502,24 +514,50 @@ public class REplican
                     bos.write ((char) c);
                     written++;
 
-                    if (args.SaveProgress &&
-                        ten_percent > 0 &&
-                        count < 10 &&
-                        written > count * ten_percent)
+                    
+                    if (percent && count < 10 && written > count * ten_percent)
                     {
                         System.out.print (count * 10 + "..");
+                        count++;
+                    }
+                    else if (spin && written % 1000 == 0)
+                    {
+                        // System.out.println (count);
+                        // System.out.println (count % 4);
+                        System.out.print ("\b" + "|/-\\".charAt (count % 4));
                         count++;
                     }
                 }
                 read++;
             }
-            if (args.SaveProgress && save) System.out.println ("100");
 
-            if (save)
-                snooze (args.PauseAfterSave);
+            long stop = new java.util.Date().getTime();
 
-            logger.finest ("bytes read: " + read);
-            logger.finest ("bytes written: " + written);
+            if (percent) System.out.println ("100");
+            if (spin) System.out.println ("");
+            if (spin || percent)
+            {
+                long seconds = (stop - start) / 1000;
+                long BPS = read / (seconds == 0 ? 1 : seconds);
+
+                if (BPS > 1000000000000000L)
+                    System.out.println (BPS/1000000000000000L + " EBps");
+                else if (BPS > 1000000000000L)
+                    System.out.println (BPS/1000000000000L + " TBps");
+                else if (BPS > 1000000000)
+                    System.out.println (BPS/1000000000 + " GBps");
+                else if (BPS > 1000000)
+                    System.out.println (BPS/1000000 + " MBps");
+                else if (BPS > 1000)
+                    System.out.println (BPS/1000 + " KBps");
+                else
+                    System.out.println (BPS + " Bps");
+            }
+
+            if (save) snooze (args.PauseAfterSave);
+
+            // logger.finest ("bytes read: " + read);
+            // logger.finest ("bytes written: " + written);
 
             if (examine)
                 addToURLs (url, ((DelimitedBufferedInputStream) is).
@@ -563,18 +601,30 @@ public class REplican
             }
         }
 
-        try
+        if (bos != null)
         {
-            if (bos != null)
+            try
             {
                 bos.close();
                 if (args.SetLastModified)
                     wf.getFile().setLastModified (yrl.getLastModified());
             }
+            catch (IOException e)
+            {
+                logger.throwing (e);
+            }
         }
-        catch (IOException e)
+
+        if (examine)
         {
-            logger.throwing (e);
+            try
+            {
+                is.close();
+            }
+            catch (IOException e)
+            {
+                logger.throwing (e);
+            }
         }
     }
 

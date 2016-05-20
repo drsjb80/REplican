@@ -104,10 +104,10 @@ public class WebFile
         return (path);
     }
 
-    private void createFile ()
+    private String getDirectoryPath()
     {
         String path = getFilePath (yrl.getURL());
-        
+
         path = REplican.replaceAll (path, args.FilenameRewrite);
         path = path.replaceFirst ("^~", System.getProperty("user.home"));
 
@@ -125,8 +125,66 @@ public class WebFile
         {
             directoryPath = path.replaceAll ("/[^/]*$", "");
         }
+        return (directoryPath);
+    }
 
-        File directory = new File (directoryPath);
+    // return true if we don't need to reread
+    private boolean checkIfNewerThan()
+    {
+        if (args.IfNewerThan != null)
+        {
+            File newerThan = new File (args.IfNewerThan);
+            logger.fine ("file time = " + newerThan.lastModified());
+            logger.fine ("url time = " + yrl.getLastModified());
+            if (yrl.getLastModified() < newerThan.lastModified())
+            {
+                if (args.PrintSkip)
+                    logger.info ("Skipping becauser older than " +
+                        args.IfNewerThan);
+                return (true);
+            }
+        }
+
+        return (false);
+    }
+
+    // return true if we don't need to reread
+    private boolean checkExistingFile()
+    {
+        if (args.OverwriteIfLarger || args.OverwriteIfSmaller)
+        {
+            boolean larger = yrl.getContentLength() > file.length();
+            boolean smaller = yrl.getContentLength() < file.length();
+
+            if ((args.OverwriteIfLarger && larger) ||
+                (args.OverwriteIfSmaller && smaller))
+            {
+                logger.info ("Overwriting because " + 
+                    yrl.getContentLength() + " is " +
+                    (args.OverwriteIfLarger ? "larger" : "smaller") +
+                    " than " + file.length());
+                return (false);
+            }
+            else
+            {
+                logger.info ("Not overwriting because " + 
+                    yrl.getContentLength() + " is not " +
+                    (args.OverwriteIfLarger ? "larger" : "smaller") +
+                    " than " + file.length());
+                return (true);
+            }
+        }
+        else if (! dealWithExistingFile (yrl.getLastModified()))
+        {
+            return (true);
+        }
+
+        return (false);
+    }
+
+    private void createFile ()
+    {
+        File directory = new File (getDirectoryPath());
 
         logger.fine ("file: '" + file + "'");
         logger.fine ("directory: " + directory);
@@ -146,42 +204,12 @@ public class WebFile
             logger.fine ("Directory: " + directory + " already exists");
         }
 
-        if (args.IfNewerThan != null)
-        {
-            File newerThan = new File (args.IfNewerThan);
-            logger.fine ("file time = " + newerThan.lastModified());
-            logger.fine ("url time = " + yrl.getLastModified());
-            if (yrl.getLastModified() < newerThan.lastModified())
-            {
-                if (args.PrintSkip)
-                    logger.info ("Skipping becauser older than " +
-                        args.IfNewerThan);
-                return;
-            }
-        }
+        if (checkIfNewerThan()) return;
 
         if (file.exists())
         {
-            logger.info ("Files exists");
-
-            if (args.OverwriteIfLarger)
-                if (yrl.getContentLength() > file.length())
-                {
-                    logger.info ("Overwriting because " + 
-                        yrl.getContentLength() + " is larger than " +
-                        file.length());
-                }
-                else
-                {
-                    logger.info ("Not overwriting because " + 
-                        yrl.getContentLength() + " is smaller than " +
-                        file.length());
-                    return;
-                }
-            else if (! dealWithExistingFile (yrl.getLastModified()))
-            {
-                return;
-            }
+            logger.fine ("File exists");
+            if (checkExistingFile()) return;
         }
 
         try

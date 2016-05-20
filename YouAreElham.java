@@ -171,9 +171,8 @@ public class YouAreElham
 
         try
         {
-            String UserAgent = args.UserAgent;
-            if (UserAgent != null)
-                uc.setRequestProperty ("User-Agent", UserAgent);
+            if (args.UserAgent != null)
+                uc.setRequestProperty ("User-Agent", args.UserAgent);
 
             if (args.Header != null)
             {
@@ -259,7 +258,6 @@ public class YouAreElham
                 }
             }
         }
-
 
         return (dealWithReturnCode (code));
     }
