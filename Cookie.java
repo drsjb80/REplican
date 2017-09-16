@@ -27,7 +27,7 @@ set-cookie      =       "Set-Cookie:" cookies
 /**
  * Cookies revolve around domains and paths, not URLs
  */
-public class Cookie extends Hashtable
+public class Cookie<K, V> extends Hashtable<K, V>
 {
     private JavaLN logger = REplican.logger;
     private String Domain;
