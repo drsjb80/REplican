@@ -434,8 +434,8 @@ public class REplican
     private boolean examineORsave (YouAreEll yrl, InputStream is,
         BufferedOutputStream bos, boolean examine, boolean save, String url)
     {
-        logger.traceEntry ((Message) is);
-        logger.traceEntry ((Message) bos);
+        // logger.traceEntry ((Message) is);
+        // logger.traceEntry ((Message) bos);
         logger.traceEntry (String.valueOf(examine));
         logger.traceEntry (String.valueOf(save));
         logger.traceEntry (url);
