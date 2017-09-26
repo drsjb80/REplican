@@ -53,7 +53,7 @@ Argument|Explanation
 --Interesting=*RE*...   | Any number of regular expressions that match patterns inside <...> pairs for consideration by REplican. The capturing group(s) contain the URLs to be considered. If you specify any, they override all the defaults, which are: `[hH][rR][eE][fF]\s*=\s*[\"']?([^\"'#>]*)` and `[sS][rR][cC]\s*=\s*[\"']?([^\"'#>]*)`
 
 ### Paired arguments
-Several argurments must always come in pairs as both values are used. The first is a regular expression to match and the second is a replacement string.
+Several arguments must always come in pairs as both values are used. The first is a regular expression to match and the second is a replacement string.
 
 ```
 --FilenameRewrite=*RE*
@@ -70,7 +70,7 @@ If you want to combine all found in a content distribution network into one dire
 --FilenameRewrite="[1234].cdn.site.com"
 --FilenameRewrite="cdn.site.com"
 ```
-If you want to remove certain characters from saved files:
+If you want to remove certain characters from saved file names:
 ```
 --FilenameRewrite="%20"
 --FilenameRewrite=" "
@@ -119,8 +119,8 @@ The --PathSave, --PathRefuse, --MIMESave, and --MIMERefuse regular
 expressions decide on whether to save a URL to the local machine.
 Therefore, you can examine certain types of files, and save other types.
 
-If you specify nothing, --MIMEExamine is set to "text/.*" and
---PathSave is set to ".*"; i.e.: look at all MIME text files and save
+If you specify nothing, --MIMEExamine is set to "text/.\*" and
+--PathSave is set to ".\*"; i.e.: look at all MIME text files and save
 everything.
 
 If you want to examine or save a URL, you must accept it and not reject it.
@@ -136,7 +136,7 @@ http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html.
 
 Typically, you want to use '\.' in the matching regular expressions for
 site and extension specifiers as the dot ('.') is used in regular
-expressions to mean 'any character'. '.*' is used to specify 'zero or more
+expressions to mean 'any character'. '.\*' is used to specify 'zero or more
 of any character'. The exception to the '\.' rule are the initial URL's
 (listed last on the command line) as they do not require escaping the dots
 with a backslash. 
