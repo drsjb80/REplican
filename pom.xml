@@ -19,7 +19,7 @@
                         </descriptorRefs>
                         <archive>
                             <manifest>
-                                <mainClass>edu.msudenver.replican.REplican</mainClass>
+                                <mainClass>edu.msudenver.cs.replican.REplican</mainClass>
                             </manifest>
                         </archive>
                     </configuration>
