@@ -7,9 +7,9 @@ import org.apache.logging.log4j.Logger;
 
 class MyAuthenticator extends Authenticator
 {
-    private Logger logger = REplican.getLogger();
-    private String username;
-    private String password;
+    private final Logger logger = REplican.getLogger();
+    private final String username;
+    private final String password;
 
     public MyAuthenticator (String username, String password)
     {

@@ -198,7 +198,7 @@ public class FtpURLConnection extends URLConnection {
         int port = Integer.parseInt(q[4]) * 256 + Integer.parseInt(q[5]);
 
         logger.finest(ia.toString());
-        logger.finest(new Integer(port).toString());
+        logger.finest(Integer.toString(port));
 
         dataSocket = new Socket(ia, port);
         dis = dataSocket.getInputStream();

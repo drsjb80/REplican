@@ -25,18 +25,29 @@ set-cookie      =       "Set-Cookie:" cookies
 /**
  * Cookies revolve around domains and paths, not URLs
  */
-public class Cookie extends Hashtable<String, String>
+class Cookie extends Hashtable<String, String>
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private Logger logger = REplican.getLogger();
+	private final Logger logger = REplican.getLogger();
 	private String Domain;
 	private String Path;
 	private long MaxAge = -1;
 	private boolean Secure;
 	private int Version;
+
+	public Cookie() {}
+
+	public Cookie(String Domain, String Path, long MaxAge, boolean Secure,
+                  String name, String value) {
+		this.Domain = Domain;
+		this.Path = Path;
+		this.MaxAge = MaxAge;
+		this.Secure = Secure;
+		this.put(name, value);
+	}
 
 	public String getDomain() { return (Domain); }
 	public String getPath() { return (Path); }
@@ -91,53 +102,49 @@ Secure
 		clear();
 	}
 
-	private boolean checkDomain (String host)
+	private void checkDomain (String host) throws IllegalArgumentException
 	{
 		logger.traceEntry (host);
 
 		// might have been set by a previous cookie, and checked then
-		if (Domain.equals (host)) return (true);
+		if (Domain.equals (host)) return;
 
 		if (! Domain.startsWith ("."))
 		{
-			logger.debug (Domain + " does not start with .");
-			return (false);
+			reset();
+			throw new IllegalArgumentException(Domain + " does not start with .");
 		}
 
 		if (Domain.indexOf (".", 1) == -1)
 		{
-			logger.debug (Domain + " does not have embedded dots");
-			return (false);
+			reset();
+			throw new IllegalArgumentException(Domain + " does not have embedded dots");
 		}
 
 		if (! host.endsWith (Domain))
 		{
-			logger.debug (host + " does not end with " + Domain);
-			return (false);
+			reset();
+			throw new IllegalArgumentException(host + " does not end with " + Domain);
 		}
 
 		String Host = host.replaceFirst ("\\..*", "") + Domain;
 		if (! Host.equals (host))
 		{
-			logger.debug (host + " is longer than " + Domain);
-			return (false);
+			reset();
+			throw new IllegalArgumentException(host + " is longer than " + Domain);
 		}
-
-		return (true);
 	}
 
-	private boolean checkPath (String path)
+	private void checkPath (String path) throws IllegalArgumentException
 	{
 		logger.traceEntry (path);
 
 		if (! path.startsWith (Path))
 		{
-			logger.debug ("Path \"" + path + "\" does not start with \"" +
+			reset();
+			throw new IllegalArgumentException("Path \"" + path + "\" does not start with \"" +
 					Path + "\"");
-			return (false);
 		}
-
-		return (true);
 	}
 
 	private boolean defaultValues (String key, String value)
@@ -224,7 +231,7 @@ Secure
 	{
 		logger.traceEntry (cookieString);
 
-		Hashtable<String, String> ret = new Hashtable<String, String>();
+		Hashtable<String, String> ret = new Hashtable<>();
 		String b[] = cookieString.split (";");
 
 		for (int i = 0; i < b.length; i++)
@@ -268,7 +275,8 @@ Secure
 	}
 	*/
 
-	public boolean addToValues (String host, String path, String cookieString)
+	public void addToValues (String host, String path, String cookieString)
+			throws IllegalArgumentException
 	{
 		logger.trace (host);
 		logger.trace (path);
@@ -276,37 +284,33 @@ Secure
 
 		Hashtable<String, String> newTable = createTable (cookieString);
 
-		if (Domain == null)
-		{
+		if (Domain == null) {
 			if (host.equals ("")) host = "localhost";
 			Domain = host;
 		}
-		else if (! checkDomain (host))
-		{
-			reset();
-			return (false);
+		else {
+			checkDomain(host);
 		}
 
-		if (Path == null)
-		{
+		if (Path == null) {
 			Path = path;
 		}
-		else if (! checkPath (path))
-		{
-			reset();
-			return (false);
+		else {
+			checkPath (path);
 		}
 
-		if (MaxAge == 0)
-		{
+		if (MaxAge == 0) {
 			reset();
-			return (false);
+			throw new IllegalArgumentException("MaxAge==0");
 		}
 
 		putAll (newTable);
-		return (true);
 	}
 
+    /**
+     * Get a string of the correct form to save in a Netscape file.
+     * @return the formatted string
+     */
 	public String getSave ()
 	{
 		long time = new Date().getTime();
@@ -322,10 +326,8 @@ Secure
 
 		String ret = "";
 
-		// for (Enumeration e = keys(); e.hasMoreElements();)
 		for (String key: keySet())
 		{
-			// String key = (String) e.nextElement();
 			String value = get (key);
 
 			ret += Domain + "\t";
@@ -348,10 +350,8 @@ Secure
 		String ret = "";
 		boolean first = true;
 
-		// for (Enumeration e = keys(); e.hasMoreElements();)
 		for (String key: keySet())
 		{
-			// String key = (String) e.nextElement();
 			ret += (first ? "" : "; ") + key;
 
 			String value = get (key);

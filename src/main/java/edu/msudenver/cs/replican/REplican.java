@@ -1,22 +1,22 @@
 package edu.msudenver.cs.replican;
 
+import java.io.*;
 import java.net.URL;
 import java.net.MalformedURLException;
 
 import java.net.Authenticator;
 
-import java.io.*;
-
-import java.util.*;
-
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 import edu.msudenver.cs.jclo.JCLO;
+import org.apache.logging.log4j.core.config.Configurator;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 
@@ -24,9 +24,9 @@ public class REplican
 {
     private static final Logger logger = LogManager.getLogger("REplican");
     public static Logger getLogger() { return logger; }
-    private static REplicanArgs args = new REplicanArgs();
-    private Map<String, Boolean> urls = new ConcurrentHashMap<String, Boolean>();
-    Cookies cookies = new Cookies();
+    private static final REplicanArgs args = new REplicanArgs();
+    private Map<String, Boolean> urls = new ConcurrentHashMap<>();
+    private final Cookies cookies = new Cookies();
     private int URLcount = 0;
     
     private void loadCookies()
@@ -54,20 +54,38 @@ public class REplican
 
 	    try
 	    {
-	        ObjectInputStream ois = 
+	        ObjectInputStream ois =
 	            new ObjectInputStream (
-	                 new FileInputStream (args.CheckpointFile));
+	                 new FileInputStream(args.CheckpointFile));
 	        urls = (Hashtable<String, Boolean>) ois.readObject();
 	        ois.close();
 	    }
-	    catch (IOException ioe)
+	    catch (IOException | ClassNotFoundException ioe)
 	    {
 	        logger.throwing (ioe);
 	    }
-	    catch (ClassNotFoundException cnfe)
-	    {
-	        logger.throwing (cnfe);
-	    }
+    }
+
+    private void setLogLevel () {
+        Level level = Level.OFF;
+
+        if (args.logLevel == null) {
+            level = Level.WARN;
+        }
+        else {
+            switch (args.logLevel) {
+                case OFF:   level = Level.OFF; break;
+                case FATAL: level = Level.FATAL; break;
+                case ERROR: level = Level.ERROR; break;
+                case WARN:  level = Level.WARN; break;
+                case INFO:  level = Level.INFO; break;
+                case DEBUG: level = Level.DEBUG; break;
+                case TRACE: level = Level.TRACE; break;
+                case ALL:   level = Level.ALL; break;
+            }
+        }
+
+        Configurator.setLevel("REplican", level);
     }
     
     private String escapeURL (String URL)
@@ -91,13 +109,10 @@ public class REplican
             String href = "[hH][rR][eE][fF]";
             String src = "[sS][rR][cC]";
 
-            String init[] =
-            { 
+            args.Interesting = new String[]{
                 href + urlref,
                 src + urlref,
             };
-
-            args.Interesting = init;
         }
 
         if (args.URLFixUp == null)
@@ -191,8 +206,8 @@ public class REplican
 
         try
         {
-            ObjectOutputStream oos = 
-                new ObjectOutputStream (new FileOutputStream (checkpointFile));
+            ObjectOutputStream oos =
+                new ObjectOutputStream (new FileOutputStream(checkpointFile));
             oos.writeObject (urls);
             oos.close();
         }
@@ -209,7 +224,7 @@ public class REplican
     {
         logger.traceEntry (total);
 
-        urls.put (total, new Boolean (false));
+        urls.put (total, Boolean.FALSE);
 
         URLcount++;
 
@@ -319,7 +334,7 @@ public class REplican
     private void addToURLs (String baseURL, List<String> strings)
     {
         logger.traceEntry (baseURL);
-        logger.traceEntry (Arrays.toString(strings.toArray()));
+        logger.traceEntry (strings.toString());
 
         for (String s: strings)
         {
@@ -402,7 +417,6 @@ public class REplican
 
         try
         {
-            int c;
             long read = 0;
             long written = 0;
             long content_length = yrl.getContentLength();
@@ -415,6 +429,7 @@ public class REplican
             if (percent) System.out.print ("0..");
             if (spin) System.out.print ("|");
 
+            int c;
             while ((c = is.read()) != -1)
             {
                 if (save)
@@ -499,7 +514,8 @@ public class REplican
             {
                 bos.close();
                 if (args.SetLastModified)
-                    wf.getFile().setLastModified (yrl.getLastModified());
+                    if (! wf.getFile().setLastModified (yrl.getLastModified()))
+                        logger.warn("Couldn't set last modified");
             }
             catch (IOException e)
             {
@@ -656,7 +672,7 @@ public class REplican
         }
     }
 
-    void doit ()
+    private void doit()
     {
         String username = args.Username;
         String password = args.Password;
@@ -678,9 +694,10 @@ public class REplican
         ** add the specified URLs to the list to be fetched.
         */
         // String[] t = new String[add.length];
-        List<String> t = new ArrayList<String>();
-        for (String s: add)
-            assert (t.add("<a href=\"" + s + "\">"));
+        List<String> t = new ArrayList<>();
+        for (String s: add) {
+            t.add("<a href=\"" + s + "\">");
+        }
 
         /*
         ** add to the URLs, with no base
@@ -700,13 +717,6 @@ public class REplican
     {
     	JCLO jclo = new JCLO (args);
 
-        logger.fatal ("fatal");
-        logger.error ("error");
-        logger.info ("info");
-        logger.warn ("warn");
-        logger.debug ("debug");
-        logger.trace ("trace");
-
         if (arguments.length == 0)
         {
             System.out.println ("Arguments:\n" + jclo.usage() + "URLs...");
@@ -721,7 +731,7 @@ public class REplican
         {
             System.err.println (IAE);
             System.err.println ("Arguments:\n" + jclo.usage() + "URLs...");
-            System.exit (0);
+            System.exit (1);
         }
         
         if (args.Version)
@@ -737,6 +747,7 @@ public class REplican
         }
 
         REplican r = new REplican ();
+        r.setLogLevel();
         r.setDefaults();
 
         if (args.LoadCookies != null) r.loadCookies();

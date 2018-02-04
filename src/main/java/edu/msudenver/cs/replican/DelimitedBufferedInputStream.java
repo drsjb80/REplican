@@ -8,12 +8,13 @@ import org.apache.logging.log4j.Logger;
 
 public class DelimitedBufferedInputStream extends BufferedInputStream
 {
-	private static Logger logger = REplican.getLogger();
-	private ArrayList<String> strings;
+	private static final Logger logger = REplican.getLogger();
+	private List<String> strings = new ArrayList<>();
 	private boolean inString;
 	private boolean inQuotes;
 	private String current;
-	private char start, end;
+	private final char start;
+	private final char end;
 	private int count;
 
 	public DelimitedBufferedInputStream (InputStream in)

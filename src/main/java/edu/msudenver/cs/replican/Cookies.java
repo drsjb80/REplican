@@ -2,6 +2,7 @@ package edu.msudenver.cs.replican;
 
 import java.io.*;
 import java.net.*;
+import java.sql.*;
 import java.util.Vector;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -25,8 +26,8 @@ set-cookie      =       "Set-Cookie:" cookies
 
 public class Cookies
 {
-    private Vector<Cookie> cookies = new Vector<Cookie>();
-    private Logger logger = REplican.getLogger();
+    private final Vector<Cookie> cookies = new Vector<>();
+    private final Logger logger = REplican.getLogger();
 
     public void addCookie (String hostORdomain, String path,
         String cookieString)
@@ -37,9 +38,11 @@ public class Cookies
 
         Cookie newCookie = new Cookie ();
 
-        if (! newCookie.addToValues (hostORdomain, path, cookieString))
-        {
-            logger.debug ("Not adding to cookie jar: " + cookieString);
+        try {
+            newCookie.addToValues(hostORdomain, path, cookieString);
+        }
+        catch (IllegalArgumentException IAE) {
+            logger.debug (IAE.getMessage());
             return;
         }
 
@@ -59,9 +62,12 @@ public class Cookies
             if (oldDomainAndPath.equals (newDomainAndPath))
             {
                 logger.trace ("Using: " + oldDomainAndPath);
-                if (! cookie.addToValues (oldDomain, oldPath, cookieString))
+                try {
+                    cookie.addToValues(oldDomain, oldPath, cookieString);
+                }
+                catch (IllegalArgumentException IAE)
                 {
-                    logger.debug ("Removing from cookie jar");
+                    logger.debug (IAE.getMessage());
                     cookies.remove (i);
                 }
                 return;
@@ -82,6 +88,40 @@ public class Cookies
         String path = url.getPath();
 
         addCookie (host, path, cookieString);
+    }
+
+    public void loadSQLCookies(String file) {
+        // /Users/beatys/Library/Application Support/Firefox/Profiles/rnwwcxjq.default/cookies.sqlite
+
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection("jdbc:sqlite:" + file);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+
+        String sql = "SELECT * FROM moz_cookies";
+
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                String host = rs.getString("host");
+                String path = rs.getString("path");
+                String domain = rs.getString("baseDomain");
+                String name = rs.getString("name");
+                String value = rs.getString("value");
+                int expiry = rs.getInt("expiry");
+                boolean isSecure = rs.getInt("isSecure") != 0;
+
+                Cookie cookie = new Cookie(domain, path, expiry, isSecure, name, value);
+                addCookie(domain, path, cookie.getCookieString());
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 /*
@@ -122,33 +162,33 @@ separated by TABS
             addCookie (s[0], s[2], s[5]);
     }
 
+
+
     public void loadCookies (String file)
     {
-        BufferedReader in = null;
-
-        try
-        {
-            in = new BufferedReader (new FileReader (file));
+        if (file.endsWith(".sqlite")) {
+            loadSQLCookies(file);
         }
-        catch (FileNotFoundException fnfe)
-        {
-            logger.warn ("File not found: " + file);
-            return;
-        }
+        else {
+            BufferedReader in = null;
 
-        String line;
-
-        try
-        {
-            while ((line = in.readLine()) != null)
-            {
-                if (line.length() > 0)
-                    doLine (line);
+            try {
+                in = new BufferedReader(new FileReader(file));
+            } catch (FileNotFoundException fnfe) {
+                logger.warn("File not found: " + file);
+                return;
             }
-        }
-        catch (IOException ioe)
-        {
-            logger.throwing (ioe);
+
+            String line;
+
+            try {
+                while ((line = in.readLine()) != null) {
+                    if (line.length() > 0)
+                        doLine(line);
+                }
+            } catch (IOException ioe) {
+                logger.throwing(ioe);
+            }
         }
     }
 

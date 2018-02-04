@@ -14,16 +14,16 @@ import org.apache.logging.log4j.Logger;
 
 public class YouAreEll
 {
-    private Logger logger = REplican.getLogger();
+    private final Logger logger = REplican.getLogger();
     private URLConnection uc;
     private String ContentType;
     private int ContentLength;
-    private InputStream inputstream;
+    private final InputStream inputstream;
 
-    private String url;
-    private REplicanArgs args;
-    private Cookies cookies;
-    private Map<String, Boolean> urls;
+    private final String url;
+    private final REplicanArgs args;
+    private final Cookies cookies;
+    private final Map<String, Boolean> urls;
 
     public YouAreEll (String url, Map<String, Boolean> urls,
         Cookies cookies, REplicanArgs args)
@@ -55,7 +55,7 @@ public class YouAreEll
 
         // mark the original fetched
 
-        urls.put (url, new Boolean(true));
+        urls.put (url, Boolean.TRUE);
 
         if (! args.FollowRedirects)
             return;
@@ -76,7 +76,7 @@ public class YouAreEll
             return;
         }
 
-        urls.put (newURL.toString(), new Boolean(false));
+        urls.put (newURL.toString(), Boolean.FALSE);
     }
 
     private void dealWithStopOns (int code)

@@ -11,9 +11,9 @@ import org.apache.logging.log4j.Logger;
 
 public class WebFile
 {
-    private REplicanArgs args;
-    private YouAreEll yrl;
-    private Logger logger = REplican.getLogger();
+    private final REplicanArgs args;
+    private final YouAreEll yrl;
+    private final Logger logger = REplican.getLogger();
     private File file;
     private BufferedOutputStream bos;
 

@@ -6,7 +6,7 @@ import org.junit.Test;
 
 public class REplicanTest {
 	
-	private REplican replican = new REplican();
+	private final REplican replican = new REplican();
 
 	@Test
 	public void testEscapeURL() throws Exception {
