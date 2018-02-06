@@ -1,0 +1,8 @@
+language: java
+
+jdk:
+- oraclejdk9
+
+sudo: false # faster builds
+
+script: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
