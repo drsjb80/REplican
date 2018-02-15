@@ -1,12 +1,10 @@
 language: java
-
 jdk:
 - oraclejdk9
-
 sudo: false # faster builds
-
+install:
+  - mvn test-compile -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 script:
-- mvn clean install -DskipTests=false -Dmaven.javadoc.skip=true -B -V
-
+  - mvn test jacoco:report
 after_success:
-- mvn clean test jacoco:report coveralls:report
+  - mvn coveralls:report
