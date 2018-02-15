@@ -5,4 +5,8 @@ jdk:
 
 sudo: false # faster builds
 
-script: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+script:
+- mvn clean install -DskipTests=false -Dmaven.javadoc.skip=true -B -V
+
+after_success:
+- mvn clean test jacoco:report coveralls:report
