@@ -8,6 +8,6 @@ env:
 install:
   - mvn install -DskipTests=false -Dmaven.javadoc.skip=true -B -V
 script:
-  - mvn test jacoco:report
+  - mvn test jacoco:report spotbugs:spotbugs
 after_success:
   - bash <(curl -s https://codecov.io/bash)
