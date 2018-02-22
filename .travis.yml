@@ -4,5 +4,7 @@ jdk:
 sudo: false # faster builds
 install:
   - mvn install -DskipTests=false -Dmaven.javadoc.skip=true -B -V
+script:
+  - mvn test cobertura:cobertura
 after_success:
-  - mvn clean test jacoco:report coveralls:report
+  - bash <(curl -s https://codecov.io/bash)
