@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 public class Utils
 {
-    private static final Logger logger = REplican.getLogger();
+    private static final Logger logger = REplican.logger;
 
     /**
      * make a String pattern of, e.g.: [Aa][Bb], from a string, ignoring
@@ -135,19 +135,19 @@ public class Utils
         if (yes != null && no != null)
         {
             boolean ret = matches (yes, s) && ! matches (no, s);
-            logger.traceExit (Boolean.valueOf(ret));
+            logger.traceExit (ret);
             return (ret);
         }
         else if (yes == null)
         {
             boolean ret = ! matches (no, s);
-            logger.traceExit (Boolean.valueOf(ret));
+            logger.traceExit (ret);
             return (ret);
         }
         else // no == null
         {
             boolean ret = matches (yes, s);
-            logger.traceExit (Boolean.valueOf(ret));
+            logger.traceExit (ret);
             return (ret);
         }
     }

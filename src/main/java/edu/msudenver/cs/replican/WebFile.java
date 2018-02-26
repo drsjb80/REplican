@@ -13,7 +13,7 @@ public class WebFile
 {
     private final REplicanArgs args;
     private final YouAreEll yrl;
-    private final Logger logger = REplican.getLogger();
+    private final Logger logger = REplican.logger;
     private File file;
     private BufferedOutputStream bos;
 
@@ -106,7 +106,7 @@ public class WebFile
 
     private String getDirectoryPath()
     {
-        String path = getFilePath (yrl.getURL());
+        String path = getFilePath (yrl.getUrl());
 
         path = Utils.replaceAll (path, args.FilenameRewrite);
         path = path.replaceFirst ("^~", System.getProperty("user.home"));
