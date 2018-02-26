@@ -10,39 +10,34 @@ import java.io.*;
 import java.util.Map;
 import java.util.List;
 
+import lombok.Getter;
 import org.apache.logging.log4j.Logger;
 
-public class YouAreEll
-{
-    private final Logger logger = REplican.getLogger();
+public class YouAreEll {
+    private final Logger logger = REplican.logger;
     private URLConnection uc;
-    private String ContentType;
-    private int ContentLength;
+    @Getter private String ContentType;
+    @Getter private int ContentLength;
     private final InputStream inputstream;
 
-    private final String url;
-    private final REplicanArgs args;
+    @Getter private final String url;
     private final Cookies cookies;
-    private final Map<String, Boolean> urls;
 
-    public YouAreEll (String url, Map<String, Boolean> urls,
-        Cookies cookies, REplicanArgs args)
-    {
+    public YouAreEll(String url, Cookies cookies) {
         this.url = url;
-        this.urls = urls;
         this.cookies = cookies;
-        this.args = args;
         inputstream = createInputStream();
     }
 
-    String getContentType() { return (ContentType); }
-    int getContentLength() { return (ContentLength); }
-    String getURL() { return (url); }
-    InputStream getInputStream() { return (inputstream); }
-    long getLastModified() { return (uc.getLastModified()); }
+    InputStream getInputStream() {
+        return (inputstream);
+    }
 
-    private void dealWithRedirects ()
-    {
+    long getLastModified() {
+        return (uc.getLastModified());
+    }
+
+    private void dealWithRedirects() {
         /*
         HTTP/1.1 301 Moved Permanently
         Date: Wed, 16 May 2007 19:18:57 GMT
@@ -55,109 +50,89 @@ public class YouAreEll
 
         // mark the original fetched
 
-        urls.put (url, Boolean.TRUE);
+        REplican.urls.put(url, Boolean.TRUE);
 
-        if (! args.FollowRedirects)
+        if (!REplican.args.FollowRedirects)
             return;
 
-        String redirected = uc.getHeaderField ("Location");
-        if (args.PrintRedirects)
-            logger.info ("Redirected to: " + redirected);
+        String redirected = uc.getHeaderField("Location");
+        if (REplican.args.PrintRedirects)
+            logger.info("Redirected to: " + redirected);
 
         URL newURL = null;
 
-        try
-        {
-            newURL = new URL (new URL (url), redirected);
-        }
-        catch (MalformedURLException e)
-        {
-            logger.throwing (e);
+        try {
+            newURL = new URL(new URL(url), redirected);
+        } catch (MalformedURLException e) {
+            logger.throwing(e);
             return;
         }
 
-        urls.put (newURL.toString(), Boolean.FALSE);
+        REplican.urls.put(newURL.toString(), Boolean.FALSE);
     }
 
-    private void dealWithStopOns (int code)
-    {
-        int[] stopon = args.StopOn;
+    private void dealWithStopOns(int code) {
+        int[] stopon = REplican.args.StopOn;
 
-        for (int i = 0; i < stopon.length; i++)
-        {
-            if (code == stopon[i])
-            {
-                logger.warn ("Stopping on return code: " + code);
-                System.exit (0);
+        for (int i = 0; i < stopon.length; i++) {
+            if (code == stopon[i]) {
+                logger.warn("Stopping on return code: " + code);
+                System.exit(0);
             }
         }
     }
 
-    private InputStream HUC ()
-    {
-        ContentType = uc.getHeaderField ("Content-Type");
-        String cl = uc.getHeaderField ("Content-Length");
-        if (cl != null)
-        {
-            try
-            {
-                ContentLength = Integer.parseInt (cl);
-            }
-            catch (NumberFormatException NFE)
-            {
+    private InputStream HUC() {
+        ContentType = uc.getHeaderField("Content-Type");
+        String cl = uc.getHeaderField("Content-Length");
+        if (cl != null) {
+            try {
+                ContentLength = Integer.parseInt(cl);
+            } catch (NumberFormatException NFE) {
                 ContentLength = 0;
             }
         }
 
-        String MIMEAccept[] = args.MIMEAccept;
-        String MIMEReject[] = args.MIMEReject;
+        String MIMEAccept[] = REplican.args.MIMEAccept;
+        String MIMEReject[] = REplican.args.MIMEReject;
 
         // here, if MIME has no input on the matter, assume Path has
         // already spoken so return true from blurf.
-        if (! Utils.blurf (MIMEAccept, MIMEReject, ContentType, true))
+        if (!Utils.blurf(MIMEAccept, MIMEReject, ContentType, true))
             return (null);
 
-        try
-        {
+        try {
             return (uc.getInputStream());
-        }
-        catch (IOException e)
-        {
-            logger.throwing (e);
+        } catch (IOException e) {
+            logger.throwing(e);
             return (null);
         }
     }
 
-    private InputStream dealWithReturnCode (int code)
-    {
-        logger.traceEntry (Integer.toString (code));
+    private InputStream dealWithReturnCode(int code) {
+        logger.traceEntry(Integer.toString(code));
 
-        if (args.StopOnnull)
-            dealWithStopOns (code);
+        if (REplican.args.StopOnnull)
+            dealWithStopOns(code);
 
-        switch (code)
-        {
-            case 200: return (HUC());
+        switch (code) {
+            case 200:
+                return (HUC());
             case 301:
-            case 302:
-            {
-                dealWithRedirects ();
+            case 302: {
+                dealWithRedirects();
                 return (null);
             }
-            default:
-            {
-                try
-                {
+            default: {
+                try {
                     String message = "";
 
                     if (uc instanceof HttpURLConnection)
                         message = ((HttpURLConnection) uc).getResponseMessage();
-                    logger.warn ("For: " + url + " server returned: " +
-                        code + " " + message);
-                }
-                catch (IOException e)
-                {
-                    logger.throwing (e);
+                    logger.warn("For: " + url + " server returned: " +
+                            code + " " + message);
+                } catch (IOException e) {
+                    logger.throwing(e);
                 }
 
                 return (null);
@@ -165,49 +140,41 @@ public class YouAreEll
         }
     }
 
-    private int connect() throws IOException
-    {
-        uc = new URL (url).openConnection();
+    private int connect() throws IOException {
+        uc = new URL(url).openConnection();
 
-        try
-        {
-            if (args.UserAgent != null)
-                uc.setRequestProperty ("User-Agent", args.UserAgent);
+        try {
+            if (REplican.args.UserAgent != null)
+                uc.setRequestProperty("User-Agent", REplican.args.UserAgent);
 
-            if (args.Header != null)
-            {
-                for (int i = 0; i < args.Header.length; i++)
-                {
-                    String s[] = args.Header[i].split (":");
-                    if (s[0] != null && s[1] != null)
-                    {
-                        uc.setRequestProperty (s[0], s[1]);
-                    }
-                    else
-                    {
-                        logger.trace ("Couldn't decipher " + args.Header[i]);
+            if (REplican.args.Header != null) {
+                for (int i = 0; i < REplican.args.Header.length; i++) {
+                    String s[] = REplican.args.Header[i].split(":");
+                    if (s[0] != null && s[1] != null) {
+                        uc.setRequestProperty(s[0], s[1]);
+                    } else {
+                        logger.trace("Couldn't decipher " + REplican.args.Header[i]);
                     }
                 }
             }
 
-            String Referer = args.Referer;
+            String Referer = REplican.args.Referer;
             if (Referer != null)
-                uc.setRequestProperty ("Referer", Referer);
+                uc.setRequestProperty("Referer", Referer);
 
-            if (! args.IgnoreCookies)
-            {
-                String c = cookies.findCookies (new URL (url));
+            if (!REplican.args.IgnoreCookies) {
+                String c = cookies.getCookieStringsForURL(new URL(url));
 
                 if (c == null)
-                    logger.trace ("No cookie");
-                else
-                {
-                    logger.trace (c);
-                    uc.setRequestProperty ("Cookie", c);
+                    logger.trace("No cookie");
+                else {
+                    logger.trace(c);
+                    uc.setRequestProperty("Cookie", c);
                 }
             }
+        } catch (IllegalStateException ise) {
+            logger.throwing(ise);
         }
-        catch (IllegalStateException ise) { logger.throwing (ise); }
 
         int rc = 200;
 
@@ -216,63 +183,51 @@ public class YouAreEll
 
         uc.connect();
 
-        logger.traceExit (rc);
+        logger.traceExit(rc);
         return (rc);
     }
 
-    private InputStream getURLInputStream ()
-    {
+    private InputStream getURLInputStream() {
         int code;
 
-        try
-        {
+        try {
             code = connect();
-        }
-        catch (IOException e)
-        {
-            logger.warn (e);
+        } catch (IOException e) {
+            logger.warn(e);
             return (null);
         }
 
-        logger.trace (uc.toString());
-        logger.trace (uc.getHeaderFields().toString());
+        logger.trace(uc.toString());
+        logger.trace(uc.getHeaderFields().toString());
 
-        if (! args.IgnoreCookies)
-        {
-            Map<String,List<String>> m = uc.getHeaderFields();
-            List<String> l = m.get ("Set-Cookie");
-            if (l != null)
-            {
-                for (String cookie: l)
-                {
-                    logger.trace ("Adding cookie: " + cookie);
-                    try
-                    {
-                        cookies.addCookie (new URL (url), cookie);
-                    }
-                    catch (MalformedURLException MUE)
-                    {
-                        logger.throwing (MUE);
+        if (!REplican.args.IgnoreCookies) {
+            Map<String, List<String>> m = uc.getHeaderFields();
+            List<String> l = m.get("Set-Cookie");
+            if (l != null) {
+                for (String cookie : l) {
+                    logger.trace("Adding cookie: " + cookie);
+                    try {
+                        cookies.addCookie(new URL(url), cookie);
+                    } catch (MalformedURLException MUE) {
+                        logger.throwing(MUE);
                     }
                 }
             }
         }
 
-        return (dealWithReturnCode (code));
+        return (dealWithReturnCode(code));
     }
 
     /**
      * get an InputStream from either a file: or http: URL.  deals
      * with http redirections.
-     *
      */
-    private InputStream createInputStream ()
-    {
+    private InputStream createInputStream() {
         // http://httpd.apache.org/docs/1.3/mod/mod_dir.html#directoryindex
 
-        logger.traceEntry (url);
-        InputStream is = getURLInputStream ();
-        logger.traceExit (is);
+        logger.traceEntry(url);
+        InputStream is = getURLInputStream();
+        logger.traceExit(is);
         return (is);
     }
 }

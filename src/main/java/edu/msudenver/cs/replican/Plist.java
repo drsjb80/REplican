@@ -26,7 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 class Plist extends DefaultHandler
 {
-    private static final Logger logger = REplican.getLogger();
+    private static final Logger logger = REplican.logger;
     private final Cookies cookies;
 
     static InputSource getInputSource (String u)
