@@ -26,11 +26,13 @@ set-cookie      =       "Set-Cookie:" cookies
 */
 
 public class Cookies {
+    // THREADSAFE_LEVEL_GREY
     private final Map<String, Vector<Cookie>> cookies = new HashMap<>();
     private final Logger logger = REplican.logger;
 
     public void addCookie(final String hostORdomain, final String path,
                           final String cookieString) {
+        // THREADSAFE_LEVEL_GREY
         final String hostAndPath = hostORdomain + path;
         final Cookie newCookie = new Cookie(hostORdomain, path, cookieString);
 
@@ -44,12 +46,13 @@ public class Cookies {
     }
 
     public void addCookie(final URL url, final String cookieString) {
+        //THREADSAFE_LEVEL_GREY
         String host = url.getHost();
 
         if ("".equals(host)) {
             host = "localhost";  // only useful for httpfile://
         }
-
+        // THREADSAFE_LEVEL_GREY
         final String path = url.getPath();
 
         addCookie(host, path, cookieString);
@@ -57,7 +60,7 @@ public class Cookies {
 
     public void loadSQLCookies(final String file) {
         // /Users/beatys/Library/Application Support/Firefox/Profiles/rnwwcxjq.default/cookies.sqlite
-
+        // THREADSAFE_LEVEL_GREY
         Connection conn = null;
         try {
             conn = DriverManager.getConnection("jdbc:sqlite:" + file);
@@ -65,10 +68,11 @@ public class Cookies {
             System.out.println(e.getMessage());
             return;
         }
-
+        // THREADSAFE_LEVEL_GREY
         final String sql = "SELECT * FROM moz_cookies";
 
         try {
+            // THREADSAFE_LEVEL_GREY
             final Statement stmt = conn.createStatement();
             final ResultSet rs = stmt.executeQuery(sql);
 
@@ -105,15 +109,17 @@ public class Cookies {
     separated by TABS
     */
     private void doNetscapeLine(final String line) {
+        // THREADSAFE_LEVEL_GREY
         logger.traceEntry(line);
 
         if (line.charAt(0) == '#') {
             return;
         }
-
+        // THREADSAFE_LEVEL_GREY
         final String[] s = line.split("\t");
 
         if (s.length > 6) {
+            // THREADSAFE_LEVEL_GREY
             final Date date = new Date(Long.parseLong(s[4]) * 1000);
             final String expires =
                     new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").
@@ -126,9 +132,10 @@ public class Cookies {
         }
     }
 
-
+    // THREADSAFE_LEVEL_GREY
     public void loadNetscapeCookies(final String file) {
         if (file.endsWith(".sqlite")) {
+            // THREADSAFE_LEVEL_GREY
             loadSQLCookies(file);
         } else {
             BufferedReader in = null;
@@ -154,6 +161,7 @@ public class Cookies {
         }
     }
 
+    // THREADSAFE_LEVEL_GREY
     public void saveNetscapeCookies(String filename) {
         logger.traceEntry(filename);
 
@@ -177,6 +185,7 @@ public class Cookies {
         }
     }
 
+    // THREADSAFE_LEVEL_GREY
     public String getCookieStringsForURL(final URL url) {
         String ret = null;
         final String hostAndPath = url.getHost() + url.getPath();

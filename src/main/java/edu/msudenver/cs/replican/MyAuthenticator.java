@@ -11,12 +11,14 @@ class MyAuthenticator extends Authenticator
     private final String username;
     private final String password;
 
+    // THREADSAFE_LEVEL_GREY
     public MyAuthenticator (String username, String password)
     {
         this.username = username;
         this.password = password;
     }
 
+    // THREADSAFE_LEVEL_GREY
     protected PasswordAuthentication getPasswordAuthentication()
     {
         char[] p = new char[password.length()];

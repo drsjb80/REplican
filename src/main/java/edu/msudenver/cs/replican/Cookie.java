@@ -20,8 +20,11 @@ class Cookie {
 
     private static final long serialVersionUID = 1L;
     private final Logger logger = REplican.logger;
+    // THREADSAFE_LEVEL_GREY
     @Getter private String domain;
+    // THREADSAFE_LEVEL_GREY
     @Getter private String path;
+    // THREADSAFE_LEVEL_GREY
     private Date maxAge = BEGINNINGOFTIME;
     long getMaxAge() { return maxAge.getTime(); }
     @Getter private boolean secure;
@@ -37,7 +40,7 @@ class Cookie {
                 AbstractMap<String, AbstractMap> paths = domains.get(d);
                 for (String p: paths.keySet()) {
                     if (p.endsWith(path)) {
-
+                        // do something here?
                     }
                 }
             }
@@ -48,6 +51,8 @@ class Cookie {
     private final AbstractMap<String, AbstractMap> paths = new ConcurrentHashMap<>();
     private final AbstractMap<String, AbstractMap> domains = new ConcurrentHashMap<>();
 
+    // THREADSAFE_LEVEL_GREY
+    // needs locking?
     Cookie(final String domain, final String path, final long maxAge,
            final boolean secure, final String key, final String value) {
         setDomainAndPath(domain, path);
@@ -56,11 +61,15 @@ class Cookie {
         keyValuePairs.put(key, value);
     }
 
+    // THREADSAFE_LEVEL_GREY
+    // needs locking?
     private void setDomainAndPath(String domain, final String path) {
         setDomain(domain);
         setPath(path);
     }
 
+    //THREADSAFE_LEVEL_GREY
+    // needs locking?
     private void setDomain(String domain)
     {
         /*
@@ -91,6 +100,8 @@ class Cookie {
         */
     }
 
+    // THREADSAFE_LEVEL_BLACK
+    // sets global variable, needs locking..?
     private void setPath (String path) {
         if (this.path != null) {
             if (! this.path.equals(path)) {
@@ -106,12 +117,16 @@ class Cookie {
         this.path = path;
     }
 
+    // THREADSAFE_LEVEL_GREY
+    // set global, needs locking
     public Cookie(String domain, final String path, final String cookieString)
             throws IllegalArgumentException {
         setDomainAndPath(domain, path);
         addToCookie(cookieString);
     }
 
+    // THREADSAFE_LEVEL_GREY
+    // string splitting may not be thread safe
      void addToCookie(final String cookieString) {
         logger.traceEntry(cookieString);
 
@@ -151,6 +166,8 @@ class Cookie {
     /*
 	    called if soemthing goes wrong when parsing entire line.
 	*/
+    // THREADSAFE_LEVEL_BLACK
+    // needs to aquire a lock on global vars
     private void reset() {
         domain = null;
         path = null;
@@ -181,6 +198,7 @@ class Cookie {
     **  Check to see if this is one of the usual cookie values and set it
     **  appropriately if so. see: https://tools.ietf.org/html/rfc6265#section-5.2.2
     */
+    // THREADSAFE_LEVEL_GREY
     private boolean setIfRFCKey(final String key, final String value) {
         logger.traceEntry(key);
         logger.traceEntry(value);
@@ -209,6 +227,8 @@ class Cookie {
         return false;
     }
 
+    // THREADSAFE_LEVEL_BLACK
+    // needs lock aquire
     private void setMaxAge (final String value) {
         // FIXME: go with whatever we see most recently. i'm not sure this is the best
         // approach, but i'm not sure whether using newer or older dates is correct. same
@@ -221,7 +241,8 @@ class Cookie {
     }
 
 
-
+    // THREADSAFE_LEVEL_BLACK
+    // needs lock aquire
     private void setExpiry (final String value) {
         Date d = null;
         try {
@@ -243,6 +264,8 @@ class Cookie {
      *
      * @return the formatted string
      */
+    // THREADSAFE_LEVEL_BLACK
+    // critical section, string building
     public String getSave() {
         if (now.after(maxAge)) {
             logger.debug(this.toString() + " has expired");
@@ -271,6 +294,8 @@ class Cookie {
         return ret;
     }
 
+    // THREADSAFE_LEVEL_BLACK
+    // critical section, ret
     public String getCookieString() {
         String ret = "Cookie: ";
         boolean first = true;
@@ -292,6 +317,8 @@ class Cookie {
         return ret;
     }
 
+    // THREADSAFE_LEVEL_BLACK
+    // critical section, string building
     public String toString() {
         return "domain = " + domain
                 + ", path = " + path

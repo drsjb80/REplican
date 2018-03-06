@@ -40,6 +40,7 @@ import java.util.logging.Logger;
  * 214 End of help
  */
 public class FtpURLConnection extends URLConnection {
+    // THREADSAFE_LEVEL_GREY
     private static final Logger logger = Logger.getLogger("global");
     private InputStream cis;    // command input stream
     private OutputStream cos;
@@ -65,6 +66,7 @@ public class FtpURLConnection extends URLConnection {
      * decode = anonymous:beaty@mscd.edu
      * hostname = emess.mscd.edu
      */
+    // THREADSAFE_LEVEL_GREY
     public FtpURLConnection(URL url) {
         super(url);
 
@@ -99,6 +101,7 @@ public class FtpURLConnection extends URLConnection {
         return (responseMessage);
     }
 
+    // THREADSAFE_LEVEL_GREY
     private void setUserPass(URL url) {
         String localUser = System.getProperty("user.name");
         if (localUser == null)
@@ -138,6 +141,7 @@ public class FtpURLConnection extends URLConnection {
         }
     }
 
+    // THREADSAFE_LEVEL_GREY
     private String sendCommand(String command, char expect) throws IOException {
         logger.finest(command);
         logger.finest("" + expect);
@@ -182,6 +186,7 @@ public class FtpURLConnection extends URLConnection {
         return (line);
     }
 
+    // THREADSAFE_LEVEL_GREY
     private void connectToDataSocket() throws
             IOException {
         String p = sendCommand("PASV\r\n", '2');
@@ -210,6 +215,7 @@ public class FtpURLConnection extends URLConnection {
         connected = true;
     }
 
+    // THREADSAFE_LEVEL_GREY
     public void connect() throws IOException {
         int port = url.getPort() != -1 ? url.getPort() : 21;
         commandSocket = new Socket(url.getHost(), port);
@@ -237,6 +243,7 @@ public class FtpURLConnection extends URLConnection {
         sendCommand("RETR " + url.getPath() + "\r\n", '1');
     }
 
+    // THREADSAFE_LEVEL_GREY
     private void disconnect() throws IOException {
         try {
             sendCommand("QUIT\r\n", '2');
@@ -258,6 +265,7 @@ public class FtpURLConnection extends URLConnection {
         }
     }
 
+    // THREADSAFE_LEVEL_GREY
     public static void main(String args[]) throws IOException {
         logger.setLevel(java.util.logging.Level.FINEST);
         java.util.logging.ConsoleHandler ch =
