@@ -18,9 +18,12 @@ import java.util.regex.Matcher;
 import edu.msudenver.cs.jclo.JCLO;
 import org.apache.logging.log4j.core.config.Configurator;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 
-public class REplican {
+public class REplican implements Runnable {
     static final Logger logger = LogManager.getLogger("REplican");
     static final REplicanArgs args = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
@@ -649,6 +652,22 @@ public class REplican {
     }
 
     public static void main(String[] arguments) throws FileNotFoundException {
+
+        /**
+         * Fixed number of threads in thread pool
+         * to be pulled in from JCLO eventually
+         * (right now set to 4)
+         */
+         final int MAX_T = 4;
+
+        /**
+         * Four steps for threading
+         *  - create a task
+         *  - create an executor pool
+         *  - pass the tasks to the executor
+         *  - shutdown the pool
+         */
+
         JCLO jclo = new JCLO(args);
 
         if (arguments.length == 0) {
@@ -674,14 +693,45 @@ public class REplican {
             System.exit(0);
         }
 
-        REplican r = new REplican();
-        r.setLogLevel();
-        r.setDefaults();
+        Runnable runnableREplican = new REplican();
+        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_T);
+        threadPool.execute(runnableREplican);
+        threadPool.shutdown();
+
+        /** Moved to run() for the moment
+         REplican r = new REplican();
+         r.setLogLevel();
+         r.setDefaults();
+
+
 
         if (args.LoadCookies != null) r.loadCookies();
         if (args.PlistCookies != null) r.loadPlistCookies();
         if (args.CheckpointEvery != 0) r.readCheckpointFile();
 
         r.doit();
+         */
+    }
+
+    // Needed to implement Runnable
+    @Override
+    public void run() {
+        try{
+            REplican r = new REplican();
+            r.setLogLevel();
+            r.setDefaults();
+
+
+
+            if (args.LoadCookies != null) r.loadCookies();
+            if (args.PlistCookies != null) r.loadPlistCookies();
+            if (args.CheckpointEvery != 0) r.readCheckpointFile();
+
+            r.doit();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
