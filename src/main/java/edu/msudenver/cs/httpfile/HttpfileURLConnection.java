@@ -34,6 +34,7 @@ public class HttpfileURLConnection extends HttpURLConnection
     private int code = HTTP_OK;
     private String message = "OK";
 
+    ////THREADSAFE_LEVEL_GREY
     HttpfileURLConnection(URL url) { super (url); }
 
     private String getValue (String key)
@@ -67,6 +68,7 @@ public class HttpfileURLConnection extends HttpURLConnection
 
     @Override public String getContentEncoding()
         { return (getValue ("content-encoding")); }
+    //THREADSAFE_LEVEL_BLACK
     @Override public int getContentLength()
         { return (Integer.parseInt (getValue ("content-length"))); }
     @Override public String getContentType()
@@ -77,7 +79,7 @@ public class HttpfileURLConnection extends HttpURLConnection
         { return (Long.parseLong (getValue ("expires"))); }
     @Override public long getIfModifiedSince()
         { return (Long.parseLong (getValue ("if-modified-since"))); }
-
+    //---->
     /**
      * Return the time in seconds from 01/01/1970 retrieved from the
      * Last-Modified http header field.
