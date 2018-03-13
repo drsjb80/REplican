@@ -28,15 +28,19 @@ public class YouAreEll {
         this.cookies = cookies;
         inputstream = createInputStream();
     }
+    //THREADSAFE_LEVEL_BLACK
+    String getContentType() { return (ContentType); }
+    //THREADSAFE_LEVEL_BLACK
+    int getContentLength() { return (ContentLength); }
+    //THREADSAFE_LEVEL_BLACK
+    String getURL() { return (url); }
+    //THREADSAFE_LEVEL_BLACK
+    InputStream getInputStream() { return (inputstream); }
+    //THREADSAFE_LEVEL_BLACK
+    long getLastModified() { return (uc.getLastModified()); }
 
-    InputStream getInputStream() {
-        return (inputstream);
-    }
 
-    long getLastModified() {
-        return (uc.getLastModified());
-    }
-
+    //THREADSAFE_LEVEL_BLACK
     private void dealWithRedirects() {
         /*
         HTTP/1.1 301 Moved Permanently
@@ -70,7 +74,7 @@ public class YouAreEll {
 
         REplican.urls.put(newURL.toString(), Boolean.FALSE);
     }
-
+    //THREADSAFE_LEVEL_GREY
     private void dealWithStopOns(int code) {
         int[] stopon = REplican.args.StopOn;
 
@@ -81,7 +85,7 @@ public class YouAreEll {
             }
         }
     }
-
+    //THREADSAFE_LEVEL_BLACK
     private InputStream HUC() {
         ContentType = uc.getHeaderField("Content-Type");
         String cl = uc.getHeaderField("Content-Length");
@@ -109,6 +113,7 @@ public class YouAreEll {
         }
     }
 
+    //THREADSAFE_LEVEL_BLACK
     private InputStream dealWithReturnCode(int code) {
         logger.traceEntry(Integer.toString(code));
 
@@ -140,6 +145,7 @@ public class YouAreEll {
         }
     }
 
+    //THREADSAFE_LEVEL_GREY
     private int connect() throws IOException {
         uc = new URL(url).openConnection();
 
@@ -186,7 +192,7 @@ public class YouAreEll {
         logger.traceExit(rc);
         return (rc);
     }
-
+    //THREADSAFE_LEVEL_BLACK
     private InputStream getURLInputStream() {
         int code;
 
@@ -222,6 +228,8 @@ public class YouAreEll {
      * get an InputStream from either a file: or http: URL.  deals
      * with http redirections.
      */
+
+    //THREADSAFE_LEVEL_BLACK
     private InputStream createInputStream() {
         // http://httpd.apache.org/docs/1.3/mod/mod_dir.html#directoryindex
 

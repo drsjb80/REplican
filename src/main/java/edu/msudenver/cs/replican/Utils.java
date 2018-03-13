@@ -87,6 +87,8 @@ public class Utils
     ** Use the array pairs as pattern and replacement pairs.  E.g.:
     ** pairs[0] == "\\.wmv.*" and pairs[1] == ".wmv"
     */
+
+    //THREADSAFE_LEVEL_GREY
     static String replaceAll (String s, String pairs[])
     {
         logger.traceEntry (s);
@@ -170,7 +172,8 @@ public class Utils
 
         return (Level.ALL);
     }
-
+    //THREADSAFE_LEVEL_GREY
+    //combining two String arrays
     static String[] combineArrays (String one[], String two[])
     {
         if (one == null && two == null)

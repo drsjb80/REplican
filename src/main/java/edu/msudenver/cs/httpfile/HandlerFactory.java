@@ -5,6 +5,7 @@ import java.net.URLStreamHandlerFactory;
 
 public class HandlerFactory implements URLStreamHandlerFactory
 {
+    //THREADSAFE_LEVEL_GREY
     public URLStreamHandler createURLStreamHandler (String protocol)
     {
 	if (protocol.toLowerCase().equals ("httpfile"))
