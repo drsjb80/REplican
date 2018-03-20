@@ -1,6 +1,8 @@
 package edu.msudenver.cs.replican;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,6 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 // Newest cookie specification https://tools.ietf.org/html/rfc6265
 
 // Cookies revolve around domains and paths, not URLs.
+@ToString
+@EqualsAndHashCode
 class Cookie {
     private static final Date now = new Date();
     private static final Date BEGINNINGOFTIME = new Date(0);
@@ -281,15 +285,5 @@ class Cookie {
 
         logger.traceExit(ret);
         return ret;
-    }
-
-    // THREADSAFE_LEVEL_BLACK
-    // critical section, string building
-    public String toString() {
-        return "domain = " + domain
-                + ", path = " + path
-                + ", maxAge = " + maxAge
-                + ", secure = " + secure
-                + ", getCookieString() = " + getCookieString();
     }
 }

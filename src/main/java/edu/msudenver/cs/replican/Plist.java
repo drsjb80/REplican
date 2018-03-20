@@ -6,94 +6,72 @@ package edu.msudenver.cs.replican;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import java.net.URL;
-import java.net.MalformedURLException;
-
-import java.io.PushbackInputStream;
-import java.io.IOException;
-
-import java.util.Date;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
-
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
+import java.io.PushbackInputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-class Plist extends DefaultHandler
-{
+class Plist extends DefaultHandler {
     private final Logger logger = LogManager.getLogger(getClass());
     // THREADSAFE_LEVEL_GREY
     private final Cookies cookies;
 
-    InputSource getInputSource (String u)
-    {
+    InputSource getInputSource(String u) {
         URL url = null;
-        try
-        {
-            url = new URL (u);
-        }
-        catch (MalformedURLException MUE)
-        {
-            logger.throwing (MUE);
+        try {
+            url = new URL(u);
+        } catch (MalformedURLException MUE) {
+            logger.throwing(MUE);
         }
 
         PushbackInputStream pbis = null;
 
-        try
-        {
-            pbis = new PushbackInputStream (url.openStream());
+        try {
+            pbis = new PushbackInputStream(url.openStream());
 
             int c;
-            while ((c = pbis.read() ) != '<')
-            {
-                logger.debug ("Eating: " + c);
+            while ((c = pbis.read()) != '<') {
+                logger.debug("Eating: " + c);
             }
 
-            pbis.unread (c);
-        }
-        catch (IOException IOE)
-        {
-            logger.throwing (IOE);
+            pbis.unread(c);
+        } catch (IOException IOE) {
+            logger.throwing(IOE);
         }
 
-        return (new InputSource (pbis) );
+        return (new InputSource(pbis));
     }
 
     // THREADSAFE_LEVEL_GREY
     // modifies global var cookies
-    public Plist (String u, Cookies cookies)
-    {
+    public Plist(String u, Cookies cookies) {
         super();
 
         this.cookies = cookies;
 
-        try
-        {
+        try {
             SAXParserFactory.newInstance().newSAXParser().
-                parse (getInputSource (u), this);
-        }
-        catch (SAXParseException spe)
-        {
-            logger.warn ("In " + u + ", at line " + spe.getLineNumber() +
-                ", column " + spe.getColumnNumber() + ", " + spe);
-        }
-        catch (ParserConfigurationException pce)
-        {
-            logger.throwing (pce);
-        }
-        catch (SAXException se)
-        {
-            logger.throwing (se);
-        }
-        catch (IOException IOE)
-        {
-            logger.throwing (IOE);
+                    parse(getInputSource(u), this);
+        } catch (SAXParseException spe) {
+            logger.warn("In " + u + ", at line " + spe.getLineNumber() +
+                    ", column " + spe.getColumnNumber() + ", " + spe);
+        } catch (ParserConfigurationException pce) {
+            logger.throwing(pce);
+        } catch (SAXException se) {
+            logger.throwing(se);
+        } catch (IOException IOE) {
+            logger.throwing(IOE);
         }
     }
 
@@ -108,60 +86,50 @@ class Plist extends DefaultHandler
     private String current;
 
     // THREADSAFE_LEVEL_GREY
-    public void startElement (String uri, String localName, String qName,
-        Attributes attributes) throws SAXException
-    {
-        logger.trace ("uri = " + uri);
-        logger.trace ("localName = " + localName);
-        logger.trace ("qName = " + qName);
+    public void startElement(String uri, String localName, String qName,
+                             Attributes attributes) throws SAXException {
+        logger.trace("uri = " + uri);
+        logger.trace("localName = " + localName);
+        logger.trace("qName = " + qName);
 
-        if (qName.equals ("dict"))
-        {
-                current = domain = expires = name = path = "";
+        if (qName.equals("dict")) {
+            current = domain = expires = name = path = "";
         }
     }
 
     // THREADSAFE_LEVEL_GREY
-    public void endElement (String uri, String localName, String qName)
-        throws SAXException
-    {
-        logger.trace ("current = " + current);
+    public void endElement(String uri, String localName, String qName)
+            throws SAXException {
+        logger.trace("current = " + current);
 
-        if (qName.equals ("key"))
-        {
-            d = current.equals ("Domain");
-            m = current.equals ("Expires");
-            n = current.equals ("Name");
-            p = current.equals ("Path");
-            v = current.equals ("Value");
-        }
-        else if (qName.equals ("dict"))
-        {
-            logger.trace ("domain = " + domain);
-            logger.trace ("expires = " + expires);
-            logger.trace ("name = " + name);
-            logger.trace ("path = " + path);
-            logger.trace ("value = " + value);
+        if (qName.equals("key")) {
+            d = current.equals("Domain");
+            m = current.equals("Expires");
+            n = current.equals("Name");
+            p = current.equals("Path");
+            v = current.equals("Value");
+        } else if (qName.equals("dict")) {
+            logger.trace("domain = " + domain);
+            logger.trace("expires = " + expires);
+            logger.trace("name = " + name);
+            logger.trace("path = " + path);
+            logger.trace("value = " + value);
 
             Date date = null;
-            try
-            {
+            try {
                 date = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").
-                    parse (expires));
-            }
-            catch (ParseException PE)
-            {
-                logger.throwing (PE);
+                        parse(expires));
+            } catch (ParseException PE) {
+                logger.throwing(PE);
             }
 
             String exp =
-                new SimpleDateFormat ("EEE, dd-MMM-yyyy hh:mm:ss zzz").
-                    format (date);
+                    new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").
+                            format(date);
 
-            cookies.addCookie (domain, path, name + "=" + value +
-                "; Expires=" + exp);
-        }
-        else if (d)
+            cookies.addCookie(domain, path, name + "=" + value +
+                    "; Expires=" + exp);
+        } else if (d)
             domain = current;
         else if (m)
             expires = current;
@@ -176,14 +144,12 @@ class Plist extends DefaultHandler
     }
 
     // THREADSAFE_LEVEL_GREY
-    public void characters (char buf[], int offset, int len) throws SAXException
-    {
-        current += new String (buf, offset, len);
+    public void characters(char buf[], int offset, int len) throws SAXException {
+        current += new String(buf, offset, len);
     }
 
-    public static void main (String args[])
-    {
+    public static void main(String args[]) {
         Cookies cookies = new Cookies();
-        new Plist (args[0], cookies);
+        new Plist(args[0], cookies);
     }
 }
