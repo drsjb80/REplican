@@ -15,38 +15,32 @@ import org.apache.logging.log4j.Logger;
  * FINEST
  */
 
-public class Utils
-{
+public class Utils {
     private static final Logger logger = LogManager.getLogger("edu.msudenver.cs.replican.Utils");
 
     /**
      * make a String pattern of, e.g.: [Aa][Bb], from a string, ignoring
      * non-alpha characters.
      *
-     * @param        s        the initial string
-     * @return                the initial string with the appropriate brackets
+     * @param s the initial string
+     * @return the initial string with the appropriate brackets
      */
-    static String both (String s)
-    {
-        logger.traceEntry (s);
+    static String both(String s) {
+        logger.traceEntry(s);
         String r = "";
 
-        for (int i = 0; i < s.length(); i++)
-        {
+        for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
 
-            if (Character.isLetter (c))
-            {
-                r += "[" + Character.toLowerCase (c) +
-                     Character.toUpperCase (c) + "]";
-            }
-            else
-            {
+            if (Character.isLetter(c)) {
+                r += "[" + Character.toLowerCase(c) +
+                        Character.toUpperCase(c) + "]";
+            } else {
                 r += c;
             }
         }
 
-        logger.traceExit (r);
+        logger.traceExit(r);
         return (r);
     }
 
@@ -55,32 +49,26 @@ public class Utils
      * expressions.  The string must not have the dots escaped, while
      * the regular expression must.
      *
-     * @param        s        the string to check
-     * @param        re        the array of regular expressions
+     * @param s  the string to check
+     * @param re the array of regular expressions
      */
-    private static boolean matches (String re[], String s)
-    {
-        logger.traceEntry ("re" + java.util.Arrays.toString (re));
-        logger.traceEntry (s);
+    private static boolean matches(String re[], String s) {
+        logger.traceEntry("re" + java.util.Arrays.toString(re));
+        logger.traceEntry(s);
 
-        for (int i = 0; i < re.length; i++)
-        {
-            logger.trace ("Matching: '" + s + "' and '" + re[i] + "'");
-            try
-            {
-                if (s.matches (re[i]))
-                {
-                    logger.traceExit ("true");
+        for (int i = 0; i < re.length; i++) {
+            logger.trace("Matching: '" + s + "' and '" + re[i] + "'");
+            try {
+                if (s.matches(re[i])) {
+                    logger.traceExit("true");
                     return (true);
                 }
-            }
-            catch (java.util.regex.PatternSyntaxException PSE)
-            {
-                logger.warn (PSE);
+            } catch (java.util.regex.PatternSyntaxException PSE) {
+                logger.warn(PSE);
             }
         }
 
-        logger.traceExit ("false");
+        logger.traceExit("false");
         return (false);
     }
     
@@ -90,27 +78,24 @@ public class Utils
     */
 
     //THREADSAFE_LEVEL_GREY
-    static String replaceAll (String s, String pairs[])
-    {
-        logger.traceEntry (s);
-        logger.traceEntry (Arrays.toString(pairs));
+    static String replaceAll(String s, String pairs[]) {
+        logger.traceEntry(s);
+        logger.traceEntry(Arrays.toString(pairs));
 
         if (pairs == null)
             return (s);
 
-        if ((pairs.length % 2) != 0)
-        {
-            logger.error ("pairs not even");
-            logger.traceExit (s);
+        if ((pairs.length % 2) != 0) {
+            logger.error("pairs not even");
+            logger.traceExit(s);
             return (s);
         }
 
-        for (int i = 0; i < pairs.length; i += 2)
-        {
-            s = s.replaceAll (pairs[i], pairs[i+1]);
+        for (int i = 0; i < pairs.length; i += 2) {
+            s = s.replaceAll(pairs[i], pairs[i + 1]);
         }
 
-        logger.traceExit (s);
+        logger.traceExit(s);
         return (s);
     }
 
@@ -119,64 +104,39 @@ public class Utils
      * Match a string first against an accepting condition; if that
      * matches, check against a rejecting condition.
      *
-     * @param        yes        an array of accepting regular expressions
-     * @param        no        an array of rejecting regular expressions
-     * @param        s        the string to compare
+     * @param yes an array of accepting regular expressions
+     * @param no  an array of rejecting regular expressions
+     * @param s   the string to compare
      */
-    static boolean blurf (String[] yes, String[] no, String s,
-        boolean ifBothNull)
-    {
-        if (yes != null) logger.trace ("yes" + java.util.Arrays.toString(yes));
-        if (no != null) logger.trace ("no" + java.util.Arrays.toString (no));
-        if (s != null) logger.trace (s);
+    static boolean blurf(String[] yes, String[] no, String s,
+                         boolean ifBothNull) {
+        if (yes != null) logger.trace("yes" + java.util.Arrays.toString(yes));
+        if (no != null) logger.trace("no" + java.util.Arrays.toString(no));
+        if (s != null) logger.trace(s);
 
-        if (yes == null && no == null)
-        {
+        if (yes == null && no == null) {
             return (ifBothNull);
         }
 
-        if (yes != null && no != null)
-        {
-            boolean ret = matches (yes, s) && ! matches (no, s);
-            logger.traceExit (ret);
+        if (yes != null && no != null) {
+            boolean ret = matches(yes, s) && !matches(no, s);
+            logger.traceExit(ret);
             return (ret);
-        }
-        else if (yes == null)
-        {
-            boolean ret = ! matches (no, s);
-            logger.traceExit (ret);
+        } else if (yes == null) {
+            boolean ret = !matches(no, s);
+            logger.traceExit(ret);
             return (ret);
-        }
-        else // no == null
+        } else // no == null
         {
-            boolean ret = matches (yes, s);
-            logger.traceExit (ret);
+            boolean ret = matches(yes, s);
+            logger.traceExit(ret);
             return (ret);
         }
     }
 
-    private static Level getLevel (String s)
-    {
-        if (s == null) return (Level.OFF);
-
-        if (s.equals ("")) return (Level.INFO);
-
-        if (s.equalsIgnoreCase ("SEVERE"))  return (Level.SEVERE);
-        if (s.equalsIgnoreCase ("WARNING")) return (Level.WARNING);
-        if (s.equalsIgnoreCase ("INFO"))    return (Level.INFO);
-        if (s.equalsIgnoreCase ("CONFIG"))  return (Level.CONFIG);
-        if (s.equalsIgnoreCase ("FINE"))    return (Level.FINE);
-        if (s.equalsIgnoreCase ("FINER"))   return (Level.FINER);
-        if (s.equalsIgnoreCase ("FINEST"))  return (Level.FINEST);
-        if (s.equalsIgnoreCase ("ALL"))     return (Level.ALL);
-        if (s.equalsIgnoreCase ("OFF"))     return (Level.OFF);
-
-        return (Level.ALL);
-    }
     //THREADSAFE_LEVEL_GREY
     //combining two String arrays
-    static String[] combineArrays (String one[], String two[])
-    {
+    static String[] combineArrays(String one[], String two[]) {
         if (one == null && two == null)
             return (null);
         if (two == null)
@@ -185,8 +145,8 @@ public class Utils
             return (two);
 
         String ret[] = new String[one.length + two.length];
-        System.arraycopy (one, 0, ret, 0, one.length);
-        System.arraycopy (two, 0, ret, one.length, two.length);
+        System.arraycopy(one, 0, ret, 0, one.length);
+        System.arraycopy(two, 0, ret, one.length, two.length);
 
         return (ret);
     }
