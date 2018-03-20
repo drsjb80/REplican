@@ -260,41 +260,6 @@ class Cookie {
         maxAge = d;
     }
 
-    /**
-     * Get a string of the correct form to save in a Netscape file.
-     *
-     * @return the formatted string
-     */
-    // THREADSAFE_LEVEL_BLACK
-    // critical section, string building
-    public String getSave() {
-        if (now.after(maxAge)) {
-            logger.debug(this.toString() + " has expired");
-            return (null);
-        }
-
-        String ret = "";
-
-        for (String key : keyValuePairs.keySet()) {
-
-            ret += domain + "\t";
-            ret += domain.startsWith(".") ? "TRUE\t" : "FALSE\t";
-            ret += path + "\t";
-            ret += secure ? "TRUE\t" : "FALSE\t";
-            ret += maxAge + "\t";
-
-            final String value = keyValuePairs.get(key);
-            if (value != null) {
-                ret += key + "\t" + value + "\n";
-            } else {
-                ret += key + "\n";
-            }
-        }
-
-        logger.traceExit(ret);
-        return ret;
-    }
-
     // THREADSAFE_LEVEL_BLACK
     // critical section, ret
     public String getCookieString() {

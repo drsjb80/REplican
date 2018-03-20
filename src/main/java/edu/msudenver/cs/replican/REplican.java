@@ -27,15 +27,18 @@ public class REplican implements Runnable {
     private final Logger logger = LogManager.getLogger(getClass());
     static final REplicanArgs args = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
-    private final Cookies cookies = new Cookies();
+    static final Cookies cookies = new Cookies();
     private int URLcount = 0;
 
     //THREADSAFE_LEVEL_GREY
     //read/write collision?
     private void loadCookies() {
         for (String cookieFile : args.LoadCookies) {
-            logger.info("Loading cookies from " + cookieFile);
-            cookies.loadNetscapeCookies(cookieFile);
+            try {
+                NetscapeCookies.loadCookies(cookieFile);
+            } catch (IOException IOE) {
+                logger.throwing(IOE);
+            }
         }
     }
     //THREADSAFE_LEVEL_GREY
@@ -668,7 +671,11 @@ public class REplican implements Runnable {
         */
         String savecookies = args.SaveCookies;
         if (savecookies != null)
-            cookies.saveNetscapeCookies(savecookies);
+            try {
+            NetscapeCookies.loadCookies(savecookies);
+        } catch (IOException IOE) {
+            logger.throwing(IOE);
+        }
     }
 
     public static void main(String[] arguments) throws FileNotFoundException {

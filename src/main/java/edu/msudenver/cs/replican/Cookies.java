@@ -74,6 +74,7 @@ public class Cookies {
 
     separated by TABS
     */
+    /*
     private void doNetscapeLine(final String line) {
         // THREADSAFE_LEVEL_GREY
         logger.traceEntry(line);
@@ -145,6 +146,7 @@ public class Cookies {
             logger.throwing(E);
         }
     }
+    */
 
     // THREADSAFE_LEVEL_GREY
     public String getCookieStringsForURL(final URL url) {
