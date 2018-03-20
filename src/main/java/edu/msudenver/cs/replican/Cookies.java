@@ -59,41 +59,6 @@ public class Cookies {
         addCookie(host, path, cookieString);
     }
 
-    public void loadSQLCookies(final String file) {
-        // /Users/beatys/Library/Application Support/Firefox/Profiles/rnwwcxjq.default/cookies.sqlite
-        // THREADSAFE_LEVEL_GREY
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection("jdbc:sqlite:" + file);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return;
-        }
-        // THREADSAFE_LEVEL_GREY
-        final String sql = "SELECT * FROM moz_cookies";
-
-        try {
-            // THREADSAFE_LEVEL_GREY
-            final Statement stmt = conn.createStatement();
-            final ResultSet rs = stmt.executeQuery(sql);
-
-            while (rs.next()) {
-                final String host = rs.getString("host");
-                final String path = rs.getString("path");
-                final String domain = rs.getString("baseDomain");
-                final String name = rs.getString("name");
-                final String value = rs.getString("value");
-                final int expiry = rs.getInt("expiry");
-                final boolean isSecure = rs.getInt("isSecure") != 0;
-
-                final Cookie cookie = new Cookie(domain, path, expiry, isSecure, name, value);
-                addCookie(domain, path, cookie.getCookieString());
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
     /*
     DOMAIN - The domain that created AND that can read the variable.
     FLAG - A TRUE/FALSE value indicating if all machines within a given domain
@@ -135,30 +100,25 @@ public class Cookies {
 
     // THREADSAFE_LEVEL_GREY
     public void loadNetscapeCookies(final String file) {
-        if (file.endsWith(".sqlite")) {
-            // THREADSAFE_LEVEL_GREY
-            loadSQLCookies(file);
-        } else {
-            BufferedReader in = null;
+        BufferedReader in = null;
 
-            try {
-                in = new BufferedReader(new FileReader(file));
-            } catch (FileNotFoundException fnfe) {
-                logger.warn("File not found: " + file);
-                return;
-            }
+        try {
+            in = new BufferedReader(new FileReader(file));
+        } catch (FileNotFoundException fnfe) {
+            logger.warn("File not found: " + file);
+            return;
+        }
 
-            String line;
+        String line;
 
-            try {
-                while ((line = in.readLine()) != null) {
-                    if (line.length() > 0) {
-                        doNetscapeLine(line);
-                    }
+        try {
+            while ((line = in.readLine()) != null) {
+                if (line.length() > 0) {
+                    doNetscapeLine(line);
                 }
-            } catch (IOException ioe) {
-                logger.throwing(ioe);
             }
+        } catch (IOException ioe) {
+            logger.throwing(ioe);
         }
     }
 
