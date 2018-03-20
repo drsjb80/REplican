@@ -61,7 +61,7 @@ class REplicanArgs
     int CheckpointEvery;
     int PauseBetween;
     int PauseAfterSave;
-    int Threads;
+    int Threads = 1;
     String Directory;
     String IfNewerThan;
     String FilenameRewrite[];

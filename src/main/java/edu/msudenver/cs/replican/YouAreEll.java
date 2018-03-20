@@ -170,13 +170,11 @@ public class YouAreEll {
                 uc.setRequestProperty("Referer", Referer);
 
             if (!REplican.args.IgnoreCookies) {
-                String c = cookies.getCookieStringsForURL(new URL(url));
-
-                if (c == null)
-                    logger.trace("No cookie");
-                else {
-                    logger.trace(c);
+                try {
+                    String c = cookies.getCookieStringsForURL(new URL(url));
                     uc.setRequestProperty("Cookie", c);
+                } catch (IllegalArgumentException IAE) {
+                    logger.info(IAE);
                 }
             }
         } catch (IllegalStateException ise) {

@@ -108,12 +108,14 @@ class Cookie {
     // THREADSAFE_LEVEL_BLACK
     // sets global variable, needs locking..?
     private void setPath (String path) {
+        /*
         if (this.path != null) {
             if (! this.path.equals(path)) {
                 throw (new IllegalArgumentException("Attempted cookie path reset from: "
                         + this.path + " to: " + path));
             }
         }
+        */
 
         if (! path.startsWith("/")) {
             throw (new IllegalArgumentException("Path: " + path + "does not begin with /"));
