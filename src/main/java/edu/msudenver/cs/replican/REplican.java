@@ -24,7 +24,7 @@ import java.util.concurrent.Executors;
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 
 public class REplican implements Runnable {
-    static final Logger logger = LogManager.getLogger("REplican");
+    private final Logger logger = LogManager.getLogger(getClass());
     static final REplicanArgs args = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
     private final Cookies cookies = new Cookies();

@@ -3,6 +3,7 @@ package edu.msudenver.cs.replican;
 import java.util.Arrays;
 import java.util.logging.Level;
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 /*
  * SEVERE
@@ -16,7 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 public class Utils
 {
-    private static final Logger logger = REplican.logger;
+    private static final Logger logger = LogManager.getLogger("edu.msudenver.cs.replican.Utils");
 
     /**
      * make a String pattern of, e.g.: [Aa][Bb], from a string, ignoring

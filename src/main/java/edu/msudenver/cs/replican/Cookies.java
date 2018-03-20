@@ -1,5 +1,6 @@
 package edu.msudenver.cs.replican;
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
@@ -28,7 +29,7 @@ set-cookie      =       "Set-Cookie:" cookies
 public class Cookies {
     // THREADSAFE_LEVEL_GREY
     private final Map<String, Vector<Cookie>> cookies = new HashMap<>();
-    private final Logger logger = REplican.logger;
+    private final Logger logger = LogManager.getLogger(getClass());
 
     public void addCookie(final String hostORdomain, final String path,
                           final String cookieString) {

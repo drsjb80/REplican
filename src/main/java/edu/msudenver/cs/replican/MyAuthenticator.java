@@ -3,11 +3,12 @@ package edu.msudenver.cs.replican;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 class MyAuthenticator extends Authenticator
 {
-    private final Logger logger = REplican.logger;
+    private final Logger logger = LogManager.getLogger(getClass());
     private final String username;
     private final String password;
 

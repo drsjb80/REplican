@@ -7,13 +7,15 @@ import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
 
 import java.net.MalformedURLException;
+
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class WebFile
 {
     private final REplicanArgs args;
     private final YouAreEll yrl;
-    private final Logger logger = REplican.logger;
+    private final Logger logger = LogManager.getLogger(getClass());
     private File file;
     private BufferedOutputStream bos;
     //THREADSAFE_LEVEL_BLACK

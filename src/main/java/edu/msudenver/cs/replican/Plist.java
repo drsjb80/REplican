@@ -4,6 +4,7 @@ package edu.msudenver.cs.replican;
 ** parse a Safari plist file
 */
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -26,11 +27,11 @@ import javax.xml.parsers.ParserConfigurationException;
 
 class Plist extends DefaultHandler
 {
-    private static final Logger logger = REplican.logger;
+    private final Logger logger = LogManager.getLogger(getClass());
     // THREADSAFE_LEVEL_GREY
     private final Cookies cookies;
 
-    static InputSource getInputSource (String u)
+    InputSource getInputSource (String u)
     {
         URL url = null;
         try

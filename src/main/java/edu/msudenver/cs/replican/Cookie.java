@@ -1,6 +1,7 @@
 package edu.msudenver.cs.replican;
 
 import lombok.Getter;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.text.ParseException;
@@ -19,7 +20,7 @@ class Cookie {
     private static final Date BEGINNINGOFTIME = new Date(0);
 
     private static final long serialVersionUID = 1L;
-    private final Logger logger = REplican.logger;
+    private final Logger logger = LogManager.getLogger(getClass());
     // THREADSAFE_LEVEL_GREY
     @Getter private String domain;
     // THREADSAFE_LEVEL_GREY

@@ -11,10 +11,11 @@ import java.util.Map;
 import java.util.List;
 
 import lombok.Getter;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class YouAreEll {
-    private final Logger logger = REplican.logger;
+    private final Logger logger = LogManager.getLogger(getClass());
     private URLConnection uc;
     @Getter private String ContentType;
     @Getter private int ContentLength;

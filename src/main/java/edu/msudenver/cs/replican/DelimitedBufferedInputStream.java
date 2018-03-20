@@ -4,12 +4,13 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class DelimitedBufferedInputStream extends BufferedInputStream
 {
 
-	private static final Logger logger = REplican.logger;
+	private final Logger logger = LogManager.getLogger(getClass());
     // THREADSAFE_LEVEL_BLACK
 	private List<String> strings = new ArrayList<>();
 	private boolean inString;
