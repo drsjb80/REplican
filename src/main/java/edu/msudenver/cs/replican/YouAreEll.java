@@ -18,24 +18,33 @@ public class YouAreEll {
     private final Logger logger = LogManager.getLogger(getClass());
     private URLConnection urlConnection;
     @Getter private String ContentType;
-    @Getter private int ContentLength;
+
+    private int ContentLength;
+    int getContentLength() {
+        String cl = urlConnection.getHeaderField("Content-Length");
+        if (cl != null) {
+            try {
+                return Integer.parseInt(cl);
+            } catch (NumberFormatException NFE) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
     @Getter private final InputStream inputStream;
-
     @Getter private final String url;
-    private final Cookies cookies;
+    private final Cookies cookies = REplican.cookies;
 
-    public YouAreEll(String url, Cookies cookies) {
+    public YouAreEll(final String url) {
         this.url = url;
-        this.cookies = cookies;
         this.inputStream = createInputStream();
     }
 
-    //THREADSAFE_LEVEL_BLACK
     long getLastModified() {
         return (urlConnection.getLastModified());
     }
 
-    //THREADSAFE_LEVEL_BLACK
     private void dealWithRedirects() {
         /*
         HTTP/1.1 301 Moved Permanently
@@ -48,7 +57,6 @@ public class YouAreEll {
         */
 
         // mark the original fetched
-
         REplican.urls.put(url, Boolean.TRUE);
 
         if (!REplican.args.FollowRedirects)
@@ -69,29 +77,19 @@ public class YouAreEll {
 
         REplican.urls.put(newURL.toString(), Boolean.FALSE);
     }
-    //THREADSAFE_LEVEL_GREY
-    private void dealWithStopOns(int code) {
-        int[] stopon = REplican.args.StopOn;
 
-        for (int i = 0; i < stopon.length; i++) {
-            if (code == stopon[i]) {
+    private void dealWithStopOns(final int code) {
+        for (int stopon: REplican.args.StopOn) {
+            if (code == stopon) {
                 logger.warn("Stopping on return code: " + code);
                 System.exit(0);
             }
         }
     }
-    //THREADSAFE_LEVEL_BLACK
-    private InputStream HUC() {
-        ContentType = urlConnection.getHeaderField("Content-Type");
-        String cl = urlConnection.getHeaderField("Content-Length");
-        if (cl != null) {
-            try {
-                ContentLength = Integer.parseInt(cl);
-            } catch (NumberFormatException NFE) {
-                ContentLength = 0;
-            }
-        }
 
+    private InputStream HUC() {
+        ContentLength = getContentLength();
+        ContentType = urlConnection.getHeaderField("Content-Type");
         String MIMEAccept[] = REplican.args.MIMEAccept;
         String MIMEReject[] = REplican.args.MIMEReject;
 
@@ -108,7 +106,6 @@ public class YouAreEll {
         }
     }
 
-    //THREADSAFE_LEVEL_BLACK
     private InputStream dealWithReturnCode(int code) {
         logger.traceEntry(Integer.toString(code));
 
@@ -116,13 +113,12 @@ public class YouAreEll {
             dealWithStopOns(code);
 
         switch (code) {
-            case 200:
+            case HttpURLConnection.HTTP_OK:
                 return (HUC());
-            case 301:
-            case 302: {
+            case HttpURLConnection.HTTP_MOVED_PERM:
+            case HttpURLConnection.HTTP_MOVED_TEMP:
                 dealWithRedirects();
                 return (null);
-            }
             default: {
                 try {
                     String message = "";
@@ -140,57 +136,73 @@ public class YouAreEll {
         }
     }
 
-    //THREADSAFE_LEVEL_GREY
     private int connect() throws IOException {
         urlConnection = new URL(url).openConnection();
+        setUserAgent();
+        setReferer();
+        setCookies();
 
-        try {
-            if (REplican.args.UserAgent != null)
-                urlConnection.setRequestProperty("User-Agent", REplican.args.UserAgent);
-
-            if (REplican.args.Header != null) {
-                for (int i = 0; i < REplican.args.Header.length; i++) {
-                    String s[] = REplican.args.Header[i].split(":");
-                    if (s[0] != null && s[1] != null) {
-                        urlConnection.setRequestProperty(s[0], s[1]);
-                    } else {
-                        logger.trace("Couldn't decipher " + REplican.args.Header[i]);
-                    }
-                }
-            }
-
-            String Referer = REplican.args.Referer;
-            if (Referer != null)
-                urlConnection.setRequestProperty("Referer", Referer);
-
-            if (!REplican.args.IgnoreCookies) {
-                try {
-                    // String c = cookies.getCookieStringsForURL(new URL(url));
-                    // urlConnection.setRequestProperty("Cookie", c);
-                } catch (IllegalArgumentException IAE) {
-                    logger.info(IAE);
-                }
-            }
-        } catch (IllegalStateException ise) {
-            logger.throwing(ise);
-        }
-
-        int rc = 200;
+        int returnCode = HttpURLConnection.HTTP_OK;
 
         if (urlConnection instanceof HttpURLConnection)
-            rc = ((HttpURLConnection) urlConnection).getResponseCode();
+            returnCode = ((HttpURLConnection) urlConnection).getResponseCode();
 
         urlConnection.connect();
 
-        logger.traceExit(rc);
-        return (rc);
+        logger.traceExit(returnCode);
+        return returnCode;
     }
-    //THREADSAFE_LEVEL_BLACK
+
+    private void setUserAgent() {
+        if (REplican.args.UserAgent != null) {
+            urlConnection.setRequestProperty("User-Agent", REplican.args.UserAgent);
+        }
+    }
+
+    private void setReferer() {
+        String Referer = REplican.args.Referer;
+        if (Referer != null) {
+            urlConnection.setRequestProperty("Referer", Referer);
+        }
+    }
+
+    private void setCookies() {
+        String c = null;
+        if (!REplican.args.IgnoreCookies) {
+            try {
+                List<Cookie> cookies = REplican.cookies.getCookiesForUrl(new URL(url));
+                for (Cookie cookie: cookies) {
+                    c += cookie.getCookieString();
+                }
+            } catch (MalformedURLException MUE) {
+                logger.throwing(MUE);
+                return;
+            }
+        }
+
+        if (c != null) {
+            urlConnection.setRequestProperty("Cookie", c);
+        }
+    }
+
+    private void addHeaderLines() {
+        if (REplican.args.Header != null) {
+            for (String header: REplican.args.Header) {
+                String s[] = header.split(":");
+                if (s[0] != null && s[1] != null) {
+                    urlConnection.setRequestProperty(s[0], s[1]);
+                } else {
+                    logger.trace("Couldn't decipher " + header);
+                }
+            }
+        }
+    }
+
     private InputStream getURLInputStream() {
-        int code;
+        final int returnCode;
 
         try {
-            code = connect();
+            returnCode = connect();
         } catch (IOException e) {
             logger.warn(e);
             return (null);
@@ -199,11 +211,15 @@ public class YouAreEll {
         logger.trace(urlConnection.toString());
         logger.trace(urlConnection.getHeaderFields().toString());
 
+        return (dealWithReturnCode(returnCode));
+    }
+
+    private void getCookies() {
         if (!REplican.args.IgnoreCookies) {
             Map<String, List<String>> m = urlConnection.getHeaderFields();
-            List<String> l = m.get("Set-Cookie");
-            if (l != null) {
-                for (String cookie : l) {
+            List<String> list = m.get("Set-Cookie");
+            if (list != null) {
+                for (String cookie : list) {
                     logger.trace("Adding cookie: " + cookie);
                     try {
                         cookies.addCookie(new URL(url), cookie);
@@ -213,16 +229,12 @@ public class YouAreEll {
                 }
             }
         }
-
-        return (dealWithReturnCode(code));
     }
 
     /**
      * get an InputStream from either a file: or http: URL.  deals
      * with http redirections.
      */
-
-    //THREADSAFE_LEVEL_BLACK
     private InputStream createInputStream() {
         // http://httpd.apache.org/docs/1.3/mod/mod_dir.html#directoryindex
 

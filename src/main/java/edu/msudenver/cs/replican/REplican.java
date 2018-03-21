@@ -583,7 +583,7 @@ public class REplican implements Runnable {
         InputStream is = null;
         YouAreEll yrl = null;
         for (int t = 0; t < args.Tries; t++) {
-            yrl = new YouAreEll(url, cookies);
+            yrl = new YouAreEll(url);
             is = yrl.getInputStream();
             if (is != null)
                 break;
