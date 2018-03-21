@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- FATAL, ERROR, DEBUG, WARN, INFO, TRACE -->
-<Configuration status="ERROR">
+<Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%level %thread %message %location%n"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="error">
+        <Root level="warn">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>

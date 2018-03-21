@@ -30,6 +30,11 @@ public class REplican implements Runnable {
     static final Cookies cookies = new Cookies();
     private int URLcount = 0;
 
+    // turn on assert for every class *but this one*.
+    static {
+        ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
+    }
+
     //THREADSAFE_LEVEL_GREY
     //read/write collision?
     private void loadCookies() {
@@ -724,20 +729,6 @@ public class REplican implements Runnable {
         ExecutorService threadPool = Executors.newFixedThreadPool(args.Threads);
         threadPool.execute(runnableREplican);
         threadPool.shutdown();
-
-        /** Moved to run() for the moment
-         REplican r = new REplican();
-         r.setLogLevel();
-         r.setDefaults();
-
-
-
-        if (args.LoadCookies != null) r.loadCookies();
-        if (args.PlistCookies != null) r.loadPlistCookies();
-        if (args.CheckpointEvery != 0) r.readCheckpointFile();
-
-        r.doit();
-         */
     }
 
     // Needed to implement Runnable
@@ -747,8 +738,6 @@ public class REplican implements Runnable {
             REplican r = new REplican();
             r.setLogLevel();
             r.setDefaults();
-
-
 
             if (args.LoadCookies != null) r.loadCookies();
             if (args.PlistCookies != null) r.loadPlistCookies();
