@@ -2,6 +2,7 @@ package edu.msudenver.cs.replican;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,121 +23,70 @@ import java.util.concurrent.ConcurrentHashMap;
 class Cookie {
     private static final Date now = new Date();
     private static final Date BEGINNINGOFTIME = new Date(0);
-
-    private static final long serialVersionUID = 1L;
     private final Logger logger = LogManager.getLogger(getClass());
-    // THREADSAFE_LEVEL_GREY
-    @Getter private String domain;
-    // THREADSAFE_LEVEL_GREY
-    @Getter private String path;
-    // THREADSAFE_LEVEL_GREY
-    private Date maxAge = BEGINNINGOFTIME;
-    long getMaxAge() { return maxAge.getTime(); }
+    @Getter private final AbstractMap<String, String> keyValuePairs = new ConcurrentHashMap<>();
     @Getter private boolean secure;
     @Getter private boolean httponly;
-    /*
-    hash domains -> paths
-    hash paths -> keyValuePairs
-     */
 
-    Cookie getCookie(final String domain, final String path) {
-        for (String d: domains.keySet()) {
-            if (d.endsWith(domain)) {
-                AbstractMap<String, AbstractMap> paths = domains.get(d);
-                for (String p: paths.keySet()) {
-                    if (p.endsWith(path)) {
-                        // do something here?
-                    }
-                }
-            }
-        }
-        return null;
+    // host comes in via the URL, not used unless there is no domain
+    // a path comes in via the URL, not used unless there is no path
+    @Getter private String URLHost = null;
+    @Getter private String URLPath = null;
+
+    private Date maxAge = BEGINNINGOFTIME;
+    long getMaxTime() {
+        return maxAge.getTime();
     }
-    private final AbstractMap<String, String> keyValuePairs = new ConcurrentHashMap<>();
-    private final AbstractMap<String, AbstractMap> paths = new ConcurrentHashMap<>();
-    private final AbstractMap<String, AbstractMap> domains = new ConcurrentHashMap<>();
 
-    // THREADSAFE_LEVEL_GREY
-    // needs locking?
-    Cookie(final String domain, final String path, final long maxAge,
-           final boolean secure, final String key, final String value) {
-        setDomainAndPath(domain, path);
+    private String path;
+    // if path hasn't been set by a cookie, use the URLPath. if that hasn't been
+    // set, return a slash.
+    String getPath() {
+        if (this.path == null || this.path.equals(""))  {
+            if (this.URLPath == null || this.URLPath.equals("")) {
+                return "/";
+            }
+            return URLPath;
+        }
+
+        return this.path;
+    }
+
+    private String domain;
+    String getDomain() {
+        if (this.domain == null) {
+            return this.URLHost;
+        }
+        return this.domain;
+    }
+
+    // used from e.g.: FirefoxCookies
+    Cookie(@NonNull final String domain, @NonNull final String path,
+           final long maxAge, final boolean secure,
+           @NonNull final String key, @NonNull final String value) {
+        this.domain = domain;
+        this.path = path;
         this.maxAge = new Date(maxAge);
         this.secure = secure;
         keyValuePairs.put(key, value);
     }
 
-    // THREADSAFE_LEVEL_GREY
-    // needs locking?
-    private void setDomainAndPath(String domain, final String path) {
-        setDomain(domain);
-        setPath(path);
+    Cookie(@NonNull final String URLHost, @NonNull final String URLPath,
+           @NonNull final String cookieString) throws IllegalArgumentException {
+        this.URLHost = URLHost;
+        setURLPath(URLPath);
+        addCookieString(cookieString);
     }
 
-    //THREADSAFE_LEVEL_GREY
-    // needs locking?
-    private void setDomain(String domain)
-    {
-        /*
-        if (domain.startsWith(".")) {
-            domain = domain.replaceFirst("\\.", "");
+    private void setURLPath(@NonNull final String URLPath) {
+        if (URLPath.equals("")) {
+            this.URLPath = "/";
+        } else {
+            this.URLPath = URLPath;
         }
-
-        AbstractMap d = domains.get(domain);
-        if (d == null) {
-            AbstractMap <String, AbstractMap> paths = new ConcurrentHashMap<>();
-            d.put(domain, paths);
-        }
-
-        if (paths == null) {
-            AbstractMap <String, AbstractMap> paths = new ConcurrentHashMap<>();
-        }
-
-        // FIXME: what should be done when additions don't agree with orginals?
-        if (this.domain != null) {
-            if (! domain.equals(this.domain)) {
-                throw (new IllegalArgumentException("Attempted cookie domain reset from: "
-                        + this.domain + " to: " + domain));
-            }
-        }
-
-        checkDomain(domain);
-        this.domain = domain;
-        */
     }
 
-    // THREADSAFE_LEVEL_BLACK
-    // sets global variable, needs locking..?
-    private void setPath (String path) {
-        /*
-        if (this.path != null) {
-            if (! this.path.equals(path)) {
-                throw (new IllegalArgumentException("Attempted cookie path reset from: "
-                        + this.path + " to: " + path));
-            }
-        }
-        */
-
-        if (! path.startsWith("/")) {
-            throw (new IllegalArgumentException("Path: " + path + "does not begin with /"));
-        }
-
-        this.path = path;
-    }
-
-    // THREADSAFE_LEVEL_GREY
-    // set global, needs locking
-    public Cookie(String domain, final String path, final String cookieString)
-            throws IllegalArgumentException {
-        setDomainAndPath(domain, path);
-        addToCookie(cookieString);
-    }
-
-    // THREADSAFE_LEVEL_GREY
-    // string splitting may not be thread safe
-     void addToCookie(final String cookieString) {
-        logger.traceEntry(cookieString);
-
+    void addCookieString(@NonNull final String cookieString) {
         final String[] b = cookieString.split(";");
 
         for (String pair: b) {
@@ -149,125 +99,96 @@ class Cookie {
                 value = c[1].trim();
             }
 
-            if (! setIfRFCKey(key, value)) {
-                keyValuePairs.put(key, value);
-            }
+            setKeyValue(key, value);
         }
     }
 
-	/*
-   The value for the path attribute is not a prefix of the request-
-   URI.
-
-   The value for the domain attribute contains no embedded dots or
-   does not start with a dot.
-
-   The value for the request-host does not domain-match the domain
-   attribute.
-
-   The request-host is a FQDN (not IP address) and has the form HD,
-   where D is the value of the domain attribute, and H is a string
-   that contains one or more dots.
-	 */
-
-    /*
-	    called if soemthing goes wrong when parsing entire line.
-	*/
-    // THREADSAFE_LEVEL_BLACK
-    // needs to aquire a lock on global vars
-    private void reset() {
-        domain = null;
-        path = null;
-        maxAge = BEGINNINGOFTIME;
-        secure = false;
-    }
-
-    private void checkDomain(final String domain) {
-        if (domain.indexOf(".", 1) == -1) {
-            throw new IllegalArgumentException(domain + " does not have embedded dots");
-        }
-    }
-
-    private void checkHost(String host) {
-        if (!host.endsWith(this.domain)) {
-            throw new IllegalArgumentException(host
-                    + " does not end with " + this.domain);
-        }
-
-        final String tmpHost = host.replaceFirst("\\..*", "") + domain;
-        if (!tmpHost.equals(host)) {
-            throw new IllegalArgumentException(host
-                    + " is longer than " + domain);
+    void addCookie(@NonNull final Cookie cookie) {
+        assert cookie.getPath().equals(this.getPath());
+        assert cookie.getDomain().equals(this.getDomain());
+        for (AbstractMap.Entry<String, String> entry : cookie.keyValuePairs.entrySet()) {
+            setKeyValue(entry.getKey(), entry.getValue());
         }
     }
 
     /*
-    **  Check to see if this is one of the usual cookie values and set it
-    **  appropriately if so. see: https://tools.ietf.org/html/rfc6265#section-5.2.2
-    */
-    // THREADSAFE_LEVEL_GREY
-    private boolean setIfRFCKey(final String key, final String value) {
+**  Check to see if this is one of the usual cookie values and set it
+**  appropriately if so. see: https://tools.ietf.org/html/rfc6265#section-5.2.2
+*/
+    private void setKeyValue(@NonNull final String key, @NonNull final String value) {
         logger.traceEntry(key);
         logger.traceEntry(value);
 
         switch (key.toLowerCase()) {
-            case "max-age":
-                setMaxAge(value);
-                return true;
-            case "expires":
-                setExpiry(value);
-                return true;
-            case ("domain"):
-                setDomain(value);
-                return true;
-            case ("path"):
-                setPath(value);
-                return true;
-            case ("secure"):
-                secure = true;
-                return true;
-            case ("httponly"):
-                httponly = true;
-                return true;
+            case "max-age": setMaxAge(value); break;
+            case "expires": setExpiry(value); break;
+            case ("domain"): setDomain(value); break;
+            case ("path"): setPath(value); break;
+            case ("secure"): secure = true; break;
+            case ("httponly"): httponly = true; break;
+            default: keyValuePairs.put(key, value); break;
         }
-
-        return false;
     }
 
-    // THREADSAFE_LEVEL_BLACK
-    // needs lock aquire
-    private void setMaxAge (final String value) {
-        // FIXME: go with whatever we see most recently. i'm not sure this is the best
-        // approach, but i'm not sure whether using newer or older dates is correct. same
-        // expiry below.
-        try {
-            maxAge = new Date(now.getTime() + Long.parseLong(value));
-        } catch (NumberFormatException NFE) {
+    private void setMaxAge (@NonNull final String value) {
+        final long seconds = Long.parseLong(value);
+
+        if (seconds <= 0) {
             maxAge = BEGINNINGOFTIME;
+            return;
+        }
+
+        Date newMaxAge = new Date(now.getTime() + seconds);
+
+        // allow extensions to the time
+        if (maxAge.before(newMaxAge)) {
+            maxAge = newMaxAge;
         }
     }
 
+    private void setExpiry (@NonNull final String value) {
+        Date date = null;
 
-    // THREADSAFE_LEVEL_BLACK
-    // needs lock aquire
-    private void setExpiry (final String value) {
-        Date d = null;
+        // try it both ways; if neither work, give up. go with the newest on we see.
         try {
-            d = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").parse(value);
+            maxAge = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").parse(value);
         } catch (ParseException PE1) {
             try {
-                d = new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss zzz").parse(value);
+                maxAge = new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss zzz").parse(value);
             } catch (ParseException PE2) {
-                maxAge = BEGINNINGOFTIME;
                 return;
             }
         }
-
-        maxAge = d;
     }
 
-    // THREADSAFE_LEVEL_BLACK
-    // critical section, ret
+    private void setDomain(@NonNull String domain) {
+        if (domain.startsWith(".")) {
+            domain = domain.replaceFirst("\\.", "");
+        }
+
+        if (domain.indexOf(".", 1) == -1) {
+            throw new IllegalArgumentException(domain + " does not have embedded dots");
+        }
+
+        if (this.domain != null && !this.domain.equals(domain)) {
+            throw new IllegalArgumentException(this.domain + " != " + domain);
+        }
+
+        if (! this.URLHost.endsWith(domain)) {
+            throw new IllegalArgumentException(this.URLHost + " does not end with "
+                    + domain);
+        }
+
+        this.domain = domain;
+    }
+
+    private void setPath(@NonNull final String path) {
+        assert path.startsWith("/");
+        assert this.URLPath.startsWith(path);
+
+        this.path = path;
+    }
+
     public String getCookieString() {
         String ret = "Cookie: ";
         boolean first = true;

@@ -109,7 +109,7 @@ public class WebFile
     //THREADSAFE_LEVEL_GREY
     private String getDirectoryPath()
     {
-        String path = getFilePath (yrl.getURL());
+        String path = getFilePath (yrl.getUrl());
 
         path = Utils.replaceAll (path, args.FilenameRewrite);
         path = path.replaceFirst ("^~", System.getProperty("user.home"));

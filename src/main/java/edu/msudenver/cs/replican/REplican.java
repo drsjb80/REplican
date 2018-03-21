@@ -487,7 +487,7 @@ public class REplican implements Runnable {
         }
 
         if (save || examine) {
-            if (!examineORsave(yrl, is, bos, examine, save, yrl.getURL())) {
+            if (!examineORsave(yrl, is, bos, examine, save, yrl.getUrl())) {
                 logger.error("examineORsave failed");
             }
         }

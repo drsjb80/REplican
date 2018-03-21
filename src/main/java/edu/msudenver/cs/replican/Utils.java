@@ -5,15 +5,6 @@ import java.util.logging.Level;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-/*
- * SEVERE
- * WARNING
- * INFO
- * CONFIG
- * FINE
- * FINER        (entering and exiting)
- * FINEST
- */
 
 public class Utils {
     private static final Logger logger = LogManager.getLogger("edu.msudenver.cs.replican.Utils");
@@ -132,6 +123,10 @@ public class Utils {
             logger.traceExit(ret);
             return (ret);
         }
+    }
+
+    static String hostToDomain(String host) {
+        return host.replaceFirst("[^.]+.", "");
     }
 
     //THREADSAFE_LEVEL_GREY

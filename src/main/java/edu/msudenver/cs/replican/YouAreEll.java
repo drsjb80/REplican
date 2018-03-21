@@ -16,10 +16,10 @@ import org.apache.logging.log4j.Logger;
 
 public class YouAreEll {
     private final Logger logger = LogManager.getLogger(getClass());
-    private URLConnection uc;
+    private URLConnection urlConnection;
     @Getter private String ContentType;
     @Getter private int ContentLength;
-    private final InputStream inputstream;
+    @Getter private final InputStream inputStream;
 
     @Getter private final String url;
     private final Cookies cookies;
@@ -27,19 +27,13 @@ public class YouAreEll {
     public YouAreEll(String url, Cookies cookies) {
         this.url = url;
         this.cookies = cookies;
-        inputstream = createInputStream();
+        this.inputStream = createInputStream();
     }
-    //THREADSAFE_LEVEL_BLACK
-    String getContentType() { return (ContentType); }
-    //THREADSAFE_LEVEL_BLACK
-    int getContentLength() { return (ContentLength); }
-    //THREADSAFE_LEVEL_BLACK
-    String getURL() { return (url); }
-    //THREADSAFE_LEVEL_BLACK
-    InputStream getInputStream() { return (inputstream); }
-    //THREADSAFE_LEVEL_BLACK
-    long getLastModified() { return (uc.getLastModified()); }
 
+    //THREADSAFE_LEVEL_BLACK
+    long getLastModified() {
+        return (urlConnection.getLastModified());
+    }
 
     //THREADSAFE_LEVEL_BLACK
     private void dealWithRedirects() {
@@ -60,7 +54,7 @@ public class YouAreEll {
         if (!REplican.args.FollowRedirects)
             return;
 
-        String redirected = uc.getHeaderField("Location");
+        String redirected = urlConnection.getHeaderField("Location");
         if (REplican.args.PrintRedirects)
             logger.info("Redirected to: " + redirected);
 
@@ -88,8 +82,8 @@ public class YouAreEll {
     }
     //THREADSAFE_LEVEL_BLACK
     private InputStream HUC() {
-        ContentType = uc.getHeaderField("Content-Type");
-        String cl = uc.getHeaderField("Content-Length");
+        ContentType = urlConnection.getHeaderField("Content-Type");
+        String cl = urlConnection.getHeaderField("Content-Length");
         if (cl != null) {
             try {
                 ContentLength = Integer.parseInt(cl);
@@ -107,7 +101,7 @@ public class YouAreEll {
             return (null);
 
         try {
-            return (uc.getInputStream());
+            return (urlConnection.getInputStream());
         } catch (IOException e) {
             logger.throwing(e);
             return (null);
@@ -133,8 +127,8 @@ public class YouAreEll {
                 try {
                     String message = "";
 
-                    if (uc instanceof HttpURLConnection)
-                        message = ((HttpURLConnection) uc).getResponseMessage();
+                    if (urlConnection instanceof HttpURLConnection)
+                        message = ((HttpURLConnection) urlConnection).getResponseMessage();
                     logger.warn("For: " + url + " server returned: " +
                             code + " " + message);
                 } catch (IOException e) {
@@ -148,17 +142,17 @@ public class YouAreEll {
 
     //THREADSAFE_LEVEL_GREY
     private int connect() throws IOException {
-        uc = new URL(url).openConnection();
+        urlConnection = new URL(url).openConnection();
 
         try {
             if (REplican.args.UserAgent != null)
-                uc.setRequestProperty("User-Agent", REplican.args.UserAgent);
+                urlConnection.setRequestProperty("User-Agent", REplican.args.UserAgent);
 
             if (REplican.args.Header != null) {
                 for (int i = 0; i < REplican.args.Header.length; i++) {
                     String s[] = REplican.args.Header[i].split(":");
                     if (s[0] != null && s[1] != null) {
-                        uc.setRequestProperty(s[0], s[1]);
+                        urlConnection.setRequestProperty(s[0], s[1]);
                     } else {
                         logger.trace("Couldn't decipher " + REplican.args.Header[i]);
                     }
@@ -167,12 +161,12 @@ public class YouAreEll {
 
             String Referer = REplican.args.Referer;
             if (Referer != null)
-                uc.setRequestProperty("Referer", Referer);
+                urlConnection.setRequestProperty("Referer", Referer);
 
             if (!REplican.args.IgnoreCookies) {
                 try {
-                    String c = cookies.getCookieStringsForURL(new URL(url));
-                    uc.setRequestProperty("Cookie", c);
+                    // String c = cookies.getCookieStringsForURL(new URL(url));
+                    // urlConnection.setRequestProperty("Cookie", c);
                 } catch (IllegalArgumentException IAE) {
                     logger.info(IAE);
                 }
@@ -183,10 +177,10 @@ public class YouAreEll {
 
         int rc = 200;
 
-        if (uc instanceof HttpURLConnection)
-            rc = ((HttpURLConnection) uc).getResponseCode();
+        if (urlConnection instanceof HttpURLConnection)
+            rc = ((HttpURLConnection) urlConnection).getResponseCode();
 
-        uc.connect();
+        urlConnection.connect();
 
         logger.traceExit(rc);
         return (rc);
@@ -202,11 +196,11 @@ public class YouAreEll {
             return (null);
         }
 
-        logger.trace(uc.toString());
-        logger.trace(uc.getHeaderFields().toString());
+        logger.trace(urlConnection.toString());
+        logger.trace(urlConnection.getHeaderFields().toString());
 
         if (!REplican.args.IgnoreCookies) {
-            Map<String, List<String>> m = uc.getHeaderFields();
+            Map<String, List<String>> m = urlConnection.getHeaderFields();
             List<String> l = m.get("Set-Cookie");
             if (l != null) {
                 for (String cookie : l) {
