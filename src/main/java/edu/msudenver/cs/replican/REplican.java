@@ -37,7 +37,7 @@ public class REplican implements Runnable {
 
     //THREADSAFE_LEVEL_GREY
     //read/write collision?
-    private void loadCookies() {
+    private void loadNetscapeCookies() {
         for (String cookieFile : args.LoadCookies) {
             try {
                 NetscapeCookies.loadCookies(cookieFile);
@@ -51,6 +51,13 @@ public class REplican implements Runnable {
         for (String cookieFile : args.PlistCookies) {
             logger.info("Loading cookies from " + cookieFile);
             new Plist("file:" + cookieFile, cookies);
+        }
+    }
+
+    private void loadFirefoxCookies() {
+        for (String cookieFile : args.FirefoxCookies) {
+            logger.info("Loading cookies from " + cookieFile);
+            FirefoxCookies.loadCookies(cookieFile);
         }
     }
 
@@ -155,7 +162,7 @@ public class REplican implements Runnable {
         // the command line.
         if (args.MIMESave == null && args.MIMERefuse == null &&
                 args.PathSave == null && args.PathRefuse == null) {
-            if (args.additional.length == 0) {
+            if (args.additional == null) {
                 logger.error("No URLs specified");
                 System.exit(1);
             }
@@ -739,7 +746,8 @@ public class REplican implements Runnable {
             r.setLogLevel();
             r.setDefaults();
 
-            if (args.LoadCookies != null) r.loadCookies();
+            if (args.FirefoxCookies != null) loadFirefoxCookies();
+            if (args.LoadCookies != null) r.loadNetscapeCookies();
             if (args.PlistCookies != null) r.loadPlistCookies();
             if (args.CheckpointEvery != 0) r.readCheckpointFile();
 

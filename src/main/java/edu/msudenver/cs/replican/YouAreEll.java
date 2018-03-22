@@ -9,6 +9,7 @@ import java.io.*;
 
 import java.util.Map;
 import java.util.List;
+import java.util.Queue;
 
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
@@ -170,7 +171,7 @@ public class YouAreEll {
         String c = null;
         if (!REplican.args.IgnoreCookies) {
             try {
-                List<Cookie> cookies = REplican.cookies.getCookiesForUrl(new URL(url));
+                Queue<Cookie> cookies = REplican.cookies.getCookiesForUrl(new URL(url));
                 for (Cookie cookie: cookies) {
                     c += cookie.getCookieString();
                 }

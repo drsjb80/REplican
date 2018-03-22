@@ -42,7 +42,7 @@ public class CookiesTest {
 
         assertEquals("Cookie: foo=bar; SID=31d4d96e407aad42",
                 cookies.getCookiesForDomainAndPath("foo.example.com",
-                        "/bar/baz").get(0).getCookieString());
+                        "/bar/baz").remove().getCookieString());
     }
 
     @Test
@@ -58,23 +58,55 @@ public class CookiesTest {
 
         assertEquals("Cookie: SID=31d4d96e407aad42",
                 cookies.getCookiesForDomainAndPath("foo.example.com",
-                        "/bar/baz").get(0).getCookieString());
-        assertEquals("Cookie: SID=31d4d96e407aad42",
-                cookies.getCookiesForDomainAndPath("foo.example.com",
-                        "/bar").get(0).getCookieString());
-        assertEquals("Cookie: SID=31d4d96e407aad42",
-                cookies.getCookiesForDomainAndPath("foo.example.com",
-                        "/").get(0).getCookieString());
+                        "/bar/baz").remove().getCookieString());
 
-        assertEquals("Cookie: SID=31d4d96e407aad42",
+        // don't go more generic
+        assertEquals(0,
                 cookies.getCookiesForDomainAndPath("example.com",
-                        "/bar/baz").get(0).getCookieString());
-        assertEquals("Cookie: SID=31d4d96e407aad42",
-                cookies.getCookiesForDomainAndPath("example.com",
-                        "/bar").get(0).getCookieString());
-        assertEquals("Cookie: SID=31d4d96e407aad42",
-                cookies.getCookiesForDomainAndPath("example.com",
-                        "/").get(0).getCookieString());
+                        "/bar/baz").size());
+        assertEquals(0,
+                cookies.getCookiesForDomainAndPath("foo.example.com",
+                        "/bar").size());
+
+
     }
 
+    @Test
+    public void subPath() {
+        final Cookie cookie = new Cookie("foo.example.com", "/",
+                "SID=31d4d96e407aad42");
+        final Cookies cookies = new Cookies();
+
+        cookies.addCookie(cookie);
+
+        assertEquals(1, cookies.getAllCookies().size());
+
+        assertEquals("Cookie: SID=31d4d96e407aad42",
+                cookies.getCookiesForDomainAndPath("foo.example.com",
+                        "/bar/baz").remove().getCookieString());
+        assertEquals("Cookie: SID=31d4d96e407aad42",
+                cookies.getCookiesForDomainAndPath("foo.example.com",
+                        "/bar").remove().getCookieString());
+        assertEquals("Cookie: SID=31d4d96e407aad42",
+                cookies.getCookiesForDomainAndPath("foo.example.com",
+                        "/").remove().getCookieString());
+    }
+
+    @Test
+    public void specificHost() {
+        final Cookie cookie = new Cookie("example.com", "/",
+                "SID=31d4d96e407aad42");
+        final Cookies cookies = new Cookies();
+
+        cookies.addCookie(cookie);
+
+        assertEquals(1, cookies.getAllCookies().size());
+
+        assertEquals("Cookie: SID=31d4d96e407aad42",
+                cookies.getCookiesForDomainAndPath("foo.example.com",
+                        "/bar").remove().getCookieString());
+        assertEquals("Cookie: SID=31d4d96e407aad42",
+                cookies.getCookiesForDomainAndPath("foo.example.com",
+                        "/").remove().getCookieString());
+    }
 }

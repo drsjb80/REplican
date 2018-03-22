@@ -8,7 +8,7 @@ import java.sql.*;
 public class FirefoxCookies {
     private final Logger logger = LogManager.getLogger(getClass());
 
-    void loadCookies(final String file) {
+    static void loadCookies(final String file) {
         // /Users/beatys/Library/Application Support/Firefox/Profiles/rnwwcxjq.default/cookies.sqlite
 
         Connection conn = null;
@@ -19,9 +19,8 @@ public class FirefoxCookies {
             return;
         }
 
-        final String sql = "SELECT * FROM moz_cookies";
-
         try {
+            final String sql = "SELECT * FROM moz_cookies";
             final Statement stmt = conn.createStatement();
             final ResultSet rs = stmt.executeQuery(sql);
 
@@ -34,8 +33,8 @@ public class FirefoxCookies {
                 final int expiry = rs.getInt("expiry");
                 final boolean isSecure = rs.getInt("isSecure") != 0;
 
-                final Cookie cookie = new Cookie(domain, path, expiry, isSecure, name, value);
-                // FIXME REplican.cookies.addCookie(cookie);
+                final Cookie cookie = new Cookie(host, domain, path, expiry, isSecure, name, value);
+                REplican.cookies.addCookie(cookie);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());

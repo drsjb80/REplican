@@ -61,9 +61,10 @@ class Cookie {
     }
 
     // used from e.g.: FirefoxCookies
-    Cookie(@NonNull final String domain, @NonNull final String path,
+    Cookie(@NonNull final String URLHost, @NonNull final String domain, @NonNull final String path,
            final long maxAge, final boolean secure,
            @NonNull final String key, @NonNull final String value) {
+        this.URLHost = URLHost;
         this.domain = domain;
         this.path = path;
         this.maxAge = new Date(maxAge);
@@ -122,10 +123,10 @@ class Cookie {
         switch (key.toLowerCase()) {
             case "max-age": setMaxAge(value); break;
             case "expires": setExpiry(value); break;
-            case ("domain"): setDomain(value); break;
-            case ("path"): setPath(value); break;
-            case ("secure"): secure = true; break;
-            case ("httponly"): httponly = true; break;
+            case "domain": setDomain(value); break;
+            case "path": setPath(value); break;
+            case "secure": secure = true; break;
+            case "httponly": httponly = true; break;
             default: keyValuePairs.put(key, value); break;
         }
     }
@@ -133,6 +134,7 @@ class Cookie {
     private void setMaxAge (@NonNull final String value) {
         final long seconds = Long.parseLong(value);
 
+        // reset; should check for this in getCookie*
         if (seconds <= 0) {
             maxAge = BEGINNINGOFTIME;
             return;

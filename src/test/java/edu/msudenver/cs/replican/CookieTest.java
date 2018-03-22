@@ -96,8 +96,8 @@ public class CookieTest {
     @Test(expected = IllegalArgumentException.class)
     public void badDomain() {
         new Cookie("foo.example.com", "/","lang=en-US; Path=/; Domain=bad.com");
-        new Cookie("foo", "/bar", 0, true, "key", "value");
-        new Cookie("foo.bar", "/bar", 0, true, "domain", "fu.bar");
+        new Cookie("baz", "foo", "/bar", 0, true, "key", "value");
+        new Cookie("baz", "foo.bar", "/bar", 0, true, "domain", "fu.bar");
         new Cookie("foo.bar", "/bar", "domain=fu.bar");
     }
 }

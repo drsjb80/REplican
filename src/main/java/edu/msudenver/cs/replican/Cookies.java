@@ -1,5 +1,6 @@
 package edu.msudenver.cs.replican;
 
+import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.javatuples.Pair;
@@ -11,58 +12,78 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Cookies {
     private final Logger logger = LogManager.getLogger(getClass());
     private final Map<Pair<String, String>, Cookie> cookies = new ConcurrentHashMap<>();
 
-    List<Cookie> getCookiesForDomainAndPath(final String domain, final String path) {
-        logger.traceEntry(domain + path);
-        final List<Cookie> toReturn = new ArrayList<>();
+    Queue<Cookie> getCookiesForDomainAndPath(@NonNull final String domain, @NonNull final String path) {
+        logger.traceEntry(domain);
+        logger.traceEntry(path);
+
+        final Queue<Cookie> toReturn = new ConcurrentLinkedQueue<>();
 
         for (Pair<String, String> cookie: cookies.keySet()) {
-            if (cookie.getValue0().endsWith(domain)
-                    && cookie.getValue1().startsWith(path)) {
+            if (domain.endsWith(cookie.getValue0())
+                    && path.startsWith(cookie.getValue1())) {
                 toReturn.add(cookies.get(cookie));
             }
         }
+
+        logger.traceExit(toReturn);
         return toReturn;
     }
 
-    List<Cookie> getCookiesForUrl(final URL url) {
+    Queue<Cookie> getCookiesForUrl(@NonNull final URL url) {
         logger.traceEntry(url.toString());
-        List<Cookie> host = getCookiesForDomainAndPath(url.getHost(), url.getPath());
-        List<Cookie> domain = getCookiesForDomainAndPath(Utils.hostToDomain(url.getHost()),
+
+        Queue<Cookie> host = getCookiesForDomainAndPath(url.getHost(), url.getPath());
+        Queue<Cookie> domain = getCookiesForDomainAndPath(Utils.hostToDomain(url.getHost()),
                 url.getPath());
 
         host.addAll(domain);
         return host;
     }
 
-    List<Cookie> getAllCookies() {
-        return getCookiesForDomainAndPath("", "");
+    Queue<Cookie> getAllCookies() {
+        final Queue<Cookie> toReturn = new ConcurrentLinkedQueue<>();
+
+        for (Pair<String, String> cookie: cookies.keySet()) {
+            toReturn.add(cookies.get(cookie));
+        }
+
+        return toReturn;
     }
 
     void removeAllCookies() {
         logger.warn("Clearing all cookies");
+
         cookies.clear();
     }
 
-    void addCookie(final String URLHost, final String URLPath,
-                   final String cookieString) {
-        logger.traceEntry(URLHost + URLPath + cookieString);
+    void addCookie(@NonNull final String URLHost, @NonNull final String URLPath,
+                   @NonNull final String cookieString) {
+        logger.traceEntry(URLHost);
+        logger.traceEntry(URLPath);
+        logger.traceEntry(cookieString);
+
         final Cookie cookie = new Cookie(URLHost, URLPath, cookieString);
         addCookie(cookie);
     }
 
-    void addCookie(final URL url, final String cookieString) {
-        logger.traceEntry(url + cookieString);
+    void addCookie(@NonNull final URL url, @NonNull final String cookieString) {
+        logger.traceEntry(url.toString());
+        logger.traceEntry(cookieString);
+
         final Cookie cookie = new Cookie(url.getHost(), url.getPath(), cookieString);
         addCookie(cookie);
     }
 
-    void addCookie(Cookie cookie) {
+    void addCookie(@NonNull final Cookie cookie) {
         logger.traceEntry(cookie.toString());
+        System.out.println(cookie.toString());
+
         Pair<String, String> pair = new Pair<>(cookie.getDomain(), cookie.getPath());
         if (cookies.containsKey(pair)) {
             cookies.get(pair).addCookie(cookie);

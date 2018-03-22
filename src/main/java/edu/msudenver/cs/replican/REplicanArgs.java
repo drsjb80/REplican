@@ -48,6 +48,7 @@ class REplicanArgs
     String Referer;
     String LoadCookies[];
     String PlistCookies[];
+    String FirefoxCookies[];
     String SaveCookies;
     final String IndexName = "index.html";
     boolean IgnoreCookies;
