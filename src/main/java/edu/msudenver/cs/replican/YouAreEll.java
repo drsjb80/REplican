@@ -88,7 +88,7 @@ public class YouAreEll {
         }
     }
 
-    private InputStream HUC() {
+    private synchronized InputStream HUC() {
         ContentLength = getContentLength();
         ContentType = urlConnection.getHeaderField("Content-Type");
         String MIMEAccept[] = REplican.args.MIMEAccept;
@@ -137,7 +137,7 @@ public class YouAreEll {
         }
     }
 
-    private int connect() throws IOException {
+    private synchronized int connect() throws IOException {
         urlConnection = new URL(url).openConnection();
         setUserAgent();
         setReferer();
