@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 
 import java.net.Authenticator;
 
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,13 +22,16 @@ import org.apache.logging.log4j.core.config.Configurator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-// http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 
+// http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
+@Immutable
 public class REplican implements Runnable {
     private final Logger logger = LogManager.getLogger(getClass());
     static final REplicanArgs args = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
     static final Cookies cookies = new Cookies();
+
+    // guarded by syncronized
     private int URLcount = 0;
 
     // turn on assert for every class *but this one*.
@@ -35,8 +39,7 @@ public class REplican implements Runnable {
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
     }
 
-    //THREADSAFE_LEVEL_GREY
-    //read/write collision?
+    // THREADSAFE_LEVEL_GREY
     private void loadNetscapeCookies() {
         for (String cookieFile : args.LoadCookies) {
             try {
@@ -46,7 +49,7 @@ public class REplican implements Runnable {
             }
         }
     }
-    //THREADSAFE_LEVEL_GREY
+    // THREADSAFE_LEVEL_GREY
     private void loadPlistCookies() {
         for (String cookieFile : args.PlistCookies) {
             logger.info("Loading cookies from " + cookieFile);
@@ -62,7 +65,6 @@ public class REplican implements Runnable {
     }
 
     @SuppressWarnings("unchecked")
-    //THREADSAFE_LEVEL_GREY
     private void readCheckpointFile() {
         logger.info("Loading urls from " + args.CheckpointFile);
 
@@ -115,7 +117,7 @@ public class REplican implements Runnable {
         Configurator.setLevel("REplican", level);
     }
 
-    //THREADSAFE_LEVEL_GREY
+    // THREADSAFE_LEVEL_GREY
     private String escapeURL(String URL) {
         logger.traceEntry(URL);
 
@@ -237,13 +239,15 @@ public class REplican implements Runnable {
     /*
     ** add a URL to the list of those to be processed
     */
-    //THREADSAFE_LEVEL_GREY
+    //THREADSAFE_LEVEL_BLACK
     private void addOne(String total) {
         logger.traceEntry(total);
 
         urls.put(total, Boolean.FALSE);
 
-        URLcount++;
+        synchronized (this){
+            URLcount++;
+        }
 
         int checkpointEvery = args.CheckpointEvery;
         if (checkpointEvery != 0 && URLcount % checkpointEvery == 0)
@@ -320,8 +324,8 @@ public class REplican implements Runnable {
     // list.
     //THREADSAFE_LEVEL_GREY
     private void process(String total) {
-        String PathAccept[] = args.PathAccept;
-        String PathReject[] = args.PathReject;
+        final String PathAccept[] = args.PathAccept;
+        final String PathReject[] = args.PathReject;
 
         boolean accept = Utils.blurf(PathAccept, PathReject, total, true);
 
@@ -646,10 +650,9 @@ public class REplican implements Runnable {
         }
     }
     //THREADSAFE_LEVEL_GREY
-    //add[] array?
     private void doit() {
-        String username = args.Username;
-        String password = args.Password;
+        final String username = args.Username;
+        final String password = args.Password;
         if (username != null || password != null)
             Authenticator.setDefault(new MyAuthenticator(username, password));
 
@@ -693,13 +696,6 @@ public class REplican implements Runnable {
     public static void main(String[] arguments) throws FileNotFoundException {
 
         /**
-         * Fixed number of threads in thread pool
-         * to be pulled in from JCLO eventually
-         * (right now set to 4)
-         */
-         final int MAX_T = 4;
-
-        /**
          * Four steps for threading
          *  - create a task
          *  - create an executor pool
@@ -732,8 +728,15 @@ public class REplican implements Runnable {
             System.exit(0);
         }
 
+        /**
+         * Fixed number of threads in thread pool
+         * to be pulled in from JCLO eventually
+         * (right now set to 4)
+         */
+        final int MAX_T = args.Threads;
+
         Runnable runnableREplican = new REplican();
-        ExecutorService threadPool = Executors.newFixedThreadPool(args.Threads);
+        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_T);
         threadPool.execute(runnableREplican);
         threadPool.shutdown();
     }
