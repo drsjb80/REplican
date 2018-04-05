@@ -29,6 +29,7 @@ Argument|Explanation
 --MIMEIgnore=*RE*   | a *RE* of MIME types to ignore for other links.
 --MIMESave=*RE*     | a *RE* of MIME types to save.
 --MIMERefuse=*RE*   | a *RE* of MIME types not to save.
+--Threads=NUM       | The number of threads you want to start REplican with.
 --LogLevel=LEVEL    | Possible values for LEVEL are: SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL, OFF. Default: INFO.
 --Username=NAME | A username to provide if requested by server.
 --Password=PASSWORD | A password to provide if requested by server.
