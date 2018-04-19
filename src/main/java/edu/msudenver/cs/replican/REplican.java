@@ -25,13 +25,14 @@ import java.util.concurrent.Executors;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 @Immutable
-public class REplican implements Runnable {
+public class REplican implements Runnable{
     private final Logger logger = LogManager.getLogger(getClass());
     static final REplicanArgs args = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
+    static Map<String, Boolean> waiting = new ConcurrentHashMap<>();
     static final Cookies cookies = new Cookies();
 
-    // guarded by syncronized
+    // guarded by synchronized
     private int URLcount = 0;
 
     // turn on assert for every class *but this one*.
@@ -85,33 +86,31 @@ public class REplican implements Runnable {
 
         if (args.logLevel == null) {
             level = Level.WARN;
-        } else {
-            switch (args.logLevel) {
-                case OFF:
-                    level = Level.OFF;
-                    break;
-                case FATAL:
-                    level = Level.FATAL;
-                    break;
-                case ERROR:
-                    level = Level.ERROR;
-                    break;
-                case WARN:
-                    level = Level.WARN;
-                    break;
-                case INFO:
-                    level = Level.INFO;
-                    break;
-                case DEBUG:
-                    level = Level.DEBUG;
-                    break;
-                case TRACE:
-                    level = Level.TRACE;
-                    break;
-                case ALL:
-                    level = Level.ALL;
-                    break;
-            }
+        } else switch (args.logLevel) {
+            case OFF:
+                level = Level.OFF;
+                break;
+            case FATAL:
+                level = Level.FATAL;
+                break;
+            case ERROR:
+                level = Level.ERROR;
+                break;
+            case WARN:
+                level = Level.WARN;
+                break;
+            case INFO:
+                level = Level.INFO;
+                break;
+            case DEBUG:
+                level = Level.DEBUG;
+                break;
+            case TRACE:
+                level = Level.TRACE;
+                break;
+            case ALL:
+                level = Level.ALL;
+                break;
         }
 
         Configurator.setLevel("REplican", level);
@@ -239,7 +238,6 @@ public class REplican implements Runnable {
     /*
     ** add a URL to the list of those to be processed
     */
-    //THREADSAFE_LEVEL_BLACK
     private void addOne(String total) {
         logger.traceEntry(total);
 
@@ -628,29 +626,42 @@ public class REplican implements Runnable {
             logger.throwing(IOE);
         }
     }
-    //THREADSAFE_LEVEL_GREY
-    private void fetchAll() {
-        boolean done = false;
 
-        while (!done) {
-            done = true;
+    // Threads generated per fetch request
+    private void fetchAll(int max_threads) {
 
-            for (String url : urls.keySet()) {
-                boolean fetched = urls.get(url);
+        ExecutorService threadPool = Executors.newFixedThreadPool(max_threads);
 
-                done &= fetched;
+        class FetchTask implements Runnable {
+            private String urlToFetch;
 
-                if (!fetched) {
-                    fetch(url);
-                    urls.put(url, true);
-                    if (args.PauseBetween != 0)
-                        snooze(args.PauseBetween);
-                }
+            FetchTask(String s) {
+                urlToFetch = s;
+            }
+
+            public void run() {
+                fetch(urlToFetch);
             }
         }
+
+        boolean done = false;
+
+        for (String url : urls.keySet()) {
+            boolean fetched = urls.get(url);
+
+            if (!fetched) {
+                //fetch(url);
+                Runnable fetchThread = new FetchTask(url);
+                threadPool.execute(fetchThread);
+                urls.put(url, true);
+                if (args.PauseBetween != 0)
+                    snooze(args.PauseBetween);
+            }
+        }
+        threadPool.shutdown();
     }
     //THREADSAFE_LEVEL_GREY
-    private void doit() {
+    private void doit(int max_threads) {
         final String username = args.Username;
         final String password = args.Password;
         if (username != null || password != null)
@@ -659,7 +670,7 @@ public class REplican implements Runnable {
         // this is for tests using
         // System.setProperty ("java.protocol.handler.pkgs", "edu.msudenver.cs");
 
-        String[] add = args.additional;
+        final String[] add = args.additional;
 
         if (add == null) {
             logger.warn("No URLs specified, exiting");
@@ -679,7 +690,7 @@ public class REplican implements Runnable {
         ** add to the URLs, with no base
         */
         addToURLs(null, t);
-        fetchAll();
+        fetchAll(max_threads);
 
         /*
         ** shall we save the cookies to a file?
@@ -694,14 +705,6 @@ public class REplican implements Runnable {
     }
 
     public static void main(String[] arguments) throws FileNotFoundException {
-
-        /**
-         * Four steps for threading
-         *  - create a task
-         *  - create an executor pool
-         *  - pass the tasks to the executor
-         *  - shutdown the pool
-         */
 
         JCLO jclo = new JCLO(args);
 
@@ -728,37 +731,30 @@ public class REplican implements Runnable {
             System.exit(0);
         }
 
-        /**
-         * Fixed number of threads in thread pool
-         * to be pulled in from JCLO eventually
-         * (right now set to 4)
-         */
+        // Number of threads able to spawn
         final int MAX_T = args.Threads;
 
-        Runnable runnableREplican = new REplican();
-        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_T);
-        threadPool.execute(runnableREplican);
-        threadPool.shutdown();
-    }
-
-    // Needed to implement Runnable
-    @Override
-    public void run() {
         try{
             REplican r = new REplican();
             r.setLogLevel();
             r.setDefaults();
 
-            if (args.FirefoxCookies != null) loadFirefoxCookies();
+            if (args.FirefoxCookies != null) r.loadFirefoxCookies();
             if (args.LoadCookies != null) r.loadNetscapeCookies();
             if (args.PlistCookies != null) r.loadPlistCookies();
             if (args.CheckpointEvery != 0) r.readCheckpointFile();
 
-            r.doit();
+            r.doit(MAX_T);
         }
         catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // Needed to implement Runnable
+    @Override
+    public void run() {
+
 
     }
 }
