@@ -16,11 +16,11 @@ import org.apache.logging.log4j.Logger;
 public class YouAreEll {
     private final Logger logger = REplican.logger;
     private URLConnection uc;
-    @Getter private String ContentType;
-    @Getter private int ContentLength;
+    private String ContentType;
+    private int ContentLength;
     private final InputStream inputstream;
 
-    @Getter private final String url;
+    private final String url;
     private final Cookies cookies;
 
     public YouAreEll(String url, Cookies cookies) {
