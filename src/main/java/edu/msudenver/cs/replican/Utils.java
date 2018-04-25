@@ -107,6 +107,8 @@ public class Utils
         for (int i = 0; i < pairs.length; i += 2)
         {
             s = s.replaceAll (pairs[i], pairs[i+1]);
+            System.out.println(s);
+            System.out.println(pairs[i] + " " + pairs[i+1]);
         }
 
         logger.traceExit (s);

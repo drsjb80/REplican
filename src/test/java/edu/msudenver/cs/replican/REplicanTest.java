@@ -1,7 +1,7 @@
 package edu.msudenver.cs.replican;
 
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertEquals;
 
@@ -13,9 +13,15 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.InjectMocks;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
+import java.lang.reflect.Method;
+import java.util.*;
+
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
 public class REplicanTest {
@@ -41,7 +47,5 @@ public class REplicanTest {
 		assertEquals(oc,actual1);
 		assertEquals(ov,actual2);
 		}
-
-
 
 }

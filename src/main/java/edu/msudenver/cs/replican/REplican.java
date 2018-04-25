@@ -651,7 +651,7 @@ public class REplican implements Runnable {
         /*
         ** add the specified URLs to the list to be fetched.
         */
-        // String[] t = new String[add.length];
+       // String[] t = new String[add.length];
         List<String> t = new ArrayList<>();
         for (String s : add) {
             t.add("<a href=\"" + s + "\">");
