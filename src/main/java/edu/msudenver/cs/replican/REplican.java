@@ -3,7 +3,7 @@ package edu.msudenver.cs.replican;
 import java.io.*;
 import java.net.URL;
 import java.net.MalformedURLException;
-
+import java.util.concurrent.TimeUnit;
 import java.net.Authenticator;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
@@ -12,7 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -22,16 +22,17 @@ import org.apache.logging.log4j.core.config.Configurator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import lombok.Synchronized;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 @Immutable
-public class REplican implements Runnable {
+public class REplican {
     private final Logger logger = LogManager.getLogger(getClass());
     static final REplicanArgs args = new REplicanArgs();
-    static Map<String, Boolean> urls = new ConcurrentHashMap<>();
+    static Queue<String> urlq = new ConcurrentLinkedQueue();
     static final Cookies cookies = new Cookies();
 
-    // guarded by syncronized
+    // guarded by synchronized
     private int URLcount = 0;
 
     // turn on assert for every class *but this one*.
@@ -39,7 +40,6 @@ public class REplican implements Runnable {
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
     }
 
-    // THREADSAFE_LEVEL_GREY
     private void loadNetscapeCookies() {
         for (String cookieFile : args.LoadCookies) {
             try {
@@ -49,7 +49,7 @@ public class REplican implements Runnable {
             }
         }
     }
-    // THREADSAFE_LEVEL_GREY
+
     private void loadPlistCookies() {
         for (String cookieFile : args.PlistCookies) {
             logger.info("Loading cookies from " + cookieFile);
@@ -72,7 +72,7 @@ public class REplican implements Runnable {
             ObjectInputStream ois =
                     new ObjectInputStream(
                             new FileInputStream(args.CheckpointFile));
-            urls = (Hashtable<String, Boolean>) ois.readObject();
+            urlq = (Queue<String>) ois.readObject();
             ois.close();
         } catch (IOException | ClassNotFoundException ioe) {
             logger.throwing(ioe);
@@ -85,39 +85,36 @@ public class REplican implements Runnable {
 
         if (args.logLevel == null) {
             level = Level.WARN;
-        } else {
-            switch (args.logLevel) {
-                case OFF:
-                    level = Level.OFF;
-                    break;
-                case FATAL:
-                    level = Level.FATAL;
-                    break;
-                case ERROR:
-                    level = Level.ERROR;
-                    break;
-                case WARN:
-                    level = Level.WARN;
-                    break;
-                case INFO:
-                    level = Level.INFO;
-                    break;
-                case DEBUG:
-                    level = Level.DEBUG;
-                    break;
-                case TRACE:
-                    level = Level.TRACE;
-                    break;
-                case ALL:
-                    level = Level.ALL;
-                    break;
-            }
+        } else switch (args.logLevel) {
+            case OFF:
+                level = Level.OFF;
+                break;
+            case FATAL:
+                level = Level.FATAL;
+                break;
+            case ERROR:
+                level = Level.ERROR;
+                break;
+            case WARN:
+                level = Level.WARN;
+                break;
+            case INFO:
+                level = Level.INFO;
+                break;
+            case DEBUG:
+                level = Level.DEBUG;
+                break;
+            case TRACE:
+                level = Level.TRACE;
+                break;
+            case ALL:
+                level = Level.ALL;
+                break;
         }
 
         Configurator.setLevel("REplican", level);
     }
 
-    // THREADSAFE_LEVEL_GREY
     private String escapeURL(String URL) {
         logger.traceEntry(URL);
 
@@ -129,7 +126,6 @@ public class REplican implements Runnable {
         return (URL);
     }
 
-    //THREADSAFE_LEVEL_GREY
     private void setDefaults() {
         if (args.Interesting == null) {
             String urlref = "\\s*=\\s*[\"']?([^\"'>]*)";
@@ -205,7 +201,6 @@ public class REplican implements Runnable {
      * @return the interesting part if any, and null if none
      */
 
-    //THREADSAFE_LEVEL_GREY
     private String[] interesting(String s) {
         logger.traceEntry(s);
 
@@ -220,7 +215,7 @@ public class REplican implements Runnable {
 
         return (m);
     }
-    //THREADSAFE_LEVEL_GREY
+
     private void checkpoint() {
         String checkpointFile = args.CheckpointFile;
 
@@ -229,7 +224,7 @@ public class REplican implements Runnable {
         try {
             ObjectOutputStream oos =
                     new ObjectOutputStream(new FileOutputStream(checkpointFile));
-            oos.writeObject(urls);
+            oos.writeObject(urlq);
             oos.close();
         } catch (IOException e) {
             logger.throwing(e);
@@ -239,15 +234,12 @@ public class REplican implements Runnable {
     /*
     ** add a URL to the list of those to be processed
     */
-    //THREADSAFE_LEVEL_BLACK
+    @Synchronized
     private void addOne(String total) {
         logger.traceEntry(total);
 
-        urls.put(total, Boolean.FALSE);
-
-        synchronized (this){
-            URLcount++;
-        }
+        urlq.add(total);
+        URLcount++;
 
         int checkpointEvery = args.CheckpointEvery;
         if (checkpointEvery != 0 && URLcount % checkpointEvery == 0)
@@ -257,7 +249,6 @@ public class REplican implements Runnable {
     /*
     ** create a valid URL, paying attenting to a base if there is one.
     */
-    //THREADSAFE_LEVEL_GREY
     private URL makeURL(String baseURL, String s) {
         logger.traceEntry(baseURL);
         logger.traceEntry(s);
@@ -281,7 +272,6 @@ public class REplican implements Runnable {
     ** In the given string s, look for pattern.  If found, return the
     ** concatenation of the capturing groups.
     */
-    //THREADSAFE_LEVEL_GREY
     private String match(String pattern, String s) {
         logger.traceEntry(pattern);
         logger.traceEntry(s);
@@ -306,7 +296,6 @@ public class REplican implements Runnable {
     ** in a document.
     ** The <base> tag goes inside the <head> element."
     */
-    //THREADSAFE_LEVEL_GREY
     private String newBase(String base) {
         logger.traceEntry(base);
 
@@ -322,7 +311,6 @@ public class REplican implements Runnable {
 
     // Process a single URL and see if we need to add it to the todo
     // list.
-    //THREADSAFE_LEVEL_GREY
     private void process(String total) {
         final String PathAccept[] = args.PathAccept;
         final String PathReject[] = args.PathReject;
@@ -337,14 +325,14 @@ public class REplican implements Runnable {
                 total = Utils.replaceAll(total, args.URLRewrite);
 
             // if we don't already have it
-            if (urls.get(total) == null) {
+            if (!urlq.contains(total)) {
                 if (args.PrintAdd)
                     logger.info("Adding: " + total);
                 addOne(total);
             }
         }
     }
-    //THREADSAFE_LEVEL_GREY
+
     private void addToURLs(String baseURL, List<String> strings) {
         logger.traceEntry(baseURL);
         logger.traceEntry(strings.toString());
@@ -411,8 +399,6 @@ public class REplican implements Runnable {
     ** optionally look at all the URL's found in the input stream.
     */
 
-    //THREADSAFE_LEVEL_GREY
-    //InputStream OutputStream?
     private boolean examineORsave(YouAreEll yrl, InputStream is,
                                   BufferedOutputStream bos, boolean examine, boolean save, String url) {
         // logger.traceEntry ((Message) is);
@@ -477,7 +463,6 @@ public class REplican implements Runnable {
         return (true);
     }
 
-    //THREADSAFE_LEVEL_BLACK
     private void fetchOne(boolean examine, boolean save, YouAreEll yrl,
                           InputStream is) {
         logger.traceEntry(String.valueOf(examine));
@@ -527,7 +512,6 @@ public class REplican implements Runnable {
     ** calculate, given the examine/ignore and save/refuse values, whether
     ** to examine and/or save s.
     */
-    //THREADSAFE_LEVEL_BLACK
     private boolean[] EISR(String s, String which,
                            String examine[], String ignore[], String save[], String refuse[]) {
         if (s == null)
@@ -561,8 +545,6 @@ public class REplican implements Runnable {
 
     // accept everything we examine or save
     // reject everything we ignore or refuse
-
-    //THREADSAFE_LEVEL_GRAY
     private void fetch(String url) {
         logger.traceEntry(url);
 
@@ -628,29 +610,33 @@ public class REplican implements Runnable {
             logger.throwing(IOE);
         }
     }
-    //THREADSAFE_LEVEL_GREY
-    private void fetchAll() {
-        boolean done = false;
 
-        while (!done) {
-            done = true;
+    // Threads generated per fetch request
+    private void fetchAll(int max_threads) {
+        if(urlq.isEmpty())
+            return;
 
-            for (String url : urls.keySet()) {
-                boolean fetched = urls.get(url);
+        ExecutorService threadPool = Executors.newFixedThreadPool(max_threads);
 
-                done &= fetched;
-
-                if (!fetched) {
-                    fetch(url);
-                    urls.put(url, true);
-                    if (args.PauseBetween != 0)
-                        snooze(args.PauseBetween);
-                }
-            }
+        while(!urlq.isEmpty()){
+            String url = urlq.remove();
+            Runnable fetchThread = () -> { fetch(url); };
+            threadPool.execute(fetchThread);
+            if (args.PauseBetween != 0)
+                snooze(args.PauseBetween);
         }
+        threadPool.shutdown();
+        try{
+            while (!threadPool.awaitTermination(30, TimeUnit.SECONDS)) {
+                System.out.println("Waiting for threads to finish up work.\nBe patient, this may take a while.");
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        fetchAll(max_threads);
     }
-    //THREADSAFE_LEVEL_GREY
-    private void doit() {
+
+    private void doit(int max_threads) {
         final String username = args.Username;
         final String password = args.Password;
         if (username != null || password != null)
@@ -659,7 +645,7 @@ public class REplican implements Runnable {
         // this is for tests using
         // System.setProperty ("java.protocol.handler.pkgs", "edu.msudenver.cs");
 
-        String[] add = args.additional;
+        final String[] add = args.additional;
 
         if (add == null) {
             logger.warn("No URLs specified, exiting");
@@ -679,7 +665,7 @@ public class REplican implements Runnable {
         ** add to the URLs, with no base
         */
         addToURLs(null, t);
-        fetchAll();
+        fetchAll(max_threads);
 
         /*
         ** shall we save the cookies to a file?
@@ -694,14 +680,6 @@ public class REplican implements Runnable {
     }
 
     public static void main(String[] arguments) throws FileNotFoundException {
-
-        /**
-         * Four steps for threading
-         *  - create a task
-         *  - create an executor pool
-         *  - pass the tasks to the executor
-         *  - shutdown the pool
-         */
 
         JCLO jclo = new JCLO(args);
 
@@ -728,37 +706,22 @@ public class REplican implements Runnable {
             System.exit(0);
         }
 
-        /**
-         * Fixed number of threads in thread pool
-         * to be pulled in from JCLO eventually
-         * (right now set to 4)
-         */
-        final int MAX_T = args.Threads;
-
-        Runnable runnableREplican = new REplican();
-        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_T);
-        threadPool.execute(runnableREplican);
-        threadPool.shutdown();
-    }
-
-    // Needed to implement Runnable
-    @Override
-    public void run() {
         try{
             REplican r = new REplican();
             r.setLogLevel();
             r.setDefaults();
 
-            if (args.FirefoxCookies != null) loadFirefoxCookies();
+            final int MAX_T = args.Threads;
+            if (args.FirefoxCookies != null) r.loadFirefoxCookies();
             if (args.LoadCookies != null) r.loadNetscapeCookies();
             if (args.PlistCookies != null) r.loadPlistCookies();
             if (args.CheckpointEvery != 0) r.readCheckpointFile();
 
-            r.doit();
+            r.doit(MAX_T);
         }
         catch(Exception e) {
             e.printStackTrace();
         }
-
     }
+
 }
