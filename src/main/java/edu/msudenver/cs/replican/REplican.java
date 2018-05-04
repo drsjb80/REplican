@@ -706,14 +706,12 @@ public class REplican {
             System.exit(0);
         }
 
-        // Number of threads able to spawn
-        final int MAX_T = args.Threads;
-
         try{
             REplican r = new REplican();
             r.setLogLevel();
             r.setDefaults();
 
+            final int MAX_T = args.Threads;
             if (args.FirefoxCookies != null) r.loadFirefoxCookies();
             if (args.LoadCookies != null) r.loadNetscapeCookies();
             if (args.PlistCookies != null) r.loadPlistCookies();
