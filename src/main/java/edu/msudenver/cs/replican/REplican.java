@@ -12,7 +12,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -41,7 +40,6 @@ public class REplican {
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
     }
 
-    // THREADSAFE_LEVEL_GREY
     private void loadNetscapeCookies() {
         for (String cookieFile : args.LoadCookies) {
             try {
@@ -51,7 +49,7 @@ public class REplican {
             }
         }
     }
-    // THREADSAFE_LEVEL_GREY
+
     private void loadPlistCookies() {
         for (String cookieFile : args.PlistCookies) {
             logger.info("Loading cookies from " + cookieFile);
@@ -117,7 +115,6 @@ public class REplican {
         Configurator.setLevel("REplican", level);
     }
 
-    // THREADSAFE_LEVEL_GREY
     private String escapeURL(String URL) {
         logger.traceEntry(URL);
 
@@ -129,7 +126,6 @@ public class REplican {
         return (URL);
     }
 
-    //THREADSAFE_LEVEL_GREY
     private void setDefaults() {
         if (args.Interesting == null) {
             String urlref = "\\s*=\\s*[\"']?([^\"'>]*)";
@@ -205,7 +201,6 @@ public class REplican {
      * @return the interesting part if any, and null if none
      */
 
-    //THREADSAFE_LEVEL_GREY
     private String[] interesting(String s) {
         logger.traceEntry(s);
 
@@ -220,7 +215,7 @@ public class REplican {
 
         return (m);
     }
-    //THREADSAFE_LEVEL_GREY
+
     private void checkpoint() {
         String checkpointFile = args.CheckpointFile;
 
@@ -243,7 +238,6 @@ public class REplican {
     private void addOne(String total) {
         logger.traceEntry(total);
 
-        //urls.put(total, Boolean.FALSE);
         urlq.add(total);
         URLcount++;
 
@@ -278,7 +272,6 @@ public class REplican {
     ** In the given string s, look for pattern.  If found, return the
     ** concatenation of the capturing groups.
     */
-    //THREADSAFE_LEVEL_GREY
     private String match(String pattern, String s) {
         logger.traceEntry(pattern);
         logger.traceEntry(s);
@@ -303,7 +296,6 @@ public class REplican {
     ** in a document.
     ** The <base> tag goes inside the <head> element."
     */
-    //THREADSAFE_LEVEL_GREY
     private String newBase(String base) {
         logger.traceEntry(base);
 
@@ -319,7 +311,6 @@ public class REplican {
 
     // Process a single URL and see if we need to add it to the todo
     // list.
-    //THREADSAFE_LEVEL_GREY
     private void process(String total) {
         final String PathAccept[] = args.PathAccept;
         final String PathReject[] = args.PathReject;
@@ -334,14 +325,14 @@ public class REplican {
                 total = Utils.replaceAll(total, args.URLRewrite);
 
             // if we don't already have it
-            if (urlq.contains(total) == false) {
+            if (!urlq.contains(total)) {
                 if (args.PrintAdd)
                     logger.info("Adding: " + total);
                 addOne(total);
             }
         }
     }
-    //THREADSAFE_LEVEL_GREY
+
     private void addToURLs(String baseURL, List<String> strings) {
         logger.traceEntry(baseURL);
         logger.traceEntry(strings.toString());
@@ -408,8 +399,6 @@ public class REplican {
     ** optionally look at all the URL's found in the input stream.
     */
 
-    //THREADSAFE_LEVEL_GREY
-    //InputStream OutputStream?
     private boolean examineORsave(YouAreEll yrl, InputStream is,
                                   BufferedOutputStream bos, boolean examine, boolean save, String url) {
         // logger.traceEntry ((Message) is);
@@ -474,7 +463,6 @@ public class REplican {
         return (true);
     }
 
-    //THREADSAFE_LEVEL_BLACK
     private void fetchOne(boolean examine, boolean save, YouAreEll yrl,
                           InputStream is) {
         logger.traceEntry(String.valueOf(examine));
@@ -524,7 +512,6 @@ public class REplican {
     ** calculate, given the examine/ignore and save/refuse values, whether
     ** to examine and/or save s.
     */
-    //THREADSAFE_LEVEL_BLACK
     private boolean[] EISR(String s, String which,
                            String examine[], String ignore[], String save[], String refuse[]) {
         if (s == null)
@@ -558,8 +545,6 @@ public class REplican {
 
     // accept everything we examine or save
     // reject everything we ignore or refuse
-
-    //THREADSAFE_LEVEL_GRAY
     private void fetch(String url) {
         logger.traceEntry(url);
 
@@ -642,8 +627,8 @@ public class REplican {
         }
         threadPool.shutdown();
         try{
-            while (!threadPool.awaitTermination(5, TimeUnit.SECONDS)) {
-                System.out.println("Waiting for threads to finish up work.");
+            while (!threadPool.awaitTermination(30, TimeUnit.SECONDS)) {
+                System.out.println("Waiting for threads to finish up work.\nBe patient, this may take a while.");
             }
         }catch(Exception e) {
             e.printStackTrace();
