@@ -3,7 +3,7 @@ package edu.msudenver.cs.replican;
 import java.io.*;
 import java.net.URL;
 import java.net.MalformedURLException;
-
+import java.util.concurrent.TimeUnit;
 import java.net.Authenticator;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -22,14 +23,14 @@ import org.apache.logging.log4j.core.config.Configurator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import lombok.Synchronized;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 @Immutable
-public class REplican implements Runnable{
+public class REplican {
     private final Logger logger = LogManager.getLogger(getClass());
     static final REplicanArgs args = new REplicanArgs();
-    static Map<String, Boolean> urls = new ConcurrentHashMap<>();
-    static Map<String, Boolean> waiting = new ConcurrentHashMap<>();
+    static Queue<String> urlq = new ConcurrentLinkedQueue();
     static final Cookies cookies = new Cookies();
 
     // guarded by synchronized
@@ -73,7 +74,7 @@ public class REplican implements Runnable{
             ObjectInputStream ois =
                     new ObjectInputStream(
                             new FileInputStream(args.CheckpointFile));
-            urls = (Hashtable<String, Boolean>) ois.readObject();
+            urlq = (Queue<String>) ois.readObject();
             ois.close();
         } catch (IOException | ClassNotFoundException ioe) {
             logger.throwing(ioe);
@@ -228,7 +229,7 @@ public class REplican implements Runnable{
         try {
             ObjectOutputStream oos =
                     new ObjectOutputStream(new FileOutputStream(checkpointFile));
-            oos.writeObject(urls);
+            oos.writeObject(urlq);
             oos.close();
         } catch (IOException e) {
             logger.throwing(e);
@@ -238,14 +239,13 @@ public class REplican implements Runnable{
     /*
     ** add a URL to the list of those to be processed
     */
+    @Synchronized
     private void addOne(String total) {
         logger.traceEntry(total);
 
-        urls.put(total, Boolean.FALSE);
-
-        synchronized (this){
-            URLcount++;
-        }
+        //urls.put(total, Boolean.FALSE);
+        urlq.add(total);
+        URLcount++;
 
         int checkpointEvery = args.CheckpointEvery;
         if (checkpointEvery != 0 && URLcount % checkpointEvery == 0)
@@ -255,7 +255,6 @@ public class REplican implements Runnable{
     /*
     ** create a valid URL, paying attenting to a base if there is one.
     */
-    //THREADSAFE_LEVEL_GREY
     private URL makeURL(String baseURL, String s) {
         logger.traceEntry(baseURL);
         logger.traceEntry(s);
@@ -335,7 +334,7 @@ public class REplican implements Runnable{
                 total = Utils.replaceAll(total, args.URLRewrite);
 
             // if we don't already have it
-            if (urls.get(total) == null) {
+            if (urlq.contains(total) == false) {
                 if (args.PrintAdd)
                     logger.info("Adding: " + total);
                 addOne(total);
@@ -629,38 +628,29 @@ public class REplican implements Runnable{
 
     // Threads generated per fetch request
     private void fetchAll(int max_threads) {
+        if(urlq.isEmpty())
+            return;
 
         ExecutorService threadPool = Executors.newFixedThreadPool(max_threads);
 
-        class FetchTask implements Runnable {
-            private String urlToFetch;
-
-            FetchTask(String s) {
-                urlToFetch = s;
-            }
-
-            public void run() {
-                fetch(urlToFetch);
-            }
-        }
-
-        boolean done = false;
-
-        for (String url : urls.keySet()) {
-            boolean fetched = urls.get(url);
-
-            if (!fetched) {
-                //fetch(url);
-                Runnable fetchThread = new FetchTask(url);
-                threadPool.execute(fetchThread);
-                urls.put(url, true);
-                if (args.PauseBetween != 0)
-                    snooze(args.PauseBetween);
-            }
+        while(!urlq.isEmpty()){
+            String url = urlq.remove();
+            Runnable fetchThread = () -> { fetch(url); };
+            threadPool.execute(fetchThread);
+            if (args.PauseBetween != 0)
+                snooze(args.PauseBetween);
         }
         threadPool.shutdown();
+        try{
+            while (!threadPool.awaitTermination(5, TimeUnit.SECONDS)) {
+                System.out.println("Waiting for threads to finish up work.");
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        fetchAll(max_threads);
     }
-    //THREADSAFE_LEVEL_GREY
+
     private void doit(int max_threads) {
         final String username = args.Username;
         final String password = args.Password;
@@ -751,10 +741,4 @@ public class REplican implements Runnable{
         }
     }
 
-    // Needed to implement Runnable
-    @Override
-    public void run() {
-
-
-    }
 }

@@ -57,9 +57,6 @@ public class YouAreEll {
         Content-Type: text/html; charset=iso-8859-1
         */
 
-        // mark the original fetched
-        REplican.urls.put(url, Boolean.TRUE);
-
         if (!REplican.args.FollowRedirects)
             return;
 
@@ -76,7 +73,7 @@ public class YouAreEll {
             return;
         }
 
-        REplican.urls.put(newURL.toString(), Boolean.FALSE);
+        REplican.urlq.add(newURL.toString());
     }
 
     private void dealWithStopOns(final int code) {
