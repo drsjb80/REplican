@@ -1,9 +1,12 @@
 package edu.msudenver.cs.replican;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CookieTest {
     private final String firstTestCookieString = "SID=31d4d96e407aad42";
     private final Cookie firstTestCookie = new Cookie("example.com", "/", firstTestCookieString);
@@ -29,6 +32,7 @@ public class CookieTest {
 
     @Test
     public void testToString() throws Exception {
+        throw new UnsupportedOperationException("Fail if not mocked!");
     }
 
     @Test

@@ -188,7 +188,8 @@ public class Utils
         String ret[] = new String[one.length + two.length];
         System.arraycopy (one, 0, ret, 0, one.length);
         System.arraycopy (two, 0, ret, one.length, two.length);
-
+        System.out.println(ret[0]);
+        System.out.println(ret[1]);
         return (ret);
     }
 }

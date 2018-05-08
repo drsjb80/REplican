@@ -34,8 +34,6 @@ public class UtilsTest {
 
         assertEquals("<a href=\"http://game.pioneernet.ru/dl/q3/files/pk3/ztn3tourney1.pk3",test);
         assertEquals("<a href=\"http://game.pioneernet.ru/dl/q3/files.pk3",test1);
-
-
     }
 
     @Test
@@ -47,4 +45,24 @@ public class UtilsTest {
 
         assertEquals(true,tester);
     }
+
+    @Test
+    public void testCombineArray() throws Exception{
+       String [] one = {"http://game.pioneernet.ru/dl/q3/files/pk3/"};
+       String [] two = {"http://game.pioneernet.ru/dl/q3"};
+
+       String [] testCombine = Whitebox.invokeMethod(util, "combineArrays", one, two);
+       String [] together = {one[0],two[0]};
+
+       assertEquals(together,testCombine);
+    }
+
+    @Test
+    public void testBlurf() throws Exception {
+        throw new UnsupportedOperationException("Fail if not mocked!");
+
+
+    }
 }
+
+
