@@ -7,7 +7,9 @@ import org.junit.runners.Suite;
 
 @Suite.SuiteClasses({ 
    REplicanTest.class
+
 })
 
 public class RunAll {
+
 }

@@ -253,7 +253,7 @@ public class REplican implements Runnable {
         } catch (MalformedURLException e) {
             logger.throwing(e);
         }
-
+        System.out.println(u);
         logger.traceExit(u);
         return (u);
     }
@@ -274,6 +274,7 @@ public class REplican implements Runnable {
             ret = "";
             for (int i = 1; i <= matcher.groupCount(); i++) {
                 ret += (matcher.group(i));
+
             }
         }
 
@@ -296,6 +297,7 @@ public class REplican implements Runnable {
 
         String b = "<[bB][aA][sS][eE].*[hH][rR][eE][fF]=[\"']?([^\"'# ]*)";
         String ret = match(b, base);
+
 
         logger.traceExit(ret);
         return (ret);
@@ -334,10 +336,10 @@ public class REplican implements Runnable {
             String next = Utils.replaceAll(s, args.URLFixUp);
 
             // is this resetting the base?
-            String newBase = newBase(next);
-            if (newBase != null) {
+            String base = newBase(next);
+            if (base != null) {
                 logger.debug("Setting base to " + baseURL);
-                baseURL = newBase;
+                baseURL = base;
             }
 
             for (String possible : interesting(next)) {
