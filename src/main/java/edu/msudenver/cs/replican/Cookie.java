@@ -22,6 +22,15 @@ class Cookie {
     private final Logger logger = REplican.logger;
     // THREADSAFE_LEVEL_GREY
     @Getter private String domain;
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
     // THREADSAFE_LEVEL_GREY
     @Getter private String path;
     // THREADSAFE_LEVEL_GREY
@@ -29,6 +38,14 @@ class Cookie {
     long getMaxAge() { return maxAge.getTime(); }
     @Getter private boolean secure;
     @Getter private boolean httponly;
+
+    public boolean isSecure() {
+        return secure;
+    }
+
+    public boolean isHttponly() {
+        return httponly;
+    }
     /*
     hash domains -> paths
     hash paths -> keyValuePairs
