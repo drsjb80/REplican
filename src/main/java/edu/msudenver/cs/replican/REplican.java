@@ -253,7 +253,7 @@ public class REplican implements Runnable {
         } catch (MalformedURLException e) {
             logger.throwing(e);
         }
-        System.out.println(u);
+
         logger.traceExit(u);
         return (u);
     }
@@ -539,6 +539,7 @@ public class REplican implements Runnable {
         boolean ret[] = new boolean[2];
         ret[0] = E;
         ret[1] = S;
+
         return (ret);
     }
 

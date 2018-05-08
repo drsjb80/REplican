@@ -1,6 +1,7 @@
 package edu.msudenver.cs.replican;
 
 import static org.junit.Assert.assertEquals;
+import static org.powermock.api.mockito.PowerMockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.InjectMocks;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
 import java.net.URL;
@@ -17,8 +19,10 @@ import java.net.URL;
 public class REplicanTest {
 	@Mock
 	private REplican rep;
+
 	@InjectMocks
 	private REplicanArgs args;
+
 
     @Mock
     private Cookies cookies;
@@ -26,6 +30,7 @@ public class REplicanTest {
 	public void setUp() {
 		rep = new REplican();
 		args = new REplicanArgs();
+		rep = PowerMockito.spy(new REplican());
 
 	}
     @Test
@@ -82,7 +87,7 @@ public class REplicanTest {
 
 	@Test
 	public void testAddOne() throws Exception{
-
+		throw new UnsupportedOperationException("Fail if not mocked!");
 	}
 
 	@Test
@@ -124,13 +129,84 @@ public class REplicanTest {
 		}
 
 
-		@Test
-	public void testProcess() throws Exception{
 
+	@Test
+	public void testProcess() throws Exception{
+			throw new UnsupportedOperationException("Fail if not mocked!");
 	}
 
 	@Test
 	public void testAddToURLs() throws Exception{
+			throw new UnsupportedOperationException("Fail if not mocked!");
+	}
+
+	@Test
+	public void testSnooze() throws Exception{
+
+	}
+
+	@Test
+	public void testexamineORsave(){
+
+	}
+
+	@Test
+	public void EISR() throws Exception{
+		String [] examine = {".*\\.[hH][tT][mM][lL]*"};
+		String [] ignore = {".*\\.pk3"};
+		String [] save = {".*\\.pdf"};
+		String [] refuse = {".*\\.mov"};
+		String path = "path";
+		String s = "http://coloradmin.com/steve/resume/";
+
+		boolean [] testAll = Whitebox.invokeMethod(rep, "EISR",s,path,examine,ignore,save,refuse);
+
+		assertEquals(false,testAll[0]);
+		assertEquals(false,testAll[1]);
+	}
+
+	@Test
+	public void testSpeed(){
+
+	}
+
+	@Test
+	public void testLoadCookies(){
+
+	}
+
+	@Test
+	public void testReadCheckpointFile(){
+
+	}
+
+	@Test
+	public void testSetLogLevel(){
+
+	}
+
+	@Test
+	public void testCheckpoint(){
+
+	}
+
+	@Test
+	public void testFetchOne(){
+
+	}
+
+	@Test
+	public void testFetchAll(){
+
+	}
+
+	@Test
+	public void testLoadPlistCookies(){
+
+	}
+
+	@Test
+	public void testDoit(){
 
 	}
 }

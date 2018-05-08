@@ -11,7 +11,7 @@ import org.powermock.reflect.Whitebox;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UtilsTest {
-
+    @Mock
     private Utils util;
 
     @Mock
@@ -38,5 +38,13 @@ public class UtilsTest {
 
     }
 
+    @Test
+    public void testMatches() throws Exception{
+        String [] testRe = {".*\\.pk3"};
+        String testString = "http://game.pioneernet.ru/dl/q3/files.pk3";
 
+        boolean tester = Whitebox.invokeMethod(util, "matches",testRe,testString);
+
+        assertEquals(true,tester);
+    }
 }
