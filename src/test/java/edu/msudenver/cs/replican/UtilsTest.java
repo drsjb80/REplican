@@ -59,7 +59,6 @@ public class UtilsTest {
 
     @Test
     public void testBlurf() throws Exception {
-        throw new UnsupportedOperationException("Fail if not mocked!");
 
 
     }

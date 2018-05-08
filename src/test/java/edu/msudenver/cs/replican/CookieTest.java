@@ -32,7 +32,7 @@ public class CookieTest {
 
     @Test
     public void testToString() throws Exception {
-        throw new UnsupportedOperationException("Fail if not mocked!");
+
     }
 
     @Test

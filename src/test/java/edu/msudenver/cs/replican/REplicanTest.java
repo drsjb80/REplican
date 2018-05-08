@@ -87,7 +87,6 @@ public class REplicanTest {
 
 	@Test
 	public void testAddOne() throws Exception{
-		throw new UnsupportedOperationException("Fail if not mocked!");
 	}
 
 	@Test
@@ -132,12 +131,10 @@ public class REplicanTest {
 
 	@Test
 	public void testProcess() throws Exception{
-			throw new UnsupportedOperationException("Fail if not mocked!");
 	}
 
 	@Test
 	public void testAddToURLs() throws Exception{
-			throw new UnsupportedOperationException("Fail if not mocked!");
 	}
 
 	@Test

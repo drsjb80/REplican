@@ -236,7 +236,7 @@ public class REplican implements Runnable {
     }
 
     /*
-    ** create a valid URL, paying attenting to a base if there is one.
+    ** create a valid URL, paying attention to a base if there is one.
     */
     //THREADSAFE_LEVEL_GREY
     private URL makeURL(String baseURL, String s) {
