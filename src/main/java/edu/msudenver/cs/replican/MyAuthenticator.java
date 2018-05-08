@@ -7,16 +7,18 @@ import org.apache.logging.log4j.Logger;
 
 class MyAuthenticator extends Authenticator
 {
-    private final Logger logger = REplican.getLogger();
+    private final Logger logger = REplican.logger;
     private final String username;
     private final String password;
 
+    // THREADSAFE_LEVEL_GREY
     public MyAuthenticator (String username, String password)
     {
         this.username = username;
         this.password = password;
     }
 
+    // THREADSAFE_LEVEL_GREY
     protected PasswordAuthentication getPasswordAuthentication()
     {
         char[] p = new char[password.length()];

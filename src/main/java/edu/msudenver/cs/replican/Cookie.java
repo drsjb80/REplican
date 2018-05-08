@@ -1,419 +1,329 @@
 package edu.msudenver.cs.replican;
 
-import java.util.Hashtable;
-import java.util.Date;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
+import lombok.Getter;
 import org.apache.logging.log4j.Logger;
 
-/*
-http://www.faqs.org/rfcs/rfc2109.html
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.AbstractCollection;
+import java.util.AbstractMap;
+import java.util.Date;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
-set-cookie      =       "Set-Cookie:" cookies
-   cookies         =       1#cookie
-   cookie          =       NAME "=" VALUE *(";" cookie-av)
-   NAME            =       attr
-   VALUE           =       value
-   cookie-av       =       "Comment" "=" value
-                   |       "Domain" "=" value
-                   |       "Max-Age" "=" value
-                   |       "Path" "=" value
-                   |       "Secure"
-                   |       "Version" "=" 1*DIGIT
- */
+// Newest cookie specification https://tools.ietf.org/html/rfc6265
 
-/**
- * Cookies revolve around domains and paths, not URLs
- */
-class Cookie extends Hashtable<String, String>
-{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private final Logger logger = REplican.getLogger();
-	private String Domain;
-	private String Path;
-	private long MaxAge = -1;
-	private boolean Secure;
-	private int Version;
+// Cookies revolve around domains and paths, not URLs.
+class Cookie {
+    private static final Date now = new Date();
+    private static final Date BEGINNINGOFTIME = new Date(0);
 
-	public Cookie() {}
+    private static final long serialVersionUID = 1L;
+    private final Logger logger = REplican.logger;
+    // THREADSAFE_LEVEL_GREY
+    @Getter private String domain;
+    // THREADSAFE_LEVEL_GREY
+    @Getter private String path;
+    // THREADSAFE_LEVEL_GREY
+    private Date maxAge = BEGINNINGOFTIME;
+    long getMaxAge() { return maxAge.getTime(); }
+    @Getter private boolean secure;
+    @Getter private boolean httponly;
+    /*
+    hash domains -> paths
+    hash paths -> keyValuePairs
+     */
 
-	public Cookie(String Domain, String Path, long MaxAge, boolean Secure,
-                  String name, String value) {
-		this.Domain = Domain;
-		this.Path = Path;
-		this.MaxAge = MaxAge;
-		this.Secure = Secure;
-		this.put(name, value);
-	}
+    Cookie getCookie(final String domain, final String path) {
+        for (String d: domains.keySet()) {
+            if (d.endsWith(domain)) {
+                AbstractMap<String, AbstractMap> paths = domains.get(d);
+                for (String p: paths.keySet()) {
+                    if (p.endsWith(path)) {
+                        // do something here?
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    private final AbstractMap<String, String> keyValuePairs = new ConcurrentHashMap<>();
+    private final AbstractMap<String, AbstractMap> paths = new ConcurrentHashMap<>();
+    private final AbstractMap<String, AbstractMap> domains = new ConcurrentHashMap<>();
 
-	public String getDomain() { return (Domain); }
-	public String getPath() { return (Path); }
-	public long getMaxAge() { return (MaxAge); }
-	public boolean getSecure() { return (Secure); }
-	public int getVersion() { return (Version); }
+    // THREADSAFE_LEVEL_GREY
+    // needs locking?
+    Cookie(final String domain, final String path, final long maxAge,
+           final boolean secure, final String key, final String value) {
+        setDomainAndPath(domain, path);
+        this.maxAge = new Date(maxAge);
+        this.secure = secure;
+        keyValuePairs.put(key, value);
+    }
+
+    // THREADSAFE_LEVEL_GREY
+    // needs locking?
+    private void setDomainAndPath(String domain, final String path) {
+        setDomain(domain);
+        setPath(path);
+    }
+
+    //THREADSAFE_LEVEL_GREY
+    // needs locking?
+    private void setDomain(String domain)
+    {
+        /*
+        if (domain.startsWith(".")) {
+            domain = domain.replaceFirst("\\.", "");
+        }
+
+        AbstractMap d = domains.get(domain);
+        if (d == null) {
+            AbstractMap <String, AbstractMap> paths = new ConcurrentHashMap<>();
+            d.put(domain, paths);
+        }
+
+        if (paths == null) {
+            AbstractMap <String, AbstractMap> paths = new ConcurrentHashMap<>();
+        }
+
+        // FIXME: what should be done when additions don't agree with orginals?
+        if (this.domain != null) {
+            if (! domain.equals(this.domain)) {
+                throw (new IllegalArgumentException("Attempted cookie domain reset from: "
+                        + this.domain + " to: " + domain));
+            }
+        }
+
+        checkDomain(domain);
+        this.domain = domain;
+        */
+    }
+
+    // THREADSAFE_LEVEL_BLACK
+    // sets global variable, needs locking..?
+    private void setPath (String path) {
+        if (this.path != null) {
+            if (! this.path.equals(path)) {
+                throw (new IllegalArgumentException("Attempted cookie path reset from: "
+                        + this.path + " to: " + path));
+            }
+        }
+
+        if (! path.startsWith("/")) {
+            throw (new IllegalArgumentException("Path: " + path + "does not begin with /"));
+        }
+
+        this.path = path;
+    }
+
+    // THREADSAFE_LEVEL_GREY
+    // set global, needs locking
+    public Cookie(String domain, final String path, final String cookieString)
+            throws IllegalArgumentException {
+        setDomainAndPath(domain, path);
+        addToCookie(cookieString);
+    }
+
+    // THREADSAFE_LEVEL_GREY
+    // string splitting may not be thread safe
+     void addToCookie(final String cookieString) {
+        logger.traceEntry(cookieString);
+
+        final String[] b = cookieString.split(";");
+
+        for (String pair: b) {
+            final String[] c = pair.split("=", 2);
+            final String key = c[0].trim();
+            String value = "";
+
+            // are there both a key and a value?
+            if (c.length == 2) {
+                value = c[1].trim();
+            }
+
+            if (! setIfRFCKey(key, value)) {
+                keyValuePairs.put(key, value);
+            }
+        }
+    }
 
 	/*
-Version
-      Defaults to "old cookie" behavior as originally specified by
-      Netscape.  See the HISTORICAL section.
-
-Domain
-      Defaults to the request-host.  (Note that there is no dot at the
-      beginning of request-host.)
-
-Max-Age
-      The default behavior is to discard the cookie when the user agent
-      exits.
-
-Path
-      Defaults to the path of the request URL that generated the Set-Cookie
-      response, up to, but not including, the right-most /.
-
-Secure
-      If absent, the user agent may send the cookie over an insecure
-      channel.
-	 */
-
-	/*
-   The value for the Path attribute is not a prefix of the request-
+   The value for the path attribute is not a prefix of the request-
    URI.
 
-   The value for the Domain attribute contains no embedded dots or
+   The value for the domain attribute contains no embedded dots or
    does not start with a dot.
 
-   The value for the request-host does not domain-match the Domain
+   The value for the request-host does not domain-match the domain
    attribute.
 
    The request-host is a FQDN (not IP address) and has the form HD,
-   where D is the value of the Domain attribute, and H is a string
+   where D is the value of the domain attribute, and H is a string
    that contains one or more dots.
 	 */
 
-	private void reset()
-	{
-		Domain = null;
-		Path = null;
-		MaxAge = -1;
-		Secure = false;
-		Version = 0;
-		clear();
-	}
-
-	private void checkDomain (String host) throws IllegalArgumentException
-	{
-		logger.traceEntry (host);
-
-		// might have been set by a previous cookie, and checked then
-		if (Domain.equals (host)) return;
-
-		if (! Domain.startsWith ("."))
-		{
-			reset();
-			throw new IllegalArgumentException(Domain + " does not start with .");
-		}
-
-		if (Domain.indexOf (".", 1) == -1)
-		{
-			reset();
-			throw new IllegalArgumentException(Domain + " does not have embedded dots");
-		}
-
-		if (! host.endsWith (Domain))
-		{
-			reset();
-			throw new IllegalArgumentException(host + " does not end with " + Domain);
-		}
-
-		String Host = host.replaceFirst ("\\..*", "") + Domain;
-		if (! Host.equals (host))
-		{
-			reset();
-			throw new IllegalArgumentException(host + " is longer than " + Domain);
-		}
-	}
-
-	private void checkPath (String path) throws IllegalArgumentException
-	{
-		logger.traceEntry (path);
-
-		if (! path.startsWith (Path))
-		{
-			reset();
-			throw new IllegalArgumentException("Path \"" + path + "\" does not start with \"" +
-					Path + "\"");
-		}
-	}
-
-	private boolean defaultValues (String key, String value)
-	{
-		logger.traceEntry (key);
-		logger.traceEntry (value);
-
-		if (key.equalsIgnoreCase ("max-age"))
-		{
-			Date d = new Date();
-
-			logger.trace ("" + d.getTime());
-			MaxAge = d.getTime() + Long.parseLong (value);
-			logger.traceExit (true);
-			return (true);
-		}
-
-		// Netscape's original proposal defined an Expires header that took a
-		// date value in a fixed-length variant format *in place of* Max-Age:
-		// Wdy, DD-Mon-YY HH:MM:SS GMT
-		// Really:
-		// Wdy, DD-Mon-YYYY HH:MM:SS GMT
-		// http://kb.mozillazine.org/Cookies.txt
-		// expires=Sat, 10-May-2008 21:15:19 GMT
-		if (key.equalsIgnoreCase ("expires"))
-		{
-			Date d = null;
-			try
-			{
-				d = (new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").
-						parse (value));
-			}
-			catch (ParseException PE1)
-			{
-				try
-				{
-					d = (new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss zzz").
-							parse (value));
-				}
-				catch (ParseException PE2)
-				{
-					logger.throwing (PE2);
-					MaxAge = -1;
-					logger.traceExit (true);
-					return (true);
-				}
-			}
-
-			MaxAge = d.getTime();
-			logger.traceExit (true);
-			return (true);
-		}
-
-		if (key.equalsIgnoreCase ("domain"))
-		{
-			Domain = value;
-			logger.traceExit (true);
-			return (true);
-		}
-		if (key.equalsIgnoreCase ("path"))
-		{
-			Path = value;
-			logger.traceExit (true);
-			return (true);
-		}
-		if (key.equalsIgnoreCase ("version"))
-		{
-			Version = Integer.parseInt (value);
-			logger.traceExit (true);
-			return (true);
-		}
-		if (key.equalsIgnoreCase ("secure"))
-		{
-			Secure = true;
-			logger.traceExit (true);
-			return (true);
-		}
-
-		logger.traceExit (false);
-		return (false);
-	}
-
-	private Hashtable<String, String> createTable (String cookieString)
-	{
-		logger.traceEntry (cookieString);
-
-		Hashtable<String, String> ret = new Hashtable<>();
-		String b[] = cookieString.split (";");
-
-		for (int i = 0; i < b.length; i++)
-		{
-			logger.trace (b[i]);
-
-			String c[] = b[i].split ("=", 2);
-			String key = c[0].trim();
-			String value = "";
-
-			if (c.length == 2)
-			{
-				value = c[1];
-				value = value.trim();
-			}
-			logger.debug ("key = " + key + ", value = " + value);
-
-			if (! defaultValues (key, value))
-				ret.put (key, value);
-		}
-
-		logger.traceExit (ret);
-		return (ret);
-	}
-
-	/*
-	private Object getIgnoreCase (Hashtable<String, String> h, String s)
-	{
-		for (Enumeration e = keys(); e.hasMoreElements();)
-		{
-			String key = (String) e.nextElement();
-			logger.trace ("Comparing key: " + key + " and string " + s);
-
-			if (key.equalsIgnoreCase (s))
-			{
-				return (h.get (key));
-			}
-		}
-
-		return (null);
-	}
+    /*
+	    called if soemthing goes wrong when parsing entire line.
 	*/
+    // THREADSAFE_LEVEL_BLACK
+    // needs to aquire a lock on global vars
+    private void reset() {
+        domain = null;
+        path = null;
+        maxAge = BEGINNINGOFTIME;
+        secure = false;
+    }
 
-	public void addToValues (String host, String path, String cookieString)
-			throws IllegalArgumentException
-	{
-		logger.trace (host);
-		logger.trace (path);
-		logger.trace (cookieString);
+    private void checkDomain(final String domain) {
+        if (domain.indexOf(".", 1) == -1) {
+            throw new IllegalArgumentException(domain + " does not have embedded dots");
+        }
+    }
 
-		Hashtable<String, String> newTable = createTable (cookieString);
+    private void checkHost(String host) {
+        if (!host.endsWith(this.domain)) {
+            throw new IllegalArgumentException(host
+                    + " does not end with " + this.domain);
+        }
 
-		if (Domain == null) {
-			if (host.equals ("")) host = "localhost";
-			Domain = host;
-		}
-		else {
-			checkDomain(host);
-		}
+        final String tmpHost = host.replaceFirst("\\..*", "") + domain;
+        if (!tmpHost.equals(host)) {
+            throw new IllegalArgumentException(host
+                    + " is longer than " + domain);
+        }
+    }
 
-		if (Path == null) {
-			Path = path;
-		}
-		else {
-			checkPath (path);
-		}
+    /*
+    **  Check to see if this is one of the usual cookie values and set it
+    **  appropriately if so. see: https://tools.ietf.org/html/rfc6265#section-5.2.2
+    */
+    // THREADSAFE_LEVEL_GREY
+    private boolean setIfRFCKey(final String key, final String value) {
+        logger.traceEntry(key);
+        logger.traceEntry(value);
 
-		if (MaxAge == 0) {
-			reset();
-			throw new IllegalArgumentException("MaxAge==0");
-		}
+        switch (key.toLowerCase()) {
+            case "max-age":
+                setMaxAge(value);
+                return true;
+            case "expires":
+                setExpiry(value);
+                return true;
+            case ("domain"):
+                setDomain(value);
+                return true;
+            case ("path"):
+                setPath(value);
+                return true;
+            case ("secure"):
+                secure = true;
+                return true;
+            case ("httponly"):
+                httponly = true;
+                return true;
+        }
 
-		putAll (newTable);
-	}
+        return false;
+    }
+
+    // THREADSAFE_LEVEL_BLACK
+    // needs lock aquire
+    private void setMaxAge (final String value) {
+        // FIXME: go with whatever we see most recently. i'm not sure this is the best
+        // approach, but i'm not sure whether using newer or older dates is correct. same
+        // expiry below.
+        try {
+            maxAge = new Date(now.getTime() + Long.parseLong(value));
+        } catch (NumberFormatException NFE) {
+            maxAge = BEGINNINGOFTIME;
+        }
+    }
+
+
+    // THREADSAFE_LEVEL_BLACK
+    // needs lock aquire
+    private void setExpiry (final String value) {
+        Date d = null;
+        try {
+            d = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").parse(value);
+        } catch (ParseException PE1) {
+            try {
+                d = new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss zzz").parse(value);
+            } catch (ParseException PE2) {
+                maxAge = BEGINNINGOFTIME;
+                return;
+            }
+        }
+
+        maxAge = d;
+    }
 
     /**
      * Get a string of the correct form to save in a Netscape file.
+     *
      * @return the formatted string
      */
-	public String getSave ()
-	{
-		long time = new Date().getTime();
+    // THREADSAFE_LEVEL_BLACK
+    // critical section, string building
+    public String getSave() {
+        if (now.after(maxAge)) {
+            logger.debug(this.toString() + " has expired");
+            return (null);
+        }
 
-		logger.trace ("time: " + time);
-		logger.trace ("MaxAge: " + MaxAge);
+        String ret = "";
 
-		if (MaxAge <= 0 || MaxAge < time)
-		{
-			logger.debug (this.toString() + " has expired");
-			return (null);
-		}
+        for (String key : keyValuePairs.keySet()) {
 
-		String ret = "";
+            ret += domain + "\t";
+            ret += domain.startsWith(".") ? "TRUE\t" : "FALSE\t";
+            ret += path + "\t";
+            ret += secure ? "TRUE\t" : "FALSE\t";
+            ret += maxAge + "\t";
 
-		for (String key: keySet())
-		{
-			String value = get (key);
+            final String value = keyValuePairs.get(key);
+            if (value != null) {
+                ret += key + "\t" + value + "\n";
+            } else {
+                ret += key + "\n";
+            }
+        }
 
-			ret += Domain + "\t";
-			ret += Domain.startsWith (".") ? "TRUE\t" : "FALSE\t";
-			ret += Path + "\t";
-			ret += Secure ? "TRUE\t" : "FALSE\t";
-			ret += MaxAge/1000 + "\t";
-			if (value != null)
-				ret += key + "\t" + value + "\n";
-			else
-				ret += key + "\n";
-		}
+        logger.traceExit(ret);
+        return ret;
+    }
 
-		logger.traceExit (ret);
-		return (ret);
-	}
+    // THREADSAFE_LEVEL_BLACK
+    // critical section, ret
+    public String getCookieString() {
+        String ret = "Cookie: ";
+        boolean first = true;
 
-	public String getCookieString ()
-	{
-		String ret = "";
-		boolean first = true;
+        for (String key : keyValuePairs.keySet()) {
+            ret += (first ? "" : "; ") + key;
 
-		for (String key: keySet())
-		{
-			ret += (first ? "" : "; ") + key;
+            final String value = keyValuePairs.get(key);
 
-			String value = get (key);
+            // booleans such as secure don't have values...
+            if (!"".equals(value)) {
+                ret += "=" + value;
+            }
 
-			// booleans such as Secure don't have values...
-			if (! value.equals (""))
-				ret += "=" + value;
+            first = false;
+        }
 
-			first = false;
-		}
+        logger.traceExit(ret);
+        return ret;
+    }
 
-		logger.traceExit (ret);
-		return (ret);
-	}
-
-	public String toString()
-	{
-		return ("Domain = " + Domain +
-				", Path = " +  Path +
-				", MaxAge = " +  MaxAge +
-				", Secure = " +  Secure +
-				", Version = " +  Version +
-				", getCookieString() = " + getCookieString());
-	}
-
-	public static void main (String args[])
-	{
-		Cookie cookie = new Cookie();
-
-		cookie.addToValues ("www.google.com", "",
-				"Name=badpath; path=/this/is/bad");
-		// System.out.println (cookie);
-
-		cookie.addToValues ("www.google.com", "",
-				"Name=baddomain; domain=.piper.org");
-		// System.out.println (cookie);
-
-		cookie.addToValues ("www.google.com", "",
-				"Name=baddomain; domain=piper.org");
-		// System.out.println (cookie);
-
-		cookie.addToValues ("www.google.com", "",
-				"Name=baddomain; domain=.org");
-		// System.out.println (cookie);
-
-		cookie.addToValues ("www.google.com", "",
-				"Name=good; domain=.google.com");
-		// System.out.println (cookie);
-
-		cookie.addToValues ("www.google.com", "", "maxage=0");
-		cookie.getSave();
-		// System.out.println (cookie);
-
-		cookie.addToValues ("www.google.com", "",
-				"maxage=1000");
-		cookie.getSave();
-		// System.out.println (cookie);
-		// System.out.println (cookie.getSave());
-
-		Cookie cookietoo = new Cookie();
-		cookietoo.addToValues ("www.long.google.com", "",
-				"Name=toolong; domain=.google.com");
-		// System.out.println (cookietoo);
-	}
+    // THREADSAFE_LEVEL_BLACK
+    // critical section, string building
+    public String toString() {
+        return "domain = " + domain
+                + ", path = " + path
+                + ", maxAge = " + maxAge
+                + ", secure = " + secure
+                + ", getCookieString() = " + getCookieString();
+    }
 }

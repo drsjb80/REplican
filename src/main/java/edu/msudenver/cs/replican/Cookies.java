@@ -1,12 +1,13 @@
 package edu.msudenver.cs.replican;
 
-import java.io.*;
-import java.net.*;
-import java.sql.*;
-import java.util.Vector;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 import org.apache.logging.log4j.Logger;
+
+import java.io.*;
+import java.net.URL;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Date;
 
 /*
 http://www.faqs.org/rfcs/rfc2109.html
@@ -24,75 +25,42 @@ set-cookie      =       "Set-Cookie:" cookies
                    |       "Version" "=" 1*DIGIT
 */
 
-public class Cookies
-{
-    private final Vector<Cookie> cookies = new Vector<>();
-    private final Logger logger = REplican.getLogger();
+public class Cookies {
+    // THREADSAFE_LEVEL_GREY
+    private final Map<String, Vector<Cookie>> cookies = new HashMap<>();
+    private final Logger logger = REplican.logger;
 
-    public void addCookie (String hostORdomain, String path,
-        String cookieString)
-    {
-        logger.traceEntry (hostORdomain);
-        logger.traceEntry (path);
-        logger.traceEntry (cookieString);
+    public void addCookie(final String hostORdomain, final String path,
+                          final String cookieString) {
+        // THREADSAFE_LEVEL_GREY
+        final String hostAndPath = hostORdomain + path;
+        final Cookie newCookie = new Cookie(hostORdomain, path, cookieString);
 
-        Cookie newCookie = new Cookie ();
-
-        try {
-            newCookie.addToValues(hostORdomain, path, cookieString);
+        if (cookies.containsKey(hostAndPath)) {
+            cookies.get(hostAndPath).add(newCookie);
+        } else {
+            final Vector v = new Vector();
+            v.add(newCookie);
+            cookies.put(hostAndPath, v);
         }
-        catch (IllegalArgumentException IAE) {
-            logger.debug (IAE.getMessage());
-            return;
-        }
-
-        String newDomain = newCookie.getDomain();
-        String newPath = newCookie.getPath();
-        String newDomainAndPath = newDomain + newPath;
-        logger.trace (newDomainAndPath);
-
-        // see if there is already a cookie for this domain and path
-        for (int i = 0; i < cookies.size(); i++)
-        {
-            Cookie cookie = cookies.elementAt (i);
-            String oldDomain = cookie.getDomain();
-            String oldPath = cookie.getPath();
-            String oldDomainAndPath = oldDomain + oldPath;
-
-            if (oldDomainAndPath.equals (newDomainAndPath))
-            {
-                logger.trace ("Using: " + oldDomainAndPath);
-                try {
-                    cookie.addToValues(oldDomain, oldPath, cookieString);
-                }
-                catch (IllegalArgumentException IAE)
-                {
-                    logger.debug (IAE.getMessage());
-                    cookies.remove (i);
-                }
-                return;
-            }
-        }
-
-        logger.trace ("Created new cookie: " + newCookie);
-        cookies.add (newCookie);
     }
 
-    public void addCookie (URL url, String cookieString)
-    {
+    public void addCookie(final URL url, final String cookieString) {
+        //THREADSAFE_LEVEL_GREY
         String host = url.getHost();
 
-        if (host.equals (""))
+        if ("".equals(host)) {
             host = "localhost";  // only useful for httpfile://
+        }
+        // THREADSAFE_LEVEL_GREY
+        final String path = url.getPath();
 
-        String path = url.getPath();
-
-        addCookie (host, path, cookieString);
+        addCookie(host, path, cookieString);
     }
 
-    public void loadSQLCookies(String file) {
+    public void loadSQLCookies(final String file) {
         // /Users/beatys/Library/Application Support/Firefox/Profiles/rnwwcxjq.default/cookies.sqlite
-
+        // THREADSAFE_LEVEL_GREY
         Connection conn = null;
         try {
             conn = DriverManager.getConnection("jdbc:sqlite:" + file);
@@ -100,23 +68,24 @@ public class Cookies
             System.out.println(e.getMessage());
             return;
         }
-
-        String sql = "SELECT * FROM moz_cookies";
+        // THREADSAFE_LEVEL_GREY
+        final String sql = "SELECT * FROM moz_cookies";
 
         try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+            // THREADSAFE_LEVEL_GREY
+            final Statement stmt = conn.createStatement();
+            final ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                String host = rs.getString("host");
-                String path = rs.getString("path");
-                String domain = rs.getString("baseDomain");
-                String name = rs.getString("name");
-                String value = rs.getString("value");
-                int expiry = rs.getInt("expiry");
-                boolean isSecure = rs.getInt("isSecure") != 0;
+                final String host = rs.getString("host");
+                final String path = rs.getString("path");
+                final String domain = rs.getString("baseDomain");
+                final String name = rs.getString("name");
+                final String value = rs.getString("value");
+                final int expiry = rs.getInt("expiry");
+                final boolean isSecure = rs.getInt("isSecure") != 0;
 
-                Cookie cookie = new Cookie(domain, path, expiry, isSecure, name, value);
+                final Cookie cookie = new Cookie(domain, path, expiry, isSecure, name, value);
                 addCookie(domain, path, cookie.getCookieString());
             }
         } catch (SQLException e) {
@@ -124,52 +93,51 @@ public class Cookies
         }
     }
 
-/*
-DOMAIN - The domain that created AND that can read the variable.
-FLAG - A TRUE/FALSE value indicating if all machines within a given domain
-    can access the variable. This value is set automatically by the browser,
-    depending on the value you set for domain.
-PATH - The path within the domain that the variable is valid for.
-SECURE - A TRUE/FALSE value indicating if a secure connection with the
-    domain is needed to access the variable.
-EXPIRATION - The UNIX time that the variable will expire on. UNIX time is
-    defined as the number of seconds since Jan 1, 1970 00:00:00 GMT.
-NAME - The name of the variable.
-VALUE - The value of the variable.
+    /*
+    DOMAIN - The domain that created AND that can read the variable.
+    FLAG - A TRUE/FALSE value indicating if all machines within a given domain
+        can access the variable. This value is set automatically by the browser,
+        depending on the value you set for domain.
+    PATH - The path within the domain that the variable is valid for.
+    SECURE - A TRUE/FALSE value indicating if a secure connection with the
+        domain is needed to access the variable.
+    EXPIRATION - The UNIX time that the variable will expire on. UNIX time is
+        defined as the number of seconds since Jan 1, 1970 00:00:00 GMT.
+    NAME - The name of the variable.
+    VALUE - The value of the variable.
 
-separated by TABS
-*/
-    private void doLine (String line)
-    {
-        logger.traceEntry (line);
+    separated by TABS
+    */
+    private void doNetscapeLine(final String line) {
+        // THREADSAFE_LEVEL_GREY
+        logger.traceEntry(line);
 
-        if (line.charAt (0) == '#')
+        if (line.charAt(0) == '#') {
             return;
-
-        String s[] = line.split ("\t");
-
-        if (s.length > 6)
-        {
-            Date date = new Date (Long.parseLong (s[4]) * 1000);
-            String expires =
-                new SimpleDateFormat ("EEE, dd-MMM-yyyy hh:mm:ss zzz").
-                format (date);
-
-            addCookie (s[0], s[2], s[5] + "=" + s[6] +
-                "; Expires=" + expires);
         }
-        else
-            addCookie (s[0], s[2], s[5]);
+        // THREADSAFE_LEVEL_GREY
+        final String[] s = line.split("\t");
+
+        if (s.length > 6) {
+            // THREADSAFE_LEVEL_GREY
+            final Date date = new Date(Long.parseLong(s[4]) * 1000);
+            final String expires =
+                    new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").
+                            format(date);
+
+            addCookie(s[0], s[2], s[5] + "=" + s[6]
+                    + "; Expires=" + expires);
+        } else {
+            addCookie(s[0], s[2], s[5]);
+        }
     }
 
-
-
-    public void loadCookies (String file)
-    {
+    // THREADSAFE_LEVEL_GREY
+    public void loadNetscapeCookies(final String file) {
         if (file.endsWith(".sqlite")) {
+            // THREADSAFE_LEVEL_GREY
             loadSQLCookies(file);
-        }
-        else {
+        } else {
             BufferedReader in = null;
 
             try {
@@ -183,8 +151,9 @@ separated by TABS
 
             try {
                 while ((line = in.readLine()) != null) {
-                    if (line.length() > 0)
-                        doLine(line);
+                    if (line.length() > 0) {
+                        doNetscapeLine(line);
+                    }
                 }
             } catch (IOException ioe) {
                 logger.throwing(ioe);
@@ -192,80 +161,47 @@ separated by TABS
         }
     }
 
-    public void saveCookies (String filename)
-    {
-        logger.traceEntry (filename);
+    // THREADSAFE_LEVEL_GREY
+    public void saveNetscapeCookies(String filename) {
+        logger.traceEntry(filename);
 
-        try
-        {
-            FileWriter fw = new FileWriter (filename);
+        try {
+            FileWriter fw = new FileWriter(filename);
 
-            fw.write ("# HTTP Cookie File\n");
-            fw.write ("# This is a generated file!  Do not edit.\n");
+            fw.write("# HTTP Cookie File\n");
+            fw.write("# This is a generated file!  Do not edit.\n");
 
-            logger.trace ("" + cookies.size());
+            logger.trace("" + cookies.size());
 
-            for (int i = 0; i < cookies.size(); i++)
-            {
-                Cookie cookie = cookies.elementAt (i);
-                String s = cookie.getSave();
-                if (s != null)
-                    fw.write (s);
+            for (String hostAndDomain: cookies.keySet()) {
+                for (Cookie cookie: cookies.get(hostAndDomain)) {
+                    fw.write(cookie.getSave());
+                }
             }
 
             fw.close();
-        }
-        catch (IOException E)
-        {
-            logger.throwing (E);
+        } catch (IOException E) {
+            logger.throwing(E);
         }
     }
 
-    public String findCookies (URL url)
-    {
-        logger.traceEntry (url.toString());
-
+    // THREADSAFE_LEVEL_GREY
+    public String getCookieStringsForURL(final URL url) {
         String ret = null;
-        String urlDomain = url.getHost();
-        String urlPath = url.getPath();
+        final String hostAndPath = url.getHost() + url.getPath();
 
-        for (int i = 0; i < cookies.size(); i++)
-        {
-            Cookie cookie = cookies.elementAt (i);
+        if (! cookies.containsKey(hostAndPath)) {
+            throw new IllegalArgumentException("No cookie for: " + url);
+        }
 
-            String cookieDomain = cookie.getDomain();
-            String cookiePath = cookie.getPath();
-
-            logger.trace ("urlDomain = " + urlDomain);
-            logger.trace ("urlPath = " + urlPath);
-            logger.trace ("cookieDomain = " + cookieDomain);
-            logger.trace ("cookiePath = " + cookiePath);
-            logger.trace
-                (urlDomain.endsWith (cookieDomain) ? "true" : "false");
-            logger.trace
-                (urlPath.startsWith (cookiePath) ? "true" : "false");
-
-            if (urlDomain.endsWith (cookieDomain) &&
-                urlPath.startsWith (cookiePath))
-            {
-                if (ret == null)
-                    ret = cookie.getCookieString();
-                else
-                    ret += "; " + cookie.getCookieString();
+        for (Cookie cookie: cookies.get(hostAndPath)) {
+            if (ret == null) {
+                ret = cookie.getCookieString();
+            } else {
+                ret += "; " + cookie.getCookieString();
             }
         }
 
-        return (ret);
-    }
-
-    public static void main (String args[]) throws MalformedURLException
-    {
-        Cookies cookies = new Cookies();
-
-        cookies.loadCookies ("cookies.txt");
-        System.out.println (cookies.findCookies (new URL
-            ("http://cs.mscd.edu/")));
-
-        cookies.saveCookies ("newcookies.txt");
+        return ret;
     }
 }

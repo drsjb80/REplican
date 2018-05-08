@@ -6,8 +6,11 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 
 @Suite.SuiteClasses({ 
-   REplicanTest.class
+   REplicanTest.class,
+        UtilsTest.class
+
 })
 
 public class RunAll {
+
 }

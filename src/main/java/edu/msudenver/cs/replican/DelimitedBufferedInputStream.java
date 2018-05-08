@@ -8,7 +8,9 @@ import org.apache.logging.log4j.Logger;
 
 public class DelimitedBufferedInputStream extends BufferedInputStream
 {
-	private static final Logger logger = REplican.getLogger();
+
+	private static final Logger logger = REplican.logger;
+    // THREADSAFE_LEVEL_BLACK
 	private List<String> strings = new ArrayList<>();
 	private boolean inString;
 	private boolean inQuotes;
@@ -23,12 +25,14 @@ public class DelimitedBufferedInputStream extends BufferedInputStream
 		start = end = '"';
 	}
 
+    // THREADSAFE_LEVEL_BLACK
 	public DelimitedBufferedInputStream (InputStream in, char delimiter)
 	{
 		super (in);
 		start = end = delimiter;
 	}
 
+    // THREADSAFE_LEVEL_BLACK
 	public DelimitedBufferedInputStream (InputStream in, char start, char end)
 	{
 		super (in);
@@ -55,6 +59,7 @@ public class DelimitedBufferedInputStream extends BufferedInputStream
 		return (len - off);
 	}
 
+    // THREADSAFE_LEVEL_BLACK
 	public int read() throws IOException
 	{
 		int c = in.read();
@@ -122,6 +127,7 @@ public class DelimitedBufferedInputStream extends BufferedInputStream
 		return (strings);
 	}
 
+	// THREADSAFE_LEVEL_GREY
 	public static void main (String args[])
 			throws IOException
 	{

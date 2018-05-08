@@ -13,11 +13,12 @@ public class WebFile
 {
     private final REplicanArgs args;
     private final YouAreEll yrl;
-    private final Logger logger = REplican.getLogger();
+    private final Logger logger = REplican.logger;
     private File file;
     private BufferedOutputStream bos;
-
+    //THREADSAFE_LEVEL_BLACK
     File getFile() { return (file); }
+    //THREADSAFE_LEVEL_BLACK
     BufferedOutputStream getBOS() { return (bos); }
 
     WebFile (YouAreEll yrl, REplicanArgs args)
@@ -26,7 +27,7 @@ public class WebFile
         this.args = args;
         createFile ();
     }
-
+    //THREADSAFE_LEVEL_GREY
     private boolean dealWithExistingFile (long LastModified)
     {
         logger.traceEntry (String.valueOf(LastModified));
@@ -59,7 +60,7 @@ public class WebFile
 
         return (true);
     }
-
+    //THREADSAFE_LEVEL_GREY
     private String getFilePath (String s)
     {
         logger.traceEntry (s);
@@ -103,7 +104,7 @@ public class WebFile
         logger.traceExit (path);
         return (path);
     }
-
+    //THREADSAFE_LEVEL_GREY
     private String getDirectoryPath()
     {
         String path = getFilePath (yrl.getURL());
@@ -129,6 +130,7 @@ public class WebFile
     }
 
     // return true if we don't need to reread
+    //THREADSAFE_LEVEL_GREY
     private boolean checkIfNewerThan()
     {
         if (args.IfNewerThan != null)
@@ -149,6 +151,7 @@ public class WebFile
     }
 
     // return true if we don't need to reread
+    //THREADSAFE_LEVEL_GREY
     private boolean checkExistingFile()
     {
         if (args.OverwriteIfLarger || args.OverwriteIfSmaller)
@@ -181,7 +184,7 @@ public class WebFile
 
         return (false);
     }
-
+    //THREADSAFE_LEVEL_BLACK
     private void createFile ()
     {
         File directory = new File (getDirectoryPath());

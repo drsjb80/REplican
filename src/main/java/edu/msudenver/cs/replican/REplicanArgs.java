@@ -4,6 +4,10 @@ enum LogLevels {OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, ALL}
 
 class REplicanArgs
 {
+    /*
+    The Arrays in this file will not be thread safe
+    Is it safe since each thread will have its own task?
+     */
     String[] PathAccept;
     String[] PathReject;
     String[] PathSave;
@@ -57,6 +61,7 @@ class REplicanArgs
     int CheckpointEvery;
     int PauseBetween;
     int PauseAfterSave;
+    int Threads;
     String Directory;
     String IfNewerThan;
     String FilenameRewrite[];

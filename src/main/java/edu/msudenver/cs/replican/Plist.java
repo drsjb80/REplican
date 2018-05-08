@@ -26,7 +26,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 class Plist extends DefaultHandler
 {
-    private static final Logger logger = REplican.getLogger();
+    private static final Logger logger = REplican.logger;
+    // THREADSAFE_LEVEL_GREY
     private final Cookies cookies;
 
     static InputSource getInputSource (String u)
@@ -63,6 +64,8 @@ class Plist extends DefaultHandler
         return (new InputSource (pbis) );
     }
 
+    // THREADSAFE_LEVEL_GREY
+    // modifies global var cookies
     public Plist (String u, Cookies cookies)
     {
         super();
@@ -93,6 +96,7 @@ class Plist extends DefaultHandler
         }
     }
 
+    // THREADSAFE_LEVEL_GREY
     private String domain;
     private String path;
     private String expires;
@@ -102,6 +106,7 @@ class Plist extends DefaultHandler
 
     private String current;
 
+    // THREADSAFE_LEVEL_GREY
     public void startElement (String uri, String localName, String qName,
         Attributes attributes) throws SAXException
     {
@@ -115,6 +120,7 @@ class Plist extends DefaultHandler
         }
     }
 
+    // THREADSAFE_LEVEL_GREY
     public void endElement (String uri, String localName, String qName)
         throws SAXException
     {
@@ -168,6 +174,7 @@ class Plist extends DefaultHandler
         current = "";
     }
 
+    // THREADSAFE_LEVEL_GREY
     public void characters (char buf[], int offset, int len) throws SAXException
     {
         current += new String (buf, offset, len);

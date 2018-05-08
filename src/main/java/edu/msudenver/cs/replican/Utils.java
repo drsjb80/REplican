@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 public class Utils
 {
-    private static final Logger logger = REplican.getLogger();
+    private static final Logger logger = REplican.logger;
 
     /**
      * make a String pattern of, e.g.: [Aa][Bb], from a string, ignoring
@@ -87,6 +87,8 @@ public class Utils
     ** Use the array pairs as pattern and replacement pairs.  E.g.:
     ** pairs[0] == "\\.wmv.*" and pairs[1] == ".wmv"
     */
+
+    //THREADSAFE_LEVEL_GREY
     static String replaceAll (String s, String pairs[])
     {
         logger.traceEntry (s);
@@ -105,6 +107,8 @@ public class Utils
         for (int i = 0; i < pairs.length; i += 2)
         {
             s = s.replaceAll (pairs[i], pairs[i+1]);
+            System.out.println(s);
+            System.out.println(pairs[i] + " " + pairs[i+1]);
         }
 
         logger.traceExit (s);
@@ -135,19 +139,19 @@ public class Utils
         if (yes != null && no != null)
         {
             boolean ret = matches (yes, s) && ! matches (no, s);
-            logger.traceExit (Boolean.valueOf(ret));
+            logger.traceExit (ret);
             return (ret);
         }
         else if (yes == null)
         {
             boolean ret = ! matches (no, s);
-            logger.traceExit (Boolean.valueOf(ret));
+            logger.traceExit (ret);
             return (ret);
         }
         else // no == null
         {
             boolean ret = matches (yes, s);
-            logger.traceExit (Boolean.valueOf(ret));
+            logger.traceExit (ret);
             return (ret);
         }
     }
@@ -170,7 +174,8 @@ public class Utils
 
         return (Level.ALL);
     }
-
+    //THREADSAFE_LEVEL_GREY
+    //combining two String arrays
     static String[] combineArrays (String one[], String two[])
     {
         if (one == null && two == null)

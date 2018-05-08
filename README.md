@@ -1,4 +1,6 @@
 # REplican
+![alt text](https://travis-ci.org/drsjb80/REplican.svg?branch=dev) [![Coverage Status](https://coveralls.io/repos/github/drsjb80/REplican/badge.svg?branch=master)](https://coveralls.io/github/drsjb80/REplican?branch=dev)
+
 REplican is a powerful web replicator based on regular expressions.
 
 Regular expressions allow either great specificity or generality, giving
