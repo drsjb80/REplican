@@ -7,7 +7,8 @@ import org.junit.runners.Suite;
 
 @Suite.SuiteClasses({ 
    REplicanTest.class,
-        UtilsTest.class
+        UtilsTest.class,
+        CookieTest.class
 
 })
 
