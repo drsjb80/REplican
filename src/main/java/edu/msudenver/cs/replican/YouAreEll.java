@@ -73,7 +73,7 @@ public class YouAreEll {
             return;
         }
 
-        REplican.urlq.add(newURL.toString());
+        REplican.urls.put(newURL.toString(), Boolean.FALSE);
     }
 
     private void dealWithStopOns(final int code) {

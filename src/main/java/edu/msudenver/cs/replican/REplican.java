@@ -3,6 +3,7 @@ package edu.msudenver.cs.replican;
 import java.io.*;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.net.Authenticator;
 
@@ -19,9 +20,6 @@ import java.util.regex.Matcher;
 import edu.msudenver.cs.jclo.JCLO;
 import org.apache.logging.log4j.core.config.Configurator;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import lombok.Synchronized;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
@@ -29,7 +27,7 @@ import lombok.Synchronized;
 public class REplican {
     private final Logger logger = LogManager.getLogger(getClass());
     static final REplicanArgs args = new REplicanArgs();
-    static Queue<String> urlq = new ConcurrentLinkedQueue();
+    static Map<String, Boolean> urls = new ConcurrentHashMap<>();
     static final Cookies cookies = new Cookies();
 
     // guarded by synchronized
@@ -64,7 +62,6 @@ public class REplican {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void readCheckpointFile() {
         logger.info("Loading urls from " + args.CheckpointFile);
 
@@ -72,7 +69,7 @@ public class REplican {
             ObjectInputStream ois =
                     new ObjectInputStream(
                             new FileInputStream(args.CheckpointFile));
-            urlq = (Queue<String>) ois.readObject();
+            urls = (Map<String, Boolean>) ois.readObject();
             ois.close();
         } catch (IOException | ClassNotFoundException ioe) {
             logger.throwing(ioe);
@@ -224,7 +221,7 @@ public class REplican {
         try {
             ObjectOutputStream oos =
                     new ObjectOutputStream(new FileOutputStream(checkpointFile));
-            oos.writeObject(urlq);
+            oos.writeObject(urls);
             oos.close();
         } catch (IOException e) {
             logger.throwing(e);
@@ -238,7 +235,7 @@ public class REplican {
     private void addOne(String total) {
         logger.traceEntry(total);
 
-        urlq.add(total);
+        urls.put(total, Boolean.FALSE);
         URLcount++;
 
         int checkpointEvery = args.CheckpointEvery;
@@ -324,8 +321,7 @@ public class REplican {
             if (args.URLRewrite != null)
                 total = Utils.replaceAll(total, args.URLRewrite);
 
-            // if we don't already have it
-            if (!urlq.contains(total)) {
+            if (urls.get(total) == null) {
                 if (args.PrintAdd)
                     logger.info("Adding: " + total);
                 addOne(total);
@@ -611,29 +607,25 @@ public class REplican {
         }
     }
 
-    // Threads generated per fetch request
-    private void fetchAll(int max_threads) {
-        if(urlq.isEmpty())
-            return;
+    private void fetchAll() {
+        boolean done = false;
 
-        ExecutorService threadPool = Executors.newFixedThreadPool(max_threads);
+        while (!done) {
+            done = true;
 
-        while(!urlq.isEmpty()){
-            String url = urlq.remove();
-            Runnable fetchThread = () -> { fetch(url); };
-            threadPool.execute(fetchThread);
-            if (args.PauseBetween != 0)
-                snooze(args.PauseBetween);
-        }
-        threadPool.shutdown();
-        try{
-            while (!threadPool.awaitTermination(30, TimeUnit.SECONDS)) {
-                System.out.println("Waiting for threads to finish up work.\nBe patient, this may take a while.");
+            for (String url : urls.keySet()) {
+                boolean fetched = urls.get(url);
+
+                done &= fetched;
+
+                if (!fetched) {
+                    fetch(url);
+                    urls.put(url, true);
+                    if (args.PauseBetween != 0)
+                        snooze(args.PauseBetween);
+                }
             }
-        }catch(Exception e) {
-            e.printStackTrace();
         }
-        fetchAll(max_threads);
     }
 
     private void doit(int max_threads) {
@@ -665,7 +657,7 @@ public class REplican {
         ** add to the URLs, with no base
         */
         addToURLs(null, t);
-        fetchAll(max_threads);
+        fetchAll();
 
         /*
         ** shall we save the cookies to a file?
