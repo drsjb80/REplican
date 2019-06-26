@@ -182,7 +182,8 @@ public class Cookies {
         final String hostAndPath = url.getHost() + url.getPath();
 
         if (! cookies.containsKey(hostAndPath)) {
-            throw new IllegalArgumentException("No cookie for: " + url);
+            return ret;
+            // throw new IllegalArgumentException("No cookie for: " + url);
         }
 
         for (Cookie cookie: cookies.get(hostAndPath)) {
