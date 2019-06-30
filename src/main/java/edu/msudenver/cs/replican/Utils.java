@@ -1,10 +1,11 @@
 package edu.msudenver.cs.replican;
 
-import java.util.Arrays;
-import java.util.logging.Level;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Utils {
     private static final Logger logger = LogManager.getLogger("edu.msudenver.cs.replican.Utils");
@@ -129,20 +130,120 @@ public class Utils {
         return host.replaceFirst("[^.]+.", "");
     }
 
-    //THREADSAFE_LEVEL_GREY
     //combining two String arrays
     static String[] combineArrays(String one[], String two[]) {
-        if (one == null && two == null)
+        if (one == null && two == null) {
             return (null);
-        if (two == null)
+        }
+        if (two == null) {
             return (one);
-        if (one == null)
+        }
+        if (one == null) {
             return (two);
+        }
 
         String ret[] = new String[one.length + two.length];
         System.arraycopy(one, 0, ret, 0, one.length);
         System.arraycopy(two, 0, ret, one.length, two.length);
 
         return (ret);
+    }
+
+    static void snooze(int milliseconds) {
+        logger.traceEntry(Integer.toString(milliseconds));
+
+        if (milliseconds == 0)
+            return;
+
+        logger.info("Sleeping for " + milliseconds + " milliseconds");
+
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException ie) {
+            logger.throwing(ie);
+        }
+    }
+
+    static String speed(long start, long stop, long read) {
+        long seconds = (stop - start) / 1000;
+        long BPS = read / (seconds == 0 ? 1 : seconds);
+
+        if (BPS > 1000000000000000L)
+            return (BPS / 1000000000000000L + " EBps");
+        else if (BPS > 1000000000000L)
+            return (BPS / 1000000000000L + " TBps");
+        else if (BPS > 1000000000)
+            return (BPS / 1000000000 + " GBps");
+        else if (BPS > 1000000)
+            return (BPS / 1000000 + " MBps");
+        else if (BPS > 1000)
+            return (BPS / 1000 + " KBps");
+        else
+            return (BPS + " Bps");
+    }
+
+
+    /*
+     ** In the given string s, look for pattern.  If found, return the
+     ** concatenation of the capturing groups.
+     */
+    static String match(String pattern, String s) {
+        logger.traceEntry(pattern);
+        logger.traceEntry(s);
+
+        String ret = null;
+
+        Matcher matcher = Pattern.compile(pattern).matcher(s);
+        if (matcher.find()) {
+            ret = "";
+            for (int i = 1; i <= matcher.groupCount(); i++) {
+                ret += (matcher.group(i));
+            }
+        }
+
+        logger.traceExit(ret);
+        return (ret);
+    }
+
+    /*
+    ** http://www.w3schools.com/tags/tag_base.asp
+    ** "The <base> tag specifies the base URL/target for all relative URLs
+    ** in a document.
+    ** The <base> tag goes inside the <head> element."
+    */
+    static String newBase(String base) {
+        logger.traceEntry(base);
+
+        if (base == null || base.equals("")) {
+            return (null);
+        }
+
+        String b = "<[bB][aA][sS][eE].*[hH][rR][eE][fF]=[\"']?([^\"'# ]*)";
+        String ret = match(b, base);
+
+        logger.traceExit(ret);
+        return (ret);
+    }
+
+    /**
+     * look for "interesting" parts of a HTML string.  interesting thus far
+     * means href's, src's, img's etc.
+     *
+     * @param s the string to examine
+     * @return the interesting part if any, and null if none
+     */
+    static String[] interesting(String s) {
+        logger.traceEntry(s);
+
+        if (s == null)
+            return (null);
+
+        String m[] = new String[REplican.args.Interesting.length];
+
+        for (int i = 0; i < REplican.args.Interesting.length; i++) {
+            m[i] = match(REplican.args.Interesting[i], s);
+        }
+
+        return (m);
     }
 }

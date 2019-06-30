@@ -1,44 +1,34 @@
 package edu.msudenver.cs.replican;
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.net.Authenticator;
-
-import jdk.nashorn.internal.ir.annotations.Immutable;
+import edu.msudenver.cs.jclo.JCLO;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
-import edu.msudenver.cs.jclo.JCLO;
 import org.apache.logging.log4j.core.config.Configurator;
 
-import lombok.Synchronized;
+import java.io.*;
+import java.net.Authenticator;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
-@Immutable
 public class REplican {
-    private final Logger logger = LogManager.getLogger(getClass());
+    private static final Logger logger = LogManager.getLogger();
     static final REplicanArgs args = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
     static final Cookies cookies = new Cookies();
-
-    // guarded by synchronized
-    private int URLcount = 0;
+    private static int URLcount = 0;
 
     // turn on assert for every class *but this one*.
     static {
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
     }
 
-    private void loadNetscapeCookies() {
+    private static void loadNetscapeCookies() {
         for (String cookieFile : args.LoadCookies) {
             try {
                 NetscapeCookies.loadCookies(cookieFile);
@@ -48,21 +38,22 @@ public class REplican {
         }
     }
 
-    private void loadPlistCookies() {
+    private static void loadPlistCookies() {
         for (String cookieFile : args.PlistCookies) {
             logger.info("Loading cookies from " + cookieFile);
             new Plist("file:" + cookieFile, cookies);
         }
     }
 
-    private void loadFirefoxCookies() {
+    private static void loadFirefoxCookies() {
         for (String cookieFile : args.FirefoxCookies) {
             logger.info("Loading cookies from " + cookieFile);
             FirefoxCookies.loadCookies(cookieFile);
         }
     }
 
-    private void readCheckpointFile() {
+    @SuppressWarnings("unchecked")
+    private static void readCheckpointFile() {
         logger.info("Loading urls from " + args.CheckpointFile);
 
         try {
@@ -77,42 +68,26 @@ public class REplican {
     }
 
 
-    private void setLogLevel() {
+    private static void setLogLevel() {
         Level level = Level.OFF;
 
         if (args.logLevel == null) {
             level = Level.WARN;
         } else switch (args.logLevel) {
-            case OFF:
-                level = Level.OFF;
-                break;
-            case FATAL:
-                level = Level.FATAL;
-                break;
-            case ERROR:
-                level = Level.ERROR;
-                break;
-            case WARN:
-                level = Level.WARN;
-                break;
-            case INFO:
-                level = Level.INFO;
-                break;
-            case DEBUG:
-                level = Level.DEBUG;
-                break;
-            case TRACE:
-                level = Level.TRACE;
-                break;
-            case ALL:
-                level = Level.ALL;
-                break;
+            case OFF: level = Level.OFF; break;
+            case FATAL: level = Level.FATAL; break;
+            case ERROR: level = Level.ERROR; break;
+            case WARN: level = Level.WARN; break;
+            case INFO: level = Level.INFO; break;
+            case DEBUG: level = Level.DEBUG; break;
+            case TRACE: level = Level.TRACE; break;
+            case ALL: level = Level.ALL; break;
         }
 
         Configurator.setLevel("REplican", level);
     }
 
-    private String escapeURL(String URL) {
+    private static String escapeURL(String URL) {
         logger.traceEntry(URL);
 
         for (char c : "^.[]$()|*+?{}".toCharArray()) {
@@ -123,7 +98,7 @@ public class REplican {
         return (URL);
     }
 
-    private void setDefaults() {
+    private static void setDefaults() {
         if (args.Interesting == null) {
             String urlref = "\\s*=\\s*[\"']?([^\"'>]*)";
             String href = "[hH][rR][eE][fF]";
@@ -182,45 +157,18 @@ public class REplican {
         ** make sure we accept everything we examine, save, and the initial
         ** URLs
         */
-        args.PathAccept = Utils.combineArrays(args.PathAccept,
-                args.PathExamine);
-        args.PathAccept = Utils.combineArrays(args.PathAccept,
-                args.PathSave);
-        args.PathAccept = Utils.combineArrays(args.PathAccept,
-                args.additional);
+        args.PathAccept = Utils.combineArrays(args.PathAccept, args.PathExamine);
+        args.PathAccept = Utils.combineArrays(args.PathAccept, args.PathSave);
+        args.PathAccept = Utils.combineArrays(args.PathAccept, args.additional);
     }
 
-    /**
-     * look for "interesting" parts of a HTML string.  interesting thus far
-     * means href's, src's, img's etc.
-     *
-     * @param s the string to examine
-     * @return the interesting part if any, and null if none
-     */
-
-    private String[] interesting(String s) {
-        logger.traceEntry(s);
-
-        if (s == null)
-            return (null);
-
-        String m[] = new String[args.Interesting.length];
-
-        for (int i = 0; i < args.Interesting.length; i++) {
-            m[i] = match(args.Interesting[i], s);
-        }
-
-        return (m);
-    }
-
-    private void checkpoint() {
+    private static void checkpoint() {
         String checkpointFile = args.CheckpointFile;
 
         logger.trace("writing to " + checkpointFile);
 
         try {
-            ObjectOutputStream oos =
-                    new ObjectOutputStream(new FileOutputStream(checkpointFile));
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(checkpointFile));
             oos.writeObject(urls);
             oos.close();
         } catch (IOException e) {
@@ -231,8 +179,7 @@ public class REplican {
     /*
     ** add a URL to the list of those to be processed
     */
-    @Synchronized
-    private void addOne(String total) {
+    private static void addOne(String total) {
         logger.traceEntry(total);
 
         urls.put(total, Boolean.FALSE);
@@ -246,7 +193,7 @@ public class REplican {
     /*
     ** create a valid URL, paying attenting to a base if there is one.
     */
-    private URL makeURL(String baseURL, String s) {
+    private static URL makeURL(String baseURL, String s) {
         logger.traceEntry(baseURL);
         logger.traceEntry(s);
 
@@ -265,57 +212,18 @@ public class REplican {
         return (u);
     }
 
-    /*
-    ** In the given string s, look for pattern.  If found, return the
-    ** concatenation of the capturing groups.
-    */
-    private String match(String pattern, String s) {
-        logger.traceEntry(pattern);
-        logger.traceEntry(s);
-
-        String ret = null;
-
-        Matcher matcher = Pattern.compile(pattern).matcher(s);
-        if (matcher.find()) {
-            ret = "";
-            for (int i = 1; i <= matcher.groupCount(); i++) {
-                ret += (matcher.group(i));
-            }
-        }
-
-        logger.traceExit(ret);
-        return (ret);
-    }
-
-    /*
-    ** http://www.w3schools.com/tags/tag_base.asp
-    ** "The <base> tag specifies the base URL/target for all relative URLs
-    ** in a document.
-    ** The <base> tag goes inside the <head> element."
-    */
-    private String newBase(String base) {
-        logger.traceEntry(base);
-
-        if (base == null)
-            return (null);
-
-        String b = "<[bB][aA][sS][eE].*[hH][rR][eE][fF]=[\"']?([^\"'# ]*)";
-        String ret = match(b, base);
-
-        logger.traceExit(ret);
-        return (ret);
-    }
-
     // Process a single URL and see if we need to add it to the todo
     // list.
-    private void process(String total) {
-        final String PathAccept[] = args.PathAccept;
-        final String PathReject[] = args.PathReject;
+    private static void process(String total) {
+        boolean accept = Utils.blurf(args.PathAccept, args.PathReject, total, true);
 
-        boolean accept = Utils.blurf(PathAccept, PathReject, total, true);
+        if (args.PrintAccept && accept) {
+            logger.info("Accepting path: " + total);
+        }
 
-        if (args.PrintAccept && accept) logger.info("Accepting path: " + total);
-        if (args.PrintReject && !accept) logger.info("Rejecting path: " + total);
+        if (args.PrintReject && !accept) {
+            logger.info("Rejecting path: " + total);
+        }
 
         if (accept) {
             if (args.URLRewrite != null)
@@ -329,7 +237,7 @@ public class REplican {
         }
     }
 
-    private void addToURLs(String baseURL, List<String> strings) {
+    private static void addToURLs(String baseURL, List<String> strings) {
         logger.traceEntry(baseURL);
         logger.traceEntry(strings.toString());
 
@@ -337,13 +245,13 @@ public class REplican {
             String next = Utils.replaceAll(s, args.URLFixUp);
 
             // is this resetting the base?
-            String newBase = newBase(next);
+            String newBase = Utils.newBase(next);
             if (newBase != null) {
                 logger.debug("Setting base to " + baseURL);
                 baseURL = newBase;
             }
 
-            for (String possible : interesting(next)) {
+            for (String possible : Utils.interesting(next)) {
                 if (possible != null) {
                     URL u = makeURL(baseURL, possible);
 
@@ -357,45 +265,12 @@ public class REplican {
         }
     }
 
-    private void snooze(int milliseconds) {
-        logger.traceEntry(Integer.toString(milliseconds));
-
-        if (milliseconds == 0)
-            return;
-
-        logger.info("Sleeping for " + milliseconds + " milliseconds");
-
-        try {
-            Thread.sleep(milliseconds);
-        } catch (InterruptedException ie) {
-            logger.throwing(ie);
-        }
-    }
-
-    private String speed(long start, long stop, long read) {
-        long seconds = (stop - start) / 1000;
-        long BPS = read / (seconds == 0 ? 1 : seconds);
-
-        if (BPS > 1000000000000000L)
-            return (BPS / 1000000000000000L + " EBps");
-        else if (BPS > 1000000000000L)
-            return (BPS / 1000000000000L + " TBps");
-        else if (BPS > 1000000000)
-            return (BPS / 1000000000 + " GBps");
-        else if (BPS > 1000000)
-            return (BPS / 1000000 + " MBps");
-        else if (BPS > 1000)
-            return (BPS / 1000 + " KBps");
-        else
-            return (BPS + " Bps");
-    }
-
     /*
     ** read from an input stream, optionally write to an output stream, and
     ** optionally look at all the URL's found in the input stream.
     */
 
-    private boolean examineORsave(YouAreEll yrl, InputStream is,
+    private static boolean examineORsave(YouAreEll yrl, InputStream is,
                                   BufferedOutputStream bos, boolean examine, boolean save, String url) {
         // logger.traceEntry ((Message) is);
         // logger.traceEntry ((Message) bos);
@@ -404,53 +279,15 @@ public class REplican {
         logger.traceEntry(url);
 
         try {
-            long read = 0;
-            long written = 0;
-            long content_length = yrl.getContentLength();
-            long ten_percent = content_length > 0 ? content_length / 10 : 0;
-            long count = 1;
-            boolean percent = args.SaveProgress && save && ten_percent > 0;
-            boolean spin = args.SaveProgress && save && ten_percent == 0;
-            long start = new java.util.Date().getTime();
+            readAndWrite(is, bos, save, yrl.getContentLength());
 
-            if (percent) System.out.print("0..");
-            if (spin) System.out.print("|");
-
-            int c;
-            while ((c = is.read()) != -1) {
-                if (save) {
-                    bos.write((char) c);
-                    written++;
-
-                    if (percent && count < 10 && written > count * ten_percent) {
-                        System.out.print(count * 10 + "..");
-                        count++;
-                    }
-                    // spin every 1000 bytes read -- we don't know how long
-                    // the file is.
-                    else if (spin && written % 1000 == 0) {
-                        // it'd be nice if Java know a long % 4 will always
-                        // be between 0 and 3 -- an integer...
-                        int where = (int) count % 4;
-                        System.out.print("\b" + "|/-\\".charAt(where));
-                        count++;
-                    }
-                }
-                read++;
+            if (save && args.PauseAfterSave != 0) {
+                Utils.snooze(args.PauseAfterSave);
             }
 
-            long stop = new java.util.Date().getTime();
-
-            if (percent) System.out.println("100");
-            if (spin) System.out.println("");
-            if (spin || percent) {
-                System.out.println(speed(start, stop, read));
-            }
-
-            if (save && args.PauseAfterSave != 0) snooze(args.PauseAfterSave);
-
-            if (examine)
+            if (examine) {
                 addToURLs(url, ((DelimitedBufferedInputStream) is).getStrings());
+            }
         } catch (IOException e) {
             logger.throwing(e);
             return (false);
@@ -459,7 +296,58 @@ public class REplican {
         return (true);
     }
 
-    private void fetchOne(boolean examine, boolean save, YouAreEll yrl,
+    private static void readAndWrite(final InputStream is, final BufferedOutputStream bos, final boolean save, final long content_length) throws IOException {
+        long ten_percent = content_length > 0 ? content_length / 10 : 0;
+        boolean percent = args.SaveProgress && save && ten_percent > 0;
+        boolean spin = args.SaveProgress && save && ten_percent == 0;
+        long startTime = 0;
+
+        if (spin || percent) {
+            startTime = new java.util.Date().getTime();
+        }
+
+        if (percent) System.out.print("0..");
+        if (spin) System.out.print("|");
+
+        long written = 0;
+        long read = 0;
+        long count = 1;
+        int c;
+        while ((c = is.read()) != -1) {
+            if (save) {
+                bos.write((char) c);
+                written++;
+
+                if (percent && count < 10 && written > count * ten_percent) {
+                    System.out.print(count * 10 + "..");
+                    count++;
+                } else if (spin && written % 1000 == 0) {
+                    // spin every 1000 bytes read -- we don't know how long
+                    // the file is.
+                    // it'd be nice if Java know a long % 4 will always
+                    // be between 0 and 3 -- an integer...
+                    int where = (int) count % 4;
+                    System.out.print("\b" + "|/-\\".charAt(where));
+                    count++;
+                }
+            }
+            read++;
+        }
+
+        if (spin || percent) {
+            if (percent) {
+                System.out.println("100");
+            }
+            if (spin) {
+                System.out.println();
+            }
+
+            long stopTime = new java.util.Date().getTime();
+            System.out.println(Utils.speed(startTime, stopTime, read));
+        }
+    }
+
+    private static void fetchOne(boolean examine, boolean save, YouAreEll yrl,
                           InputStream is) {
         logger.traceEntry(String.valueOf(examine));
         logger.traceEntry(String.valueOf(save));
@@ -508,7 +396,7 @@ public class REplican {
     ** calculate, given the examine/ignore and save/refuse values, whether
     ** to examine and/or save s.
     */
-    private boolean[] EISR(String s, String which,
+    private static boolean[] EISR(String s, String which,
                            String examine[], String ignore[], String save[], String refuse[]) {
         if (s == null)
             return (null);
@@ -541,7 +429,7 @@ public class REplican {
 
     // accept everything we examine or save
     // reject everything we ignore or refuse
-    private void fetch(String url) {
+    private static void fetch(String url) {
         logger.traceEntry(url);
 
         boolean Path = args.PathExamine != null || args.PathIgnore != null ||
@@ -607,7 +495,7 @@ public class REplican {
         }
     }
 
-    private void fetchAll() {
+    private static void fetchAll() {
         boolean done = false;
 
         while (!done) {
@@ -622,13 +510,13 @@ public class REplican {
                     fetch(url);
                     urls.put(url, true);
                     if (args.PauseBetween != 0)
-                        snooze(args.PauseBetween);
+                        Utils.snooze(args.PauseBetween);
                 }
             }
         }
     }
 
-    private void doit(int max_threads) {
+    private static void doit() {
         final String username = args.Username;
         final String password = args.Password;
         if (username != null || password != null)
@@ -661,14 +549,16 @@ public class REplican {
 
         /*
         ** shall we save the cookies to a file?
-        */
+
         String savecookies = args.SaveCookies;
-        if (savecookies != null)
+        if (savecookies != null) {
             try {
-            NetscapeCookies.loadCookies(savecookies);
-        } catch (IOException IOE) {
-            logger.throwing(IOE);
+                NetscapeCookies.loadCookies(savecookies);
+            } catch (IOException IOE) {
+                logger.throwing(IOE);
+            }
         }
+        */
     }
 
     public static void main(String[] arguments) throws FileNotFoundException {
@@ -698,22 +588,17 @@ public class REplican {
             System.exit(0);
         }
 
-        try{
-            REplican r = new REplican();
-            r.setLogLevel();
-            r.setDefaults();
+        setLogLevel();
+        setDefaults();
 
-            final int MAX_T = args.Threads;
-            if (args.FirefoxCookies != null) r.loadFirefoxCookies();
-            if (args.LoadCookies != null) r.loadNetscapeCookies();
-            if (args.PlistCookies != null) r.loadPlistCookies();
-            if (args.CheckpointEvery != 0) r.readCheckpointFile();
+        final int MAX_T = args.Threads;
+        if (args.FirefoxCookies != null) loadFirefoxCookies();
+        if (args.LoadCookies != null) loadNetscapeCookies();
+        if (args.PlistCookies != null) loadPlistCookies();
 
-            r.doit(MAX_T);
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
+        if (args.CheckpointEvery != 0) readCheckpointFile();
+
+        doit();
     }
 
 }

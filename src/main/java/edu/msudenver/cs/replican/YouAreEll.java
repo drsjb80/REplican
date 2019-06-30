@@ -57,14 +57,15 @@ public class YouAreEll {
         Content-Type: text/html; charset=iso-8859-1
         */
 
-        if (!REplican.args.FollowRedirects)
+        if (!REplican.args.FollowRedirects) {
             return;
+        }
 
         String redirected = urlConnection.getHeaderField("Location");
         if (REplican.args.PrintRedirects)
             logger.info("Redirected to: " + redirected);
 
-        URL newURL = null;
+        URL newURL;
 
         try {
             newURL = new URL(new URL(url), redirected);
@@ -85,7 +86,7 @@ public class YouAreEll {
         }
     }
 
-    private synchronized InputStream HUC() {
+    private InputStream HUC() {
         ContentLength = getContentLength();
         ContentType = urlConnection.getHeaderField("Content-Type");
         String MIMEAccept[] = REplican.args.MIMEAccept;
@@ -136,8 +137,7 @@ public class YouAreEll {
 
     private synchronized int connect() throws IOException {
         urlConnection = new URL(url).openConnection();
-        setUserAgent();
-        setReferer();
+        addHeaderLines();
         setCookies();
 
         int returnCode = HttpURLConnection.HTTP_OK;
@@ -149,19 +149,6 @@ public class YouAreEll {
 
         logger.traceExit(returnCode);
         return returnCode;
-    }
-
-    private void setUserAgent() {
-        if (REplican.args.UserAgent != null) {
-            urlConnection.setRequestProperty("User-Agent", REplican.args.UserAgent);
-        }
-    }
-
-    private void setReferer() {
-        String Referer = REplican.args.Referer;
-        if (Referer != null) {
-            urlConnection.setRequestProperty("Referer", Referer);
-        }
     }
 
     private void setCookies() {
