@@ -84,7 +84,7 @@ public class REplican {
             case ALL: level = Level.ALL; break;
         }
 
-        Configurator.setLevel("REplican", level);
+        Configurator.setLevel(logger.getName(), level);
     }
 
     private static String escapeURL(String URL) {
@@ -182,7 +182,7 @@ public class REplican {
     private static void addOne(String total) {
         logger.traceEntry(total);
 
-        urls.put(total, Boolean.FALSE);
+        urls.putIfAbsent(total, false);
         URLcount++;
 
         int checkpointEvery = args.CheckpointEvery;
@@ -347,8 +347,7 @@ public class REplican {
         }
     }
 
-    private static void fetchOne(boolean examine, boolean save, YouAreEll yrl,
-                          InputStream is) {
+    private static void fetchOne(boolean examine, boolean save, YouAreEll yrl, InputStream is) {
         logger.traceEntry(String.valueOf(examine));
         logger.traceEntry(String.valueOf(save));
         logger.traceEntry(yrl.toString());

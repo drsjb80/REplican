@@ -26,14 +26,12 @@ public class DelimitedBufferedInputStream extends BufferedInputStream
 		start = end = '"';
 	}
 
-    // THREADSAFE_LEVEL_BLACK
 	public DelimitedBufferedInputStream (InputStream in, char delimiter)
 	{
 		super (in);
 		start = end = delimiter;
 	}
 
-    // THREADSAFE_LEVEL_BLACK
 	public DelimitedBufferedInputStream (InputStream in, char start, char end)
 	{
 		super (in);
@@ -60,7 +58,6 @@ public class DelimitedBufferedInputStream extends BufferedInputStream
 		return (len - off);
 	}
 
-    // THREADSAFE_LEVEL_BLACK
 	public int read() throws IOException
 	{
 		int c = in.read();
@@ -123,12 +120,9 @@ public class DelimitedBufferedInputStream extends BufferedInputStream
 
 	public List<String> getStrings()
 	{
-		// String c[] = new String[strings.size()];
-		// strings.toArray (c);
 		return (strings);
 	}
 
-	// THREADSAFE_LEVEL_GREY
 	public static void main (String args[])
 			throws IOException
 	{
