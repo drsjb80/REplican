@@ -1,8 +1,5 @@
 package edu.msudenver.cs.replican;
 
-import lombok.Getter;
-import lombok.Setter;
-
 enum LogLevels {OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, ALL}
 
 class REplicanArgs {
@@ -37,14 +34,14 @@ class REplicanArgs {
 
     int[] StopOn;
     boolean StopOnnull;
-    final int Tries = 1;
+    int Tries = 1;
 
     LogLevels logLevel = LogLevels.OFF;
     String Username;
     String Password;
-    String LoadCookies[];
-    String PlistCookies[];
-    String FirefoxCookies[];
+    String[] LoadCookies;
+    String[] PlistCookies;
+    String[] FirefoxCookies;
     String SaveCookies;
     final String IndexName = "index.html";
     boolean IgnoreCookies;
@@ -61,11 +58,11 @@ class REplicanArgs {
     int Threads = 1;
     String Directory;
     String IfNewerThan;
-    String FilenameRewrite[];
-    String URLRewrite[];
-    String URLFixUp[];
-    String Interesting[];
-    String Header[];
+    String[] FilenameRewrite;
+    String[] URLRewrite;
+    String[] URLFixUp;
+    String[] Interesting;
+    String[] Header;
 
     boolean Version;
     boolean Help;

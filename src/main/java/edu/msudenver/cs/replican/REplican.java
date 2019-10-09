@@ -1,10 +1,12 @@
 package edu.msudenver.cs.replican;
 
 import edu.msudenver.cs.jclo.JCLO;
+import lombok.NonNull;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.message.Message;
 
 import java.io.*;
 import java.net.Authenticator;
@@ -74,7 +76,6 @@ public class REplican {
         if (args.logLevel == null) {
             level = Level.WARN;
         } else switch (args.logLevel) {
-            case OFF: level = Level.OFF; break;
             case FATAL: level = Level.FATAL; break;
             case ERROR: level = Level.ERROR; break;
             case WARN: level = Level.WARN; break;
@@ -87,7 +88,7 @@ public class REplican {
         Configurator.setLevel(logger.getName(), level);
     }
 
-    private static String escapeURL(String URL) {
+    private static String escapeURL(@NonNull String URL) {
         logger.traceEntry(URL);
 
         for (char c : "^.[]$()|*+?{}".toCharArray()) {
@@ -179,7 +180,7 @@ public class REplican {
     /*
     ** add a URL to the list of those to be processed
     */
-    private static void addOne(String total) {
+    private static void addOne(@NonNull final String total) {
         logger.traceEntry(total);
 
         urls.putIfAbsent(total, false);
@@ -191,9 +192,9 @@ public class REplican {
     }
 
     /*
-    ** create a valid URL, paying attenting to a base if there is one.
+    ** create a valid URL, paying attention to a base if there is one.
     */
-    private static URL makeURL(String baseURL, String s) {
+    private static URL makeURL(final String baseURL, @NonNull final String s) {
         logger.traceEntry(baseURL);
         logger.traceEntry(s);
 
@@ -212,9 +213,9 @@ public class REplican {
         return (u);
     }
 
-    // Process a single URL and see if we need to add it to the todo
+    // Process a single URL and see if we need to add it to the to do
     // list.
-    private static void process(String total) {
+    private static void process(@NonNull String total) {
         boolean accept = Utils.blurf(args.PathAccept, args.PathReject, total, true);
 
         if (args.PrintAccept && accept) {
@@ -237,7 +238,7 @@ public class REplican {
         }
     }
 
-    private static void addToURLs(String baseURL, List<String> strings) {
+    private static void addToURLs(String baseURL, @NonNull final List<String> strings) {
         logger.traceEntry(baseURL);
         logger.traceEntry(strings.toString());
 
@@ -268,12 +269,14 @@ public class REplican {
     /*
     ** read from an input stream, optionally write to an output stream, and
     ** optionally look at all the URL's found in the input stream.
+    ** null: yrl, bos
     */
+    private static boolean examineORsave(final YouAreEll yrl, final InputStream is, final BufferedOutputStream bos, final boolean examine, final boolean save, final String url) {
+        System.err.println("yrl = " + yrl);
+        System.err.println("is = " + is);
+        System.err.println("bos = " + bos);
 
-    private static boolean examineORsave(YouAreEll yrl, InputStream is,
-                                  BufferedOutputStream bos, boolean examine, boolean save, String url) {
-        // logger.traceEntry ((Message) is);
-        // logger.traceEntry ((Message) bos);
+
         logger.traceEntry(String.valueOf(examine));
         logger.traceEntry(String.valueOf(save));
         logger.traceEntry(url);
@@ -347,26 +350,32 @@ public class REplican {
         }
     }
 
-    private static void fetchOne(boolean examine, boolean save, YouAreEll yrl, InputStream is) {
+    private static void fetchOne(final boolean examine, boolean save, @NonNull final YouAreEll yrl, @NonNull final InputStream is)
+            throws MalformedURLException, FileNotFoundException {
+        System.err.println(is);
         logger.traceEntry(String.valueOf(examine));
         logger.traceEntry(String.valueOf(save));
         logger.traceEntry(yrl.toString());
 
-        if (examine)
-            is = new DelimitedBufferedInputStream(is, '<', '>');
+        InputStream dbis = is;
+
+        if (examine) {
+            dbis = new DelimitedBufferedInputStream(is, '<', '>');
+        }
 
         BufferedOutputStream bos = null;
-        WebFile wf = null;
+        File webFile = null;
         if (save) {
-            wf = new WebFile(yrl, args);
-            bos = wf.getBOS();
-
-            if (bos == null)
+            webFile = new WebFile(yrl, args).createFile();
+            if (webFile == null) {
                 save = false;
+            } else {
+                bos = new BufferedOutputStream(new FileOutputStream(webFile));
+            }
         }
 
         if (save || examine) {
-            if (!examineORsave(yrl, is, bos, examine, save, yrl.getUrl())) {
+            if (!examineORsave(yrl, dbis, bos, examine, save, yrl.getUrl())) {
                 logger.error("examineORsave failed");
             }
         }
@@ -374,9 +383,11 @@ public class REplican {
         if (bos != null) {
             try {
                 bos.close();
-                if (args.SetLastModified)
-                    if (!wf.getFile().setLastModified(yrl.getLastModified()))
+                if (args.SetLastModified) {
+                    if (!webFile.setLastModified(yrl.getLastModified())) {
                         logger.warn("Couldn't set last modified");
+                    }
+                }
             } catch (IOException e) {
                 logger.throwing(e);
             }
@@ -384,7 +395,7 @@ public class REplican {
 
         if (examine) {
             try {
-                is.close();
+                dbis.close();
             } catch (IOException e) {
                 logger.throwing(e);
             }
@@ -395,8 +406,7 @@ public class REplican {
     ** calculate, given the examine/ignore and save/refuse values, whether
     ** to examine and/or save s.
     */
-    private static boolean[] EISR(String s, String which,
-                           String examine[], String ignore[], String save[], String refuse[]) {
+    private static boolean[] EISR(@NonNull final String s, @NonNull final String which, String[] examine, String[] ignore, String[] save, String[] refuse) {
         if (s == null)
             return (null);
 
@@ -420,7 +430,7 @@ public class REplican {
         if (args.PrintRefuse && !S)
             logger.info("Refusing " + which + ": " + s);
 
-        boolean ret[] = new boolean[2];
+        boolean[] ret = new boolean[2];
         ret[0] = E;
         ret[1] = S;
         return (ret);
@@ -428,7 +438,7 @@ public class REplican {
 
     // accept everything we examine or save
     // reject everything we ignore or refuse
-    private static void fetch(String url) {
+    private static void fetch(@NonNull final String url) throws MalformedURLException, FileNotFoundException {
         logger.traceEntry(url);
 
         boolean Path = args.PathExamine != null || args.PathIgnore != null ||
@@ -439,7 +449,7 @@ public class REplican {
         logger.debug("Path = " + Path);
         logger.debug("MIME = " + MIME);
 
-        boolean tb[] = EISR(url, "path", args.PathExamine, args.PathIgnore,
+        boolean[] tb = EISR(url, "path", args.PathExamine, args.PathIgnore,
                 args.PathSave, args.PathRefuse);
 
         boolean Pexamine = tb[0];
@@ -482,8 +492,14 @@ public class REplican {
         }
 
         // we've looked at both Path and now MIME and there's nothing to do
-        if (!Pexamine && !Psave && !Mexamine && !Msave)
+        if (!Pexamine && !Psave && !Mexamine && !Msave) {
+            try {
+                is.close();
+            } catch (IOException IOE) {
+                logger.throwing(IOE);
+            }
             return;
+        }
 
         fetchOne(Pexamine || Mexamine, Psave || Msave, yrl, is);
 
@@ -506,7 +522,11 @@ public class REplican {
                 done &= fetched;
 
                 if (!fetched) {
-                    fetch(url);
+                    try {
+                        fetch(url);
+                    } catch (MalformedURLException | FileNotFoundException e) {
+                        logger.throwing(e);
+                    }
                     urls.put(url, true);
                     if (args.PauseBetween != 0)
                         Utils.snooze(args.PauseBetween);
@@ -560,7 +580,7 @@ public class REplican {
         */
     }
 
-    public static void main(String[] arguments) throws FileNotFoundException {
+    public static void main(String[] arguments) {
 
         JCLO jclo = new JCLO(args);
 
@@ -590,7 +610,6 @@ public class REplican {
         setLogLevel();
         setDefaults();
 
-        final int MAX_T = args.Threads;
         if (args.FirefoxCookies != null) loadFirefoxCookies();
         if (args.LoadCookies != null) loadNetscapeCookies();
         if (args.PlistCookies != null) loadPlistCookies();

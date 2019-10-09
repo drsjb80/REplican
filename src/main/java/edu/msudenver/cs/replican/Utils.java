@@ -1,5 +1,6 @@
 package edu.msudenver.cs.replican;
 
+import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,14 +45,14 @@ public class Utils {
      * @param s  the string to check
      * @param re the array of regular expressions
      */
-    private static boolean matches(String re[], String s) {
+    private static boolean matches(String[] re, String s) {
         logger.traceEntry("re" + java.util.Arrays.toString(re));
         logger.traceEntry(s);
 
-        for (int i = 0; i < re.length; i++) {
-            logger.trace("Matching: '" + s + "' and '" + re[i] + "'");
+        for (String value : re) {
+            logger.trace("Matching: '" + s + "' and '" + value + "'");
             try {
-                if (s.matches(re[i])) {
+                if (s.matches(value)) {
                     logger.traceExit("true");
                     return (true);
                 }
@@ -68,9 +69,7 @@ public class Utils {
     ** Use the array pairs as pattern and replacement pairs.  E.g.:
     ** pairs[0] == "\\.wmv.*" and pairs[1] == ".wmv"
     */
-
-    //THREADSAFE_LEVEL_GREY
-    static String replaceAll(String s, String pairs[]) {
+    static String replaceAll(String s, String[] pairs) {
         logger.traceEntry(s);
         logger.traceEntry(Arrays.toString(pairs));
 
@@ -118,8 +117,7 @@ public class Utils {
             boolean ret = !matches(no, s);
             logger.traceExit(ret);
             return (ret);
-        } else // no == null
-        {
+        } else { // no == null
             boolean ret = matches(yes, s);
             logger.traceExit(ret);
             return (ret);
@@ -131,7 +129,7 @@ public class Utils {
     }
 
     //combining two String arrays
-    static String[] combineArrays(String one[], String two[]) {
+    static String[] combineArrays(String[] one, String[] two) {
         if (one == null && two == null) {
             return (null);
         }
@@ -142,7 +140,7 @@ public class Utils {
             return (two);
         }
 
-        String ret[] = new String[one.length + two.length];
+        String[] ret = new String[one.length + two.length];
         System.arraycopy(one, 0, ret, 0, one.length);
         System.arraycopy(two, 0, ret, one.length, two.length);
 
@@ -187,7 +185,7 @@ public class Utils {
      ** In the given string s, look for pattern.  If found, return the
      ** concatenation of the capturing groups.
      */
-    static String match(String pattern, String s) {
+    private static String match(String pattern, String s) {
         logger.traceEntry(pattern);
         logger.traceEntry(s);
 
@@ -232,13 +230,10 @@ public class Utils {
      * @param s the string to examine
      * @return the interesting part if any, and null if none
      */
-    static String[] interesting(String s) {
+    static String[] interesting(@NonNull String s) {
         logger.traceEntry(s);
 
-        if (s == null)
-            return (null);
-
-        String m[] = new String[REplican.args.Interesting.length];
+        String[] m = new String[REplican.args.Interesting.length];
 
         for (int i = 0; i < REplican.args.Interesting.length; i++) {
             m[i] = match(REplican.args.Interesting[i], s);

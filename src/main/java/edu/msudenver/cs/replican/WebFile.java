@@ -3,230 +3,182 @@ package edu.msudenver.cs.replican;
 import java.net.URL;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
 
 import java.net.MalformedURLException;
+import java.nio.file.FileAlreadyExistsException;
 
+import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class WebFile
-{
+class WebFile {
     private final REplicanArgs args;
     private final YouAreEll yrl;
     private final Logger logger = LogManager.getLogger(getClass());
-    private File file;
-    private BufferedOutputStream bos;
-    //THREADSAFE_LEVEL_BLACK
-    File getFile() { return (file); }
-    //THREADSAFE_LEVEL_BLACK
-    BufferedOutputStream getBOS() { return (bos); }
 
-    WebFile (YouAreEll yrl, REplicanArgs args)
-    {
+    WebFile(final YouAreEll yrl, final REplicanArgs args) {
         this.yrl = yrl;
         this.args = args;
-        createFile ();
     }
-    //THREADSAFE_LEVEL_GREY
-    private boolean dealWithExistingFile (long LastModified)
-    {
-        logger.traceEntry (String.valueOf(LastModified));
 
-        if (! args.Overwrite)
-        {
-            logger.warn ("Not overwriting: " + file);
-            return (false);
+    private boolean dealWithExistingFile(final File file, final long LastModified) {
+        logger.traceEntry(String.valueOf(LastModified));
+
+        if (!args.Overwrite) {
+            logger.warn("Not overwriting: " + file);
+            return false;
         }
 
-        if (args.IfModifiedSince)
-        {
-            if (LastModified > 0)
-            {
-                logger.trace ("file: " + file.lastModified());
-                logger.trace ("URL: " + LastModified);
+        if (args.IfModifiedSince) {
+            if (LastModified > 0) {
+                logger.trace("file: " + file.lastModified());
+                logger.trace("URL: " + LastModified);
 
-                if (file.lastModified() <= LastModified)
-                {
+                if (file.lastModified() <= LastModified) {
                     if (args.PrintSkip)
-                        logger.info ("Not modified: " + file);
+                        logger.info("Not modified: " + file);
                     return (false);
                 }
-            }
-            else
-            {
-                logger.info ("No last-modified information: " + file);
+            } else {
+                logger.info("No last-modified information: " + file);
             }
         }
 
         return (true);
     }
-    //THREADSAFE_LEVEL_GREY
-    private String getFilePath (String s)
-    {
-        logger.traceEntry (s);
 
-        URL url = null;
+    private String getFilePath(@NonNull final String s) throws MalformedURLException {
+        logger.traceEntry(s);
 
-        try
-        {
-            url = new URL (s);
-        }
-        catch (MalformedURLException MUE)
-        {
-            logger.throwing (MUE);
-            return (null);
-        }
+        URL url = new URL(s);
 
         String hostname = url.getHost();
         String filename = url.getFile();
 
-        if (filename.endsWith ("/"))
+        if (filename.endsWith("/")) {
             filename += args.IndexName;
+        }
 
-        if (hostname == null)
+        if (hostname == null) {
             hostname = "localhost";
+        }
 
-        logger.debug (hostname);
-        logger.debug (filename);
+        logger.debug(hostname);
+        logger.debug(filename);
 
         String path = hostname + filename;
 
         String dir = args.Directory;
-        if (dir != null)
-        {
-            String separator = System.getProperty ("file.separator");
-            if (! dir.endsWith (separator))
+        if (dir != null) {
+            String separator = System.getProperty("file.separator");
+            if (!dir.endsWith(separator))
                 dir += separator;
 
             path = dir + path;
         }
 
-        logger.traceExit (path);
+        logger.traceExit(path);
         return (path);
     }
-    //THREADSAFE_LEVEL_GREY
-    private String getDirectoryPath()
-    {
-        String path = getFilePath (yrl.getUrl());
 
-        path = Utils.replaceAll (path, args.FilenameRewrite);
-        path = path.replaceFirst ("^~", System.getProperty("user.home"));
+    private File openFile() throws MalformedURLException {
+        String path = getFilePath(yrl.getUrl());
 
-        if (args.PrintSavePath)
-            logger.info ("Saving to: " + path);
+        path = Utils.replaceAll(path,args.FilenameRewrite);
+        path = path.replaceFirst("^~",System.getProperty("user.home"));
 
-        file = new File (path);
+        if(args.PrintSavePath) {
+            logger.info("Saving to: " + path);
+        }
 
-        String directoryPath = null;
-        if (path.indexOf ('/') == -1)
-        {
+        return new File(path);
+    }
+
+    private File openDirectory() throws MalformedURLException {
+        String path = getFilePath(yrl.getUrl());
+
+        String directoryPath;
+        if (path.indexOf('/') == -1) {
             directoryPath = "./";
+        } else {
+            directoryPath = path.replaceAll("/[^/]*$", "");
         }
-        else
-        {
-            directoryPath = path.replaceAll ("/[^/]*$", "");
-        }
-        return (directoryPath);
+
+        return new File(directoryPath);
     }
 
     // return true if we don't need to reread
-    //THREADSAFE_LEVEL_GREY
-    private boolean checkIfNewerThan()
-    {
-        if (args.IfNewerThan != null)
-        {
-            File newerThan = new File (args.IfNewerThan);
-            logger.debug ("file time = " + newerThan.lastModified());
-            logger.debug ("url time = " + yrl.getLastModified());
-            if (yrl.getLastModified() < newerThan.lastModified())
-            {
-                if (args.PrintSkip)
-                    logger.info ("Skipping becauser older than " +
-                        args.IfNewerThan);
+    private boolean checkIfNewerThan() {
+        if (args.IfNewerThan != null) {
+            File newerThan = new File(args.IfNewerThan);
+            logger.debug("file time = " + newerThan.lastModified());
+            logger.debug("url time = " + yrl.getLastModified());
+            if (yrl.getLastModified() < newerThan.lastModified()) {
+                if (args.PrintSkip) {
+                    logger.info("Skipping becauser older than " + args.IfNewerThan);
+                }
                 return (true);
             }
         }
-
         return (false);
     }
 
     // return true if we don't need to reread
-    //THREADSAFE_LEVEL_GREY
-    private boolean checkExistingFile()
-    {
-        if (args.OverwriteIfLarger || args.OverwriteIfSmaller)
-        {
+    private boolean checkExistingFile(final File file) {
+        if (args.OverwriteIfLarger || args.OverwriteIfSmaller) {
             boolean larger = yrl.getContentLength() > file.length();
             boolean smaller = yrl.getContentLength() < file.length();
 
-            if ((args.OverwriteIfLarger && larger) ||
-                (args.OverwriteIfSmaller && smaller))
-            {
-                logger.info ("Overwriting because " + 
-                    yrl.getContentLength() + " is " +
-                    (args.OverwriteIfLarger ? "larger" : "smaller") +
-                    " than " + file.length());
+            if ((args.OverwriteIfLarger && larger) || (args.OverwriteIfSmaller && smaller)) {
+                logger.info("Overwriting because " +
+                        yrl.getContentLength() + " is " +
+                        (args.OverwriteIfLarger ? "larger" : "smaller") +
+                        " than " + file.length());
                 return (false);
-            }
-            else
-            {
-                logger.info ("Not overwriting because " + 
-                    yrl.getContentLength() + " is not " +
-                    (args.OverwriteIfLarger ? "larger" : "smaller") +
-                    " than " + file.length());
+            } else {
+                logger.info("Not overwriting because " +
+                        yrl.getContentLength() + " is not " +
+                        (args.OverwriteIfLarger ? "larger" : "smaller") +
+                        " than " + file.length());
                 return (true);
             }
-        }
-        else if (! dealWithExistingFile (yrl.getLastModified()))
-        {
+        } else if (!dealWithExistingFile(file, yrl.getLastModified())) {
             return (true);
         }
 
         return (false);
     }
-    //THREADSAFE_LEVEL_BLACK
-    private void createFile ()
-    {
-        File directory = new File (getDirectoryPath());
 
-        logger.debug ("file: '" + file + "'");
-        logger.debug ("directory: " + directory);
+    File createFile() throws MalformedURLException {
+        File file = openFile();
+        File directory = openDirectory();
 
-        if (! directory.exists())
-        {
-            logger.debug ("Attempting to make: " + directory);
+        logger.debug("file: '" + file + "'");
+        logger.debug("directory: " + directory);
 
-            if (! directory.mkdirs ())
-            {
-                logger.warn ("Couldn't create directory: " + directory);
-                return;
+        if (!directory.exists()) {
+            logger.debug("Attempting to make: " + directory);
+
+            if (!directory.mkdirs()) {
+                logger.warn("Couldn't create directory: " + directory);
+                return null;
+            }
+        } else {
+            logger.debug("Directory: " + directory + " already exists");
+        }
+
+        if (checkIfNewerThan()) {
+            return null;
+        }
+
+        if (file.exists()) {
+            logger.debug("File exists");
+            if (checkExistingFile(file)) {
+                return null;
             }
         }
-        else
-        {
-            logger.debug ("Directory: " + directory + " already exists");
-        }
 
-        if (checkIfNewerThan()) return;
-
-        if (file.exists())
-        {
-            logger.debug ("File exists");
-            if (checkExistingFile()) return;
-        }
-
-        try
-        {
-            bos = new BufferedOutputStream (new FileOutputStream (file));
-        }
-        catch (Exception e)
-        {
-            logger.throwing (e);
-            return;
-        }
-
-        logger.debug ("Opened: " + file);
+        logger.debug("Opened: " + file);
+        return file;
     }
 }

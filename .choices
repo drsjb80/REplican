@@ -1,1 +1,1 @@
-java -jar target/REplican-1.0-SNAPSHOT-jar-with-dependencies.jar --SaveProgress http://coloradmin.com/wp-content/blogs.dir/2/files/2004-04-14-Hackers.mov
+java -jar target/REplican-1.0-SNAPSHOT-jar-with-dependencies.jar --logLevel=TRACE --SaveProgress https://www.pipes.org/wp-content/uploads/2019/07/pipe.gif
