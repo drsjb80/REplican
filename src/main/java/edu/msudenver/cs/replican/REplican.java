@@ -6,12 +6,12 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.message.Message;
 
 import java.io.*;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.FileSystemException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 public class REplican {
-    private static final Logger logger = LogManager.getLogger();
+    static final Logger logger = LogManager.getLogger();
     static final REplicanArgs args = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
     static final Cookies cookies = new Cookies();
@@ -31,7 +31,7 @@ public class REplican {
     }
 
     private static void loadNetscapeCookies() {
-        for (String cookieFile : args.LoadCookies) {
+        for (String cookieFile : args.NetscapeCookies) {
             try {
                 NetscapeCookies.loadCookies(cookieFile);
             } catch (IOException IOE) {
@@ -206,7 +206,7 @@ public class REplican {
             else
                 u = new URL(s);
         } catch (MalformedURLException e) {
-            logger.throwing(e);
+            logger.debug(e.getMessage());
         }
 
         logger.traceExit(u);
@@ -272,9 +272,9 @@ public class REplican {
     ** null: yrl, bos
     */
     private static boolean examineORsave(final YouAreEll yrl, final InputStream is, final BufferedOutputStream bos, final boolean examine, final boolean save, final String url) {
-        System.err.println("yrl = " + yrl);
-        System.err.println("is = " + is);
-        System.err.println("bos = " + bos);
+        // System.err.println("yrl = " + yrl);
+        // System.err.println("is = " + is);
+        // System.err.println("bos = " + bos);
 
 
         logger.traceEntry(String.valueOf(examine));
@@ -352,7 +352,7 @@ public class REplican {
 
     private static void fetchOne(final boolean examine, boolean save, @NonNull final YouAreEll yrl, @NonNull final InputStream is)
             throws MalformedURLException, FileNotFoundException {
-        System.err.println(is);
+        // System.err.println(is);
         logger.traceEntry(String.valueOf(examine));
         logger.traceEntry(String.valueOf(save));
         logger.traceEntry(yrl.toString());
@@ -366,15 +366,17 @@ public class REplican {
         BufferedOutputStream bos = null;
         File webFile = null;
         if (save) {
-            webFile = new WebFile(yrl, args).createFile();
-            if (webFile == null) {
-                save = false;
-            } else {
+            try {
+                logger.debug("before calling createFile");
+                webFile = new WebFile(yrl).createFile();
+                logger.debug("after calling createFile");
                 bos = new BufferedOutputStream(new FileOutputStream(webFile));
+            } catch (FileSystemException FSE) {
+                save = false;
             }
         }
 
-        if (save || examine) {
+        if (examine || save) {
             if (!examineORsave(yrl, dbis, bos, examine, save, yrl.getUrl())) {
                 logger.error("examineORsave failed");
             }
@@ -407,9 +409,6 @@ public class REplican {
     ** to examine and/or save s.
     */
     private static boolean[] EISR(@NonNull final String s, @NonNull final String which, String[] examine, String[] ignore, String[] save, String[] refuse) {
-        if (s == null)
-            return (null);
-
         logger.debug(s);
         logger.debug(which);
         logger.debug(java.util.Arrays.toString(examine));
@@ -611,7 +610,7 @@ public class REplican {
         setDefaults();
 
         if (args.FirefoxCookies != null) loadFirefoxCookies();
-        if (args.LoadCookies != null) loadNetscapeCookies();
+        if (args.NetscapeCookies != null) loadNetscapeCookies();
         if (args.PlistCookies != null) loadPlistCookies();
 
         if (args.CheckpointEvery != 0) readCheckpointFile();

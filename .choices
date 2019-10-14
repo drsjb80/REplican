@@ -1,1 +1,2 @@
 java -jar target/REplican-1.0-SNAPSHOT-jar-with-dependencies.jar --logLevel=TRACE --SaveProgress https://www.pipes.org/wp-content/uploads/2019/07/pipe.gif
+java -jar target/REplican-1.0-SNAPSHOT-jar-with-dependencies.jar --SaveProgress https://www.pipes.org/wp-content/uploads/2019/07/pipe.gif

@@ -24,10 +24,9 @@ import java.util.Date;
 
 class Plist extends DefaultHandler {
     private final Logger logger = LogManager.getLogger(getClass());
-    // THREADSAFE_LEVEL_GREY
     private final Cookies cookies;
 
-    InputSource getInputSource(String u) {
+    private InputSource getInputSource(String u) {
         URL url = null;
         try {
             url = new URL(u);
@@ -53,29 +52,21 @@ class Plist extends DefaultHandler {
         return (new InputSource(pbis));
     }
 
-    // THREADSAFE_LEVEL_GREY
-    // modifies global var cookies
-    public Plist(String u, Cookies cookies) {
+     Plist(String u, Cookies cookies) {
         super();
 
         this.cookies = cookies;
 
         try {
-            SAXParserFactory.newInstance().newSAXParser().
-                    parse(getInputSource(u), this);
+            SAXParserFactory.newInstance().newSAXParser().parse(getInputSource(u), this);
         } catch (SAXParseException spe) {
             logger.warn("In " + u + ", at line " + spe.getLineNumber() +
                     ", column " + spe.getColumnNumber() + ", " + spe);
-        } catch (ParserConfigurationException pce) {
+        } catch (ParserConfigurationException | SAXException | IOException pce) {
             logger.throwing(pce);
-        } catch (SAXException se) {
-            logger.throwing(se);
-        } catch (IOException IOE) {
-            logger.throwing(IOE);
         }
-    }
+     }
 
-    // THREADSAFE_LEVEL_GREY
     private String domain;
     private String path;
     private String expires;
@@ -85,9 +76,7 @@ class Plist extends DefaultHandler {
 
     private String current;
 
-    // THREADSAFE_LEVEL_GREY
-    public void startElement(String uri, String localName, String qName,
-                             Attributes attributes) throws SAXException {
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
         logger.trace("uri = " + uri);
         logger.trace("localName = " + localName);
         logger.trace("qName = " + qName);
@@ -97,9 +86,7 @@ class Plist extends DefaultHandler {
         }
     }
 
-    // THREADSAFE_LEVEL_GREY
-    public void endElement(String uri, String localName, String qName)
-            throws SAXException {
+    public void endElement(String uri, String localName, String qName) {
         logger.trace("current = " + current);
 
         if (qName.equals("key")) {
@@ -117,18 +104,14 @@ class Plist extends DefaultHandler {
 
             Date date = null;
             try {
-                date = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").
-                        parse(expires));
+                date = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(expires));
             } catch (ParseException PE) {
                 logger.throwing(PE);
             }
 
-            String exp =
-                    new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").
-                            format(date);
+            String exp = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").format(date);
 
-            cookies.addCookie(domain, path, name + "=" + value +
-                    "; Expires=" + exp);
+            cookies.addCookie(domain, path, name + "=" + value + "; Expires=" + exp);
         } else if (d)
             domain = current;
         else if (m)
@@ -143,12 +126,11 @@ class Plist extends DefaultHandler {
         current = "";
     }
 
-    // THREADSAFE_LEVEL_GREY
-    public void characters(char buf[], int offset, int len) throws SAXException {
+    public void characters(char[] buf, int offset, int len) {
         current += new String(buf, offset, len);
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         Cookies cookies = new Cookies();
         new Plist(args[0], cookies);
     }

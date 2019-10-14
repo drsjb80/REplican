@@ -39,7 +39,7 @@ class REplicanArgs {
     LogLevels logLevel = LogLevels.OFF;
     String Username;
     String Password;
-    String[] LoadCookies;
+    String[] NetscapeCookies;
     String[] PlistCookies;
     String[] FirefoxCookies;
     String SaveCookies;

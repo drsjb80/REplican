@@ -19,8 +19,13 @@ public class YouAreEll {
     private final Logger logger = LogManager.getLogger(getClass());
     private URLConnection urlConnection;
     @Getter private String ContentType;
+    @Getter private final String url;
+    private final Cookies cookies = REplican.cookies;
 
-    private int ContentLength;
+    public YouAreEll(final String url) {
+        this.url = url;
+    }
+
     int getContentLength() {
         String cl = urlConnection.getHeaderField("Content-Length");
         if (cl != null) {
@@ -31,15 +36,6 @@ public class YouAreEll {
             }
         }
         return 0;
-    }
-
-    @Getter private final InputStream inputStream;
-    @Getter private final String url;
-    private final Cookies cookies = REplican.cookies;
-
-    public YouAreEll(final String url) {
-        this.url = url;
-        this.inputStream = createInputStream();
     }
 
     long getLastModified() {
@@ -78,8 +74,8 @@ public class YouAreEll {
     }
 
     private void dealWithStopOns(final int code) {
-        for (int stopon: REplican.args.StopOn) {
-            if (code == stopon) {
+        for (int stopOn: REplican.args.StopOn) {
+            if (code == stopOn) {
                 logger.warn("Stopping on return code: " + code);
                 System.exit(0);
             }
@@ -87,10 +83,9 @@ public class YouAreEll {
     }
 
     private InputStream HUC() {
-        ContentLength = getContentLength();
         ContentType = urlConnection.getHeaderField("Content-Type");
-        String MIMEAccept[] = REplican.args.MIMEAccept;
-        String MIMEReject[] = REplican.args.MIMEReject;
+        String[] MIMEAccept = REplican.args.MIMEAccept;
+        String[] MIMEReject = REplican.args.MIMEReject;
 
         // here, if MIME has no input on the matter, assume Path has
         // already spoken so return true from blurf.
@@ -135,7 +130,7 @@ public class YouAreEll {
         }
     }
 
-    private synchronized int connect() throws IOException {
+    private int connect() throws IOException {
         urlConnection = new URL(url).openConnection();
         addHeaderLines();
         setCookies();
@@ -173,7 +168,7 @@ public class YouAreEll {
     private void addHeaderLines() {
         if (REplican.args.Header != null) {
             for (String header: REplican.args.Header) {
-                String s[] = header.split(":");
+                String[] s = header.split(":");
                 if (s[0] != null && s[1] != null) {
                     urlConnection.setRequestProperty(s[0], s[1]);
                 } else {
@@ -183,7 +178,7 @@ public class YouAreEll {
         }
     }
 
-    private InputStream getURLInputStream() {
+    InputStream getInputStream() {
         final int returnCode;
 
         try {
@@ -214,18 +209,5 @@ public class YouAreEll {
                 }
             }
         }
-    }
-
-    /**
-     * get an InputStream from either a file: or http: URL.  deals
-     * with http redirections.
-     */
-    private InputStream createInputStream() {
-        // http://httpd.apache.org/docs/1.3/mod/mod_dir.html#directoryindex
-
-        logger.traceEntry(url);
-        InputStream is = getURLInputStream();
-        logger.traceExit(is);
-        return (is);
     }
 }
