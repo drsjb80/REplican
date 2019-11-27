@@ -18,17 +18,17 @@ saved
 Argument|Explanation
 --------|-----------
 --PathAccept=*RE*   | a *RE* of URL paths to accept.
---PathReject=*RE*   | a *RE* of URL paths to reject.
+--PathReject=*RE* OR --PathDoNoAccept=*RE* | a *RE* of URL paths to reject.
 --PathExamine=*RE*  | a *RE* of URL paths to examine for other links. These are automatically added to PathAccept.
---PathIgnore=*RE*   | a *RE* of URL paths to ignore for other links.
+--PathIgnore=*RE* OR --PathDoNoExamine=*RE* | a *RE* of URL paths to ignore for other links.
 --PathSave=*RE* | a *RE* of URL paths to save. These are automatically added to PathAccept.
---PathRefuse=*RE*   | a *RE* of URL paths not to save.
+--PathRefuse=*RE* OR --PathDoNoSave=*RE* | a *RE* of URL paths not to save.
 --MIMEAccept=*RE*   | a *RE* of MIME types to accept.
---MIMEReject=*RE*   | a *RE* of MIME types to reject.
+--MIMEReject=*RE* OR --MIMEDoNoAccept=*RE* | a *RE* of MIME types to reject.
 --MIMEExamine=*RE*  | a *RE* of MIME types to examine for other links.
---MIMEIgnore=*RE*   | a *RE* of MIME types to ignore for other links.
+--MIMEIgnore=*RE* OR --MIMEDoNoExamine=*RE* | a *RE* of MIME types to ignore for other links.
 --MIMESave=*RE*     | a *RE* of MIME types to save.
---MIMERefuse=*RE*   | a *RE* of MIME types not to save.
+--MIMERefuse=*RE* OR --MIMEDoNoSave=*RE* | a *RE* of MIME types not to save.
 --Threads=NUM       | The number of threads you want to start REplican with.
 --LogLevel=LEVEL    | Possible values for LEVEL are: SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL, OFF. Default: INFO.
 --Username=NAME | A username to provide if requested by server.

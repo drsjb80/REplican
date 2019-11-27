@@ -2,12 +2,6 @@ language: java
 jdk:
 - openjdk11
 sudo: false # faster builds
-env:
-  global:
-    - CODECOV_TOKEN=codeCovToken
 install:
   - mvn install -DskipTests=false -Dmaven.javadoc.skip=true -B -V
-script:
-  - mvn test jacoco:report spotbugs:spotbugs
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+

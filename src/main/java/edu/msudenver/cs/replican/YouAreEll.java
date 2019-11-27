@@ -198,14 +198,12 @@ public class YouAreEll {
         if (!REplican.args.IgnoreCookies) {
             Map<String, List<String>> m = urlConnection.getHeaderFields();
             List<String> list = m.get("Set-Cookie");
-            if (list != null) {
-                for (String cookie : list) {
-                    logger.trace("Adding cookie: " + cookie);
-                    try {
-                        cookies.addCookie(new URL(url), cookie);
-                    } catch (MalformedURLException MUE) {
-                        logger.throwing(MUE);
-                    }
+            for (String cookie : list) {
+                logger.trace("Adding cookie: " + cookie);
+                try {
+                    cookies.addCookie(new URL(url), cookie);
+                } catch (MalformedURLException MUE) {
+                    logger.throwing(MUE);
                 }
             }
         }

@@ -36,7 +36,7 @@ class REplicanArgs {
     boolean StopOnnull;
     int Tries = 1;
 
-    LogLevels logLevel = LogLevels.OFF;
+    LogLevels LogLevel = LogLevels.OFF;
     String Username;
     String Password;
     String[] NetscapeCookies;

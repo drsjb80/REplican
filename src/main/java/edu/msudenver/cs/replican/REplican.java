@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
 public class REplican {
@@ -23,7 +24,7 @@ public class REplican {
     static final REplicanArgs args = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
     static final Cookies cookies = new Cookies();
-    private static int URLcount = 0;
+    private static AtomicInteger URLcount = new AtomicInteger(0);
 
     // turn on assert for every class *but this one*.
     static {
@@ -73,9 +74,9 @@ public class REplican {
     private static void setLogLevel() {
         Level level = Level.OFF;
 
-        if (args.logLevel == null) {
+        if (args.LogLevel == null) {
             level = Level.WARN;
-        } else switch (args.logLevel) {
+        } else switch (args.LogLevel) {
             case FATAL: level = Level.FATAL; break;
             case ERROR: level = Level.ERROR; break;
             case WARN: level = Level.WARN; break;
@@ -178,20 +179,6 @@ public class REplican {
     }
 
     /*
-    ** add a URL to the list of those to be processed
-    */
-    private static void addOne(@NonNull final String total) {
-        logger.traceEntry(total);
-
-        urls.putIfAbsent(total, false);
-        URLcount++;
-
-        int checkpointEvery = args.CheckpointEvery;
-        if (checkpointEvery != 0 && URLcount % checkpointEvery == 0)
-            checkpoint();
-    }
-
-    /*
     ** create a valid URL, paying attention to a base if there is one.
     */
     private static URL makeURL(final String baseURL, @NonNull final String s) {
@@ -230,10 +217,16 @@ public class REplican {
             if (args.URLRewrite != null)
                 total = Utils.replaceAll(total, args.URLRewrite);
 
-            if (urls.get(total) == null) {
-                if (args.PrintAdd)
+            if (urls.putIfAbsent(total, false) == null) {
+                if (args.PrintAdd) {
                     logger.info("Adding: " + total);
-                addOne(total);
+                }
+                URLcount.incrementAndGet();
+            }
+
+            int checkpointEvery = args.CheckpointEvery;
+            if (checkpointEvery != 0 && URLcount.get() % checkpointEvery == 0) {
+                checkpoint();
             }
         }
     }
@@ -580,8 +573,10 @@ public class REplican {
     }
 
     public static void main(String[] arguments) {
-
-        JCLO jclo = new JCLO(args);
+        String aliases[][] =
+            {{"PathDoNotAccept", "PathReject"}, {"PathDoNotSave", "PathRefuse"}, {"PathDoNotExamine", "PathIgnore"},
+             {"MIMEDoNotAccept", "MIMEReject"}, {"MIMEDoNotSave", "MIMERefuse"}, {"MIMEDoNotExamine", "MIMEIgnore"}};
+        JCLO jclo = new JCLO(args, aliases);
 
         if (arguments.length == 0) {
             System.out.println("Arguments:\n" + jclo.usage() + "URLs...");
