@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 class WebFile {
     private final YouAreEll yrl;
-    private final Logger logger = REplican.logger;
+    private final Logger logger = REplican.LOGGER;
 
     WebFile(final YouAreEll yrl) {
         this.yrl = yrl;
@@ -28,7 +28,7 @@ class WebFile {
         String filename = url.getFile();
 
         if (filename.endsWith("/")) {
-            filename += REplican.args.IndexName;
+            filename += REplican.ARGS.IndexName;
         }
 
         if (hostname == null) {
@@ -40,7 +40,7 @@ class WebFile {
 
         String path = hostname + filename;
 
-        String dir = REplican.args.Directory;
+        String dir = REplican.ARGS.Directory;
         if (dir != null) {
             String separator = System.getProperty("file.separator");
             if (!dir.endsWith(separator))
@@ -49,7 +49,7 @@ class WebFile {
             path = dir + path;
         }
 
-        path = Utils.replaceAll(path, REplican.args.FilenameRewrite);
+        path = Utils.replaceAll(path, REplican.ARGS.FilenameRewrite);
         path = path.replaceFirst("^~",System.getProperty("user.home") + "/");
 
         logger.traceExit(path);
@@ -59,7 +59,7 @@ class WebFile {
     private File openFile() throws MalformedURLException {
         String path = getFilePath(yrl.getUrl());
 
-        if(REplican.args.PrintSavePath) {
+        if(REplican.ARGS.PrintSavePath) {
             logger.info("Saving to: " + path);
         }
 
@@ -83,13 +83,13 @@ class WebFile {
     }
 
     private void checkIfNewerThan() throws FileAlreadyExistsException {
-        if (REplican.args.IfNewerThan != null) {
-            File newerThan = new File(REplican.args.IfNewerThan);
+        if (REplican.ARGS.IfNewerThan != null) {
+            File newerThan = new File(REplican.ARGS.IfNewerThan);
             logger.debug("file time = " + newerThan.lastModified());
             logger.debug("url time = " + yrl.getLastModified());
             if (yrl.getLastModified() < newerThan.lastModified()) {
-                if (REplican.args.PrintSkip) {
-                    logger.info("Skipping because older than " + REplican.args.IfNewerThan);
+                if (REplican.ARGS.PrintSkip) {
+                    logger.info("Skipping because older than " + REplican.ARGS.IfNewerThan);
                 }
                 throw new FileAlreadyExistsException(newerThan.toString());
             }
@@ -99,13 +99,13 @@ class WebFile {
     private void checkIfModifiedSince(final File file, final long LastModified) throws FileAlreadyExistsException {
         logger.traceEntry(String.valueOf(LastModified));
 
-        if (REplican.args.IfModifiedSince) {
+        if (REplican.ARGS.IfModifiedSince) {
             if (LastModified > 0) {
                 logger.trace("file: " + file.lastModified());
                 logger.trace("URL: " + LastModified);
 
                 if (file.lastModified() <= LastModified) {
-                    if (REplican.args.PrintSkip) {
+                    if (REplican.ARGS.PrintSkip) {
                         logger.info("Not modified: " + file);
                     }
                     throw new FileAlreadyExistsException(file.toString());
@@ -117,19 +117,19 @@ class WebFile {
     }
 
     private void checkIfLargerOrSmaller(final File file) throws FileAlreadyExistsException {
-        if (REplican.args.OverwriteIfLarger || REplican.args.OverwriteIfSmaller) {
+        if (REplican.ARGS.OverwriteIfLarger || REplican.ARGS.OverwriteIfSmaller) {
             boolean larger = yrl.getContentLength() > file.length();
             boolean smaller = yrl.getContentLength() < file.length();
 
-            if ((REplican.args.OverwriteIfLarger && larger) || (REplican.args.OverwriteIfSmaller && smaller)) {
+            if ((REplican.ARGS.OverwriteIfLarger && larger) || (REplican.ARGS.OverwriteIfSmaller && smaller)) {
                 logger.info("Overwriting because " +
                         yrl.getContentLength() + " is " +
-                        (REplican.args.OverwriteIfLarger ? "larger" : "smaller") +
+                        (REplican.ARGS.OverwriteIfLarger ? "larger" : "smaller") +
                         " than " + file.length());
             } else {
                 logger.info("Not overwriting because " +
                         yrl.getContentLength() + " is not " +
-                        (REplican.args.OverwriteIfLarger ? "larger" : "smaller") +
+                        (REplican.ARGS.OverwriteIfLarger ? "larger" : "smaller") +
                         " than " + file.length());
                 throw new FileAlreadyExistsException(file.toString());
             }
@@ -162,7 +162,7 @@ class WebFile {
             logger.debug("File exists");
             checkIfLargerOrSmaller(file);
 
-            if (!REplican.args.Overwrite) {
+            if (!REplican.ARGS.Overwrite) {
                 logger.warn("Not overwriting: " + file);
                 throw new FileAlreadyExistsException(file.toString());
             }

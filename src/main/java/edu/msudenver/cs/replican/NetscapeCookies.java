@@ -33,10 +33,10 @@ public class NetscapeCookies {
                     new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").
                             format(date);
 
-            REplican.cookies.addCookie(s[0], s[2], s[5] + "=" + s[6]
+            REplican.COOKIES.addCookie(s[0], s[2], s[5] + "=" + s[6]
                     + "; Expires=" + expires);
         } else {
-            REplican.cookies.addCookie(s[0], s[2], s[5]);
+            REplican.COOKIES.addCookie(s[0], s[2], s[5]);
         }
     }
 

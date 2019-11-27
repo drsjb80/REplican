@@ -34,7 +34,7 @@ public class FirefoxCookies {
                 final boolean isSecure = rs.getInt("isSecure") != 0;
 
                 final Cookie cookie = new Cookie(host, domain, path, expiry, isSecure, name, value);
-                REplican.cookies.addCookie(cookie);
+                REplican.COOKIES.addCookie(cookie);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());

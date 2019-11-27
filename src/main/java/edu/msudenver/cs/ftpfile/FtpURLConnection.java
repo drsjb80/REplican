@@ -31,12 +31,12 @@ import java.util.logging.Logger;
  * 227 Entering Passive Mode (147,153,1,3,6,192)
  * HELP
  * 214-The following commands are recognized (* =>'s unimplemented).
- *    USER    PORT    STOR    MSAM*   RNTO    NLST    MKD     CDUP    LPSV 
- *    PASS    PASV    APPE    MRSQ*   ABOR    SITE    XMKD    XCUP    EPRT 
- *    ACCT    TYPE    MLFL*   MRCP*   DELE    SYST    RMD     STOU    EPSV 
- *    SMNT*   STRU    MAIL*   ALLO    CWD     STAT    XRMD    SIZE 
- *    REIN*   MODE    MSND*   REST    XCWD    HELP    PWD     MDTM 
- *    QUIT    RETR    MSOM*   RNFR    LIST    NOOP    XPWD    LPRT 
+ *    USER    PORT    STOR    MSAM*   RNTO    NLST    MKD     CDUP    LPSV
+ *    PASS    PASV    APPE    MRSQ*   ABOR    SITE    XMKD    XCUP    EPRT
+ *    ACCT    TYPE    MLFL*   MRCP*   DELE    SYST    RMD     STOU    EPSV
+ *    SMNT*   STRU    MAIL*   ALLO    CWD     STAT    XRMD    SIZE
+ *    REIN*   MODE    MSND*   REST    XCWD    HELP    PWD     MDTM
+ *    QUIT    RETR    MSOM*   RNFR    LIST    NOOP    XPWD    LPRT
  * 214 End of help
  */
 public class FtpURLConnection extends URLConnection {

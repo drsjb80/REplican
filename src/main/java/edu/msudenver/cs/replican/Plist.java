@@ -4,6 +4,7 @@ package edu.msudenver.cs.replican;
 ** parse a Safari plist file
 */
 
+import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
@@ -26,7 +27,7 @@ class Plist extends DefaultHandler {
     private final Logger logger = LogManager.getLogger(getClass());
     private final Cookies cookies;
 
-    private InputSource getInputSource(String u) {
+    private InputSource getInputSource(final String u) {
         URL url = null;
         try {
             url = new URL(u);
@@ -76,7 +77,7 @@ class Plist extends DefaultHandler {
 
     private String current;
 
-    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+    public void startElement(@NonNull final String uri, @NonNull final String localName, @NonNull final String qName, @NonNull final Attributes attributes) {
         logger.trace("uri = " + uri);
         logger.trace("localName = " + localName);
         logger.trace("qName = " + qName);
@@ -86,16 +87,21 @@ class Plist extends DefaultHandler {
         }
     }
 
-    public void endElement(String uri, String localName, String qName) {
+    public void endElement(@NonNull final String uri, @NonNull final String localName, @NonNull final String qName) {
         logger.trace("current = " + current);
 
+        // the value will come later
         if (qName.equals("key")) {
             d = current.equals("Domain");
             m = current.equals("Expires");
             n = current.equals("Name");
             p = current.equals("Path");
             v = current.equals("Value");
-        } else if (qName.equals("dict")) {
+            current = "";
+            return;
+        }
+
+        if (qName.equals("dict")) {
             logger.trace("domain = " + domain);
             logger.trace("expires = " + expires);
             logger.trace("name = " + name);
@@ -112,16 +118,20 @@ class Plist extends DefaultHandler {
             String exp = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").format(date);
 
             cookies.addCookie(domain, path, name + "=" + value + "; Expires=" + exp);
-        } else if (d)
+            return;
+        }
+
+        if (d) {
             domain = current;
-        else if (m)
+        } else if (m) {
             expires = current;
-        else if (n)
+        } else if (n) {
             name = current;
-        else if (p)
+        } else if (p) {
             path = current;
-        else if (v)
+        } else if (v) {
             value = current;
+        }
 
         current = "";
     }

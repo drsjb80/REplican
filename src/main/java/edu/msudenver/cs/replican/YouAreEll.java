@@ -20,7 +20,7 @@ public class YouAreEll {
     private URLConnection urlConnection;
     @Getter private String ContentType;
     @Getter private final String url;
-    private final Cookies cookies = REplican.cookies;
+    private final Cookies cookies = REplican.COOKIES;
 
     public YouAreEll(final String url) {
         this.url = url;
@@ -53,12 +53,12 @@ public class YouAreEll {
         Content-Type: text/html; charset=iso-8859-1
         */
 
-        if (!REplican.args.FollowRedirects) {
+        if (!REplican.ARGS.FollowRedirects) {
             return;
         }
 
         String redirected = urlConnection.getHeaderField("Location");
-        if (REplican.args.PrintRedirects)
+        if (REplican.ARGS.PrintRedirects)
             logger.info("Redirected to: " + redirected);
 
         URL newURL;
@@ -71,10 +71,11 @@ public class YouAreEll {
         }
 
         REplican.urls.put(newURL.toString(), Boolean.FALSE);
+        REplican.URLcount.incrementAndGet();
     }
 
     private void dealWithStopOns(final int code) {
-        for (int stopOn: REplican.args.StopOn) {
+        for (int stopOn: REplican.ARGS.StopOn) {
             if (code == stopOn) {
                 logger.warn("Stopping on return code: " + code);
                 System.exit(0);
@@ -84,8 +85,8 @@ public class YouAreEll {
 
     private InputStream HUC() {
         ContentType = urlConnection.getHeaderField("Content-Type");
-        String[] MIMEAccept = REplican.args.MIMEAccept;
-        String[] MIMEReject = REplican.args.MIMEReject;
+        String[] MIMEAccept = REplican.ARGS.MIMEAccept;
+        String[] MIMEReject = REplican.ARGS.MIMEReject;
 
         // here, if MIME has no input on the matter, assume Path has
         // already spoken so return true from blurf.
@@ -103,7 +104,7 @@ public class YouAreEll {
     private InputStream dealWithReturnCode(int code) {
         logger.traceEntry(Integer.toString(code));
 
-        if (REplican.args.StopOnnull)
+        if (REplican.ARGS.StopOnnull)
             dealWithStopOns(code);
 
         switch (code) {
@@ -148,9 +149,9 @@ public class YouAreEll {
 
     private void setCookies() {
         String c = null;
-        if (!REplican.args.IgnoreCookies) {
+        if (!REplican.ARGS.IgnoreCookies) {
             try {
-                Queue<Cookie> cookies = REplican.cookies.getCookiesForUrl(new URL(url));
+                Queue<Cookie> cookies = REplican.COOKIES.getCookiesForUrl(new URL(url));
                 for (Cookie cookie: cookies) {
                     c += cookie.getCookieString();
                 }
@@ -166,8 +167,8 @@ public class YouAreEll {
     }
 
     private void addHeaderLines() {
-        if (REplican.args.Header != null) {
-            for (String header: REplican.args.Header) {
+        if (REplican.ARGS.Header != null) {
+            for (String header: REplican.ARGS.Header) {
                 String[] s = header.split(":");
                 if (s[0] != null && s[1] != null) {
                     urlConnection.setRequestProperty(s[0], s[1]);
@@ -195,7 +196,7 @@ public class YouAreEll {
     }
 
     private void getCookies() {
-        if (!REplican.args.IgnoreCookies) {
+        if (!REplican.ARGS.IgnoreCookies) {
             Map<String, List<String>> m = urlConnection.getHeaderFields();
             List<String> list = m.get("Set-Cookie");
             for (String cookie : list) {

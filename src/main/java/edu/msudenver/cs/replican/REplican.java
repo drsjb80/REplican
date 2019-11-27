@@ -19,12 +19,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
-public class REplican {
-    static final Logger logger = LogManager.getLogger();
-    static final REplicanArgs args = new REplicanArgs();
+class REplican {
+    static final Logger LOGGER = LogManager.getLogger();
+    static final REplicanArgs ARGS = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
-    static final Cookies cookies = new Cookies();
-    private static AtomicInteger URLcount = new AtomicInteger(0);
+    static final Cookies COOKIES = new Cookies();
+    static AtomicInteger URLcount = new AtomicInteger(0);
 
     // turn on assert for every class *but this one*.
     static {
@@ -32,41 +32,41 @@ public class REplican {
     }
 
     private static void loadNetscapeCookies() {
-        for (String cookieFile : args.NetscapeCookies) {
+        for (String cookieFile : ARGS.NetscapeCookies) {
             try {
                 NetscapeCookies.loadCookies(cookieFile);
             } catch (IOException IOE) {
-                logger.throwing(IOE);
+                LOGGER.throwing(IOE);
             }
         }
     }
 
     private static void loadPlistCookies() {
-        for (String cookieFile : args.PlistCookies) {
-            logger.info("Loading cookies from " + cookieFile);
-            new Plist("file:" + cookieFile, cookies);
+        for (String cookieFile : ARGS.PlistCookies) {
+            LOGGER.info("Loading cookies from " + cookieFile);
+            new Plist("file:" + cookieFile, COOKIES);
         }
     }
 
     private static void loadFirefoxCookies() {
-        for (String cookieFile : args.FirefoxCookies) {
-            logger.info("Loading cookies from " + cookieFile);
+        for (String cookieFile : ARGS.FirefoxCookies) {
+            LOGGER.info("Loading cookies from " + cookieFile);
             FirefoxCookies.loadCookies(cookieFile);
         }
     }
 
     @SuppressWarnings("unchecked")
     private static void readCheckpointFile() {
-        logger.info("Loading urls from " + args.CheckpointFile);
+        LOGGER.info("Loading urls from " + ARGS.CheckpointFile);
 
         try {
-            ObjectInputStream ois =
+            final ObjectInputStream ois =
                     new ObjectInputStream(
-                            new FileInputStream(args.CheckpointFile));
+                            new FileInputStream(ARGS.CheckpointFile));
             urls = (Map<String, Boolean>) ois.readObject();
             ois.close();
         } catch (IOException | ClassNotFoundException ioe) {
-            logger.throwing(ioe);
+            LOGGER.throwing(ioe);
         }
     }
 
@@ -74,185 +74,192 @@ public class REplican {
     private static void setLogLevel() {
         Level level = Level.OFF;
 
-        if (args.LogLevel == null) {
+        if (ARGS.LogLevel == null) {
             level = Level.WARN;
-        } else switch (args.LogLevel) {
-            case FATAL: level = Level.FATAL; break;
-            case ERROR: level = Level.ERROR; break;
-            case WARN: level = Level.WARN; break;
-            case INFO: level = Level.INFO; break;
-            case DEBUG: level = Level.DEBUG; break;
-            case TRACE: level = Level.TRACE; break;
-            case ALL: level = Level.ALL; break;
+        } else {
+            switch (ARGS.LogLevel) {
+                case FATAL:
+                    level = Level.FATAL;
+                    break;
+                case ERROR:
+                    level = Level.ERROR;
+                    break;
+                case WARN:
+                    level = Level.WARN;
+                    break;
+                case INFO:
+                    level = Level.INFO;
+                    break;
+                case DEBUG:
+                    level = Level.DEBUG;
+                    break;
+                case TRACE:
+                    level = Level.TRACE;
+                    break;
+                case ALL:
+                    level = Level.ALL;
+                    break;
+            }
         }
 
-        Configurator.setLevel(logger.getName(), level);
+        Configurator.setLevel(LOGGER.getName(), level);
     }
 
-    private static String escapeURL(@NonNull String URL) {
-        logger.traceEntry(URL);
+    private static String escapeURL(@NonNull final String URL) {
+        LOGGER.traceEntry(URL);
+        String escapedURL = URL;
 
         for (char c : "^.[]$()|*+?{}".toCharArray()) {
-            URL = URL.replaceAll("\\" + c, "\\\\" + c);
+            escapedURL = escapedURL.replaceAll("\\" + c, "\\\\" + c);
         }
 
-        logger.traceExit(URL);
-        return (URL);
+        LOGGER.traceExit(escapedURL);
+        return escapedURL;
     }
 
     private static void setDefaults() {
-        if (args.Interesting == null) {
-            String urlref = "\\s*=\\s*[\"']?([^\"'>]*)";
-            String href = "[hH][rR][eE][fF]";
-            String src = "[sS][rR][cC]";
+        if (ARGS.Interesting == null) {
+            final String urlref = "\\s*=\\s*[\"']?([^\"'>]*)";
+            final String href = "[hH][rR][eE][fF]";
+            final String src = "[sS][rR][cC]";
 
-            args.Interesting = new String[]{
-                    href + urlref,
-                    src + urlref,
-            };
+            ARGS.Interesting = new String[]{href + urlref, src + urlref};
         }
 
-        if (args.URLFixUp == null) {
+        if (ARGS.URLFixUp == null) {
             // so, i don't remember why i collapsed multiple spaces and
             // removed \'s. must have been important and i should have
             // documented. 's confuse URLs...
             // args.URLFixUp = new String[]{"\\s+", " ", "\\\\", ""};
-            args.URLFixUp = new String[]{"\\s+", " ", "\\\\", "",
-                    "\'", "%27"};
+            ARGS.URLFixUp = new String[]{"\\s+", " ", "\\\\", "", "\'", "%27"};
         }
 
         // if they don't specify anything, look at only text.
-        if (args.MIMEExamine == null && args.MIMEIgnore == null &&
-                args.PathExamine == null && args.PathIgnore == null) {
-            args.MIMEExamine = new String[]{"text/.*"};
-            if (args.PrintExamine)
-                logger.warn("--MIMEExamine=" +
-                        java.util.Arrays.toString(args.MIMEExamine));
+        if (ARGS.MIMEExamine == null
+                && ARGS.MIMEIgnore == null
+                && ARGS.PathExamine == null
+                && ARGS.PathIgnore == null) {
+            ARGS.MIMEExamine = new String[]{"text/.*"};
+            if (ARGS.PrintExamine) {
+                LOGGER.warn("--MIMEExamine=" + java.util.Arrays.toString(ARGS.MIMEExamine));
+            }
         }
 
         // if they don't specify anything, save only what is specified on
         // the command line.
-        if (args.MIMESave == null && args.MIMERefuse == null &&
-                args.PathSave == null && args.PathRefuse == null) {
-            if (args.additional == null) {
-                logger.error("No URLs specified");
+        if (ARGS.MIMESave == null
+                && ARGS.MIMERefuse == null
+                && ARGS.PathSave == null
+                && ARGS.PathRefuse == null) {
+            if (ARGS.additional == null) {
+                LOGGER.error("No URLs specified");
                 System.exit(1);
             }
 
-            args.PathSave = new String[args.additional.length];
+            ARGS.PathSave = new String[ARGS.additional.length];
 
-            for (int i = 0; i < args.additional.length; i++)
-                args.PathSave[i] = escapeURL(args.additional[i]);
+            for (int i = 0; i < ARGS.additional.length; i++) {
+                ARGS.PathSave[i] = escapeURL(ARGS.additional[i]);
+            }
 
-            if (args.PrintSave)
-                logger.warn("--PathSave=" +
-                        java.util.Arrays.toString(args.PathSave));
+            if (ARGS.PrintSave) {
+                LOGGER.warn("--PathSave=" + java.util.Arrays.toString(ARGS.PathSave));
+            }
         }
 
-        if (args.PrintAll)
-            args.PrintAccept = args.PrintReject =
-                    args.PrintSave = args.PrintRefuse =
-                            args.PrintExamine = args.PrintIgnore =
-                                    args.PrintRedirects = true;
+        if (ARGS.PrintAll) {
+            ARGS.PrintAccept = ARGS.PrintReject =
+                    ARGS.PrintSave = ARGS.PrintRefuse =
+                            ARGS.PrintExamine = ARGS.PrintIgnore =
+                                    ARGS.PrintRedirects = true;
+        }
 
         /*
-        ** make sure we accept everything we examine, save, and the initial
-        ** URLs
-        */
-        args.PathAccept = Utils.combineArrays(args.PathAccept, args.PathExamine);
-        args.PathAccept = Utils.combineArrays(args.PathAccept, args.PathSave);
-        args.PathAccept = Utils.combineArrays(args.PathAccept, args.additional);
+         ** make sure we accept everything we examine, save, and the initial
+         ** URLs
+         */
+        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.PathExamine);
+        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.PathSave);
+        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.additional);
     }
 
     private static void checkpoint() {
-        String checkpointFile = args.CheckpointFile;
+        final String checkpointFile = ARGS.CheckpointFile;
 
-        logger.trace("writing to " + checkpointFile);
+        LOGGER.trace("writing to " + checkpointFile);
 
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(checkpointFile));
+            final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(checkpointFile));
             oos.writeObject(urls);
             oos.close();
         } catch (IOException e) {
-            logger.throwing(e);
+            LOGGER.throwing(e);
         }
-    }
-
-    /*
-    ** create a valid URL, paying attention to a base if there is one.
-    */
-    private static URL makeURL(final String baseURL, @NonNull final String s) {
-        logger.traceEntry(baseURL);
-        logger.traceEntry(s);
-
-        URL u = null;
-
-        try {
-            if (baseURL != null)
-                u = new URL(new URL(baseURL), s);
-            else
-                u = new URL(s);
-        } catch (MalformedURLException e) {
-            logger.debug(e.getMessage());
-        }
-
-        logger.traceExit(u);
-        return (u);
     }
 
     // Process a single URL and see if we need to add it to the to do
     // list.
     private static void process(@NonNull String total) {
-        boolean accept = Utils.blurf(args.PathAccept, args.PathReject, total, true);
+        LOGGER.traceEntry(total);
+        final boolean accept = Utils.blurf(ARGS.PathAccept, ARGS.PathReject, total, true);
 
-        if (args.PrintAccept && accept) {
-            logger.info("Accepting path: " + total);
+        if (ARGS.PrintAccept && accept) {
+            LOGGER.info("Accepting path: " + total);
         }
 
-        if (args.PrintReject && !accept) {
-            logger.info("Rejecting path: " + total);
+        if (ARGS.PrintReject && !accept) {
+            LOGGER.info("Rejecting path: " + total);
         }
 
         if (accept) {
-            if (args.URLRewrite != null)
-                total = Utils.replaceAll(total, args.URLRewrite);
+            if (ARGS.URLRewrite != null) {
+                total = Utils.replaceAll(total, ARGS.URLRewrite);
+            }
 
             if (urls.putIfAbsent(total, false) == null) {
-                if (args.PrintAdd) {
-                    logger.info("Adding: " + total);
+                if (ARGS.PrintAdd) {
+                    LOGGER.info("Adding: " + total);
                 }
                 URLcount.incrementAndGet();
             }
 
-            int checkpointEvery = args.CheckpointEvery;
+            final int checkpointEvery = ARGS.CheckpointEvery;
             if (checkpointEvery != 0 && URLcount.get() % checkpointEvery == 0) {
                 checkpoint();
             }
         }
     }
 
-    private static void addToURLs(String baseURL, @NonNull final List<String> strings) {
-        logger.traceEntry(baseURL);
-        logger.traceEntry(strings.toString());
+    // all all the URLs from a file.
+    private static void addToURLs(final String baseURL, @NonNull final List<String> strings) {
+        LOGGER.traceEntry(baseURL);
+        LOGGER.traceEntry(strings.toString());
 
-        for (String s : strings) {
-            String next = Utils.replaceAll(s, args.URLFixUp);
+        for (String string : strings) {
+            final String next = Utils.replaceAll(string, ARGS.URLFixUp);
+            LOGGER.trace(next);
 
-            // is this resetting the base?
-            String newBase = Utils.newBase(next);
+            final String newBase = Utils.newBase(next);
             if (newBase != null) {
-                logger.debug("Setting base to " + baseURL);
-                baseURL = newBase;
+                LOGGER.debug("Setting base to " + newBase);
             }
 
             for (String possible : Utils.interesting(next)) {
+                LOGGER.trace(possible);
                 if (possible != null) {
-                    URL u = makeURL(baseURL, possible);
-
-                    if (u == null)
+                    final URL u;
+                    try {
+                        if (newBase != null) {
+                            u = new URL(new URL(newBase), possible);
+                        } else {
+                            u = new URL(possible);
+                        }
+                    } catch (MalformedURLException MUE) {
+                        LOGGER.error(MUE);
                         continue;
+                    }
 
-                    String total = u.toString();
+                    final String total = u.toString();
                     process(total);
                 }
             }
@@ -260,50 +267,38 @@ public class REplican {
     }
 
     /*
-    ** read from an input stream, optionally write to an output stream, and
-    ** optionally look at all the URL's found in the input stream.
-    ** null: yrl, bos
-    */
+     ** read from an input stream, optionally write to an output stream, and
+     ** optionally look at all the URL's found in the input stream.
+     ** null: yrl, bos
+     */
     private static boolean examineORsave(final YouAreEll yrl, final InputStream is, final BufferedOutputStream bos, final boolean examine, final boolean save, final String url) {
-        // System.err.println("yrl = " + yrl);
-        // System.err.println("is = " + is);
-        // System.err.println("bos = " + bos);
-
-
-        logger.traceEntry(String.valueOf(examine));
-        logger.traceEntry(String.valueOf(save));
-        logger.traceEntry(url);
+        LOGGER.traceEntry(String.valueOf(examine));
+        LOGGER.traceEntry(String.valueOf(save));
+        LOGGER.traceEntry(url);
 
         try {
             readAndWrite(is, bos, save, yrl.getContentLength());
 
-            if (save && args.PauseAfterSave != 0) {
-                Utils.snooze(args.PauseAfterSave);
+            if (save && ARGS.PauseAfterSave != 0) {
+                Utils.snooze(ARGS.PauseAfterSave);
             }
 
             if (examine) {
                 addToURLs(url, ((DelimitedBufferedInputStream) is).getStrings());
             }
         } catch (IOException e) {
-            logger.throwing(e);
-            return (false);
+            LOGGER.throwing(e);
+            return false;
         }
 
-        return (true);
+        return true;
     }
 
     private static void readAndWrite(final InputStream is, final BufferedOutputStream bos, final boolean save, final long content_length) throws IOException {
-        long ten_percent = content_length > 0 ? content_length / 10 : 0;
-        boolean percent = args.SaveProgress && save && ten_percent > 0;
-        boolean spin = args.SaveProgress && save && ten_percent == 0;
-        long startTime = 0;
-
-        if (spin || percent) {
-            startTime = new java.util.Date().getTime();
-        }
-
-        if (percent) System.out.print("0..");
-        if (spin) System.out.print("|");
+        final long ten_percent = content_length > 0 ? content_length / 10 : 0;
+        final boolean percent = ARGS.SaveProgress && save && ten_percent > 0;
+        final boolean spin = ARGS.SaveProgress && save && ten_percent == 0;
+        final long startTime = startReadAndWrite(percent, spin);
 
         long written = 0;
         long read = 0;
@@ -314,22 +309,42 @@ public class REplican {
                 bos.write((char) c);
                 written++;
 
-                if (percent && count < 10 && written > count * ten_percent) {
-                    System.out.print(count * 10 + "..");
-                    count++;
-                } else if (spin && written % 1000 == 0) {
-                    // spin every 1000 bytes read -- we don't know how long
-                    // the file is.
-                    // it'd be nice if Java know a long % 4 will always
-                    // be between 0 and 3 -- an integer...
-                    int where = (int) count % 4;
-                    System.out.print("\b" + "|/-\\".charAt(where));
-                    count++;
-                }
+                count = pacifier(ten_percent, percent, spin, written, count);
             }
             read++;
         }
 
+        finalizeReadAndWrite(percent, spin, startTime, read);
+    }
+
+    private static long pacifier(long ten_percent, boolean percent, boolean spin, long written, long count) {
+        if (percent && count < 10 && written > count * ten_percent) {
+            System.out.print(count * 10 + "..");
+            count++;
+        } else if (spin && written % 1000 == 0) {
+            // spin every 1000 bytes read -- we don't know how long
+            // the file is.
+            // it'd be nice if Java know a long % 4 will always
+            // be between 0 and 3 -- an integer...
+            final int where = (int) count % 4;
+            System.out.print("\b" + "|/-\\".charAt(where));
+            count++;
+        }
+        return count;
+    }
+
+    private static long startReadAndWrite(boolean percent, boolean spin) {
+        long startTime = 0L;
+        if (spin || percent) {
+            startTime = new java.util.Date().getTime();
+        }
+
+        if (percent) System.out.print("0..");
+        if (spin) System.out.print("|");
+        return startTime;
+    }
+
+    private static void finalizeReadAndWrite(final boolean percent, final boolean spin, final long startTime, final long read) {
         if (spin || percent) {
             if (percent) {
                 System.out.println("100");
@@ -346,9 +361,9 @@ public class REplican {
     private static void fetchOne(final boolean examine, boolean save, @NonNull final YouAreEll yrl, @NonNull final InputStream is)
             throws MalformedURLException, FileNotFoundException {
         // System.err.println(is);
-        logger.traceEntry(String.valueOf(examine));
-        logger.traceEntry(String.valueOf(save));
-        logger.traceEntry(yrl.toString());
+        LOGGER.traceEntry(String.valueOf(examine));
+        LOGGER.traceEntry(String.valueOf(save));
+        LOGGER.traceEntry(yrl.toString());
 
         InputStream dbis = is;
 
@@ -360,9 +375,9 @@ public class REplican {
         File webFile = null;
         if (save) {
             try {
-                logger.debug("before calling createFile");
+                LOGGER.debug("before calling createFile");
                 webFile = new WebFile(yrl).createFile();
-                logger.debug("after calling createFile");
+                LOGGER.debug("after calling createFile");
                 bos = new BufferedOutputStream(new FileOutputStream(webFile));
             } catch (FileSystemException FSE) {
                 save = false;
@@ -371,20 +386,20 @@ public class REplican {
 
         if (examine || save) {
             if (!examineORsave(yrl, dbis, bos, examine, save, yrl.getUrl())) {
-                logger.error("examineORsave failed");
+                LOGGER.error("examineORsave failed");
             }
         }
 
         if (bos != null) {
             try {
                 bos.close();
-                if (args.SetLastModified) {
+                if (ARGS.SetLastModified) {
                     if (!webFile.setLastModified(yrl.getLastModified())) {
-                        logger.warn("Couldn't set last modified");
+                        LOGGER.warn("Couldn't set last modified");
                     }
                 }
             } catch (IOException e) {
-                logger.throwing(e);
+                LOGGER.throwing(e);
             }
         }
 
@@ -392,35 +407,39 @@ public class REplican {
             try {
                 dbis.close();
             } catch (IOException e) {
-                logger.throwing(e);
+                LOGGER.throwing(e);
             }
         }
     }
 
     /*
-    ** calculate, given the examine/ignore and save/refuse values, whether
-    ** to examine and/or save s.
-    */
+     ** calculate, given the examine/ignore and save/refuse values, whether
+     ** to examine and/or save s.
+     */
     private static boolean[] EISR(@NonNull final String s, @NonNull final String which, String[] examine, String[] ignore, String[] save, String[] refuse) {
-        logger.debug(s);
-        logger.debug(which);
-        logger.debug(java.util.Arrays.toString(examine));
-        logger.debug(java.util.Arrays.toString(ignore));
-        logger.debug(java.util.Arrays.toString(save));
-        logger.debug(java.util.Arrays.toString(refuse));
+        LOGGER.debug(s);
+        LOGGER.debug(which);
+        LOGGER.debug(java.util.Arrays.toString(examine));
+        LOGGER.debug(java.util.Arrays.toString(ignore));
+        LOGGER.debug(java.util.Arrays.toString(save));
+        LOGGER.debug(java.util.Arrays.toString(refuse));
 
         boolean E = Utils.blurf(examine, ignore, s, false);
         boolean S = Utils.blurf(save, refuse, s, false);
 
-        if (args.PrintExamine && E)
-            logger.info("Examining " + which + ": " + s);
-        if (args.PrintIgnore && !E)
-            logger.info("Ignoring " + which + ": " + s);
+        if (ARGS.PrintExamine && E) {
+            LOGGER.info("Examining " + which + ": " + s);
+        }
+        if (ARGS.PrintIgnore && !E) {
+            LOGGER.info("Ignoring " + which + ": " + s);
+        }
 
-        if (args.PrintSave && S)
-            logger.info("Saving " + which + ": " + s);
-        if (args.PrintRefuse && !S)
-            logger.info("Refusing " + which + ": " + s);
+        if (ARGS.PrintSave && S) {
+            LOGGER.info("Saving " + which + ": " + s);
+        }
+        if (ARGS.PrintRefuse && !S) {
+            LOGGER.info("Refusing " + which + ": " + s);
+        }
 
         boolean[] ret = new boolean[2];
         ret[0] = E;
@@ -431,18 +450,18 @@ public class REplican {
     // accept everything we examine or save
     // reject everything we ignore or refuse
     private static void fetch(@NonNull final String url) throws MalformedURLException, FileNotFoundException {
-        logger.traceEntry(url);
+        LOGGER.traceEntry(url);
 
-        boolean Path = args.PathExamine != null || args.PathIgnore != null ||
-                args.PathSave != null || args.PathRefuse != null;
-        boolean MIME = args.MIMEExamine != null || args.MIMEIgnore != null ||
-                args.MIMESave != null || args.MIMERefuse != null;
+        boolean Path = ARGS.PathExamine != null || ARGS.PathIgnore != null ||
+                ARGS.PathSave != null || ARGS.PathRefuse != null;
+        boolean MIME = ARGS.MIMEExamine != null || ARGS.MIMEIgnore != null ||
+                ARGS.MIMESave != null || ARGS.MIMERefuse != null;
 
-        logger.debug("Path = " + Path);
-        logger.debug("MIME = " + MIME);
+        LOGGER.debug("Path = " + Path);
+        LOGGER.debug("MIME = " + MIME);
 
-        boolean[] tb = EISR(url, "path", args.PathExamine, args.PathIgnore,
-                args.PathSave, args.PathRefuse);
+        boolean[] tb = EISR(url, "path", ARGS.PathExamine, ARGS.PathIgnore,
+                ARGS.PathSave, ARGS.PathRefuse);
 
         boolean Pexamine = tb[0];
         boolean Psave = tb[1];
@@ -460,13 +479,13 @@ public class REplican {
          */
         InputStream is = null;
         YouAreEll yrl = null;
-        for (int t = 0; t < args.Tries; t++) {
+        for (int t = 0; t < ARGS.Tries; t++) {
             yrl = new YouAreEll(url);
             is = yrl.getInputStream();
             if (is != null)
                 break;
-            if (args.Tries > 1)
-                logger.warn("Trying again");
+            if (ARGS.Tries > 1)
+                LOGGER.warn("Trying again");
         }
 
         if (is == null)
@@ -477,8 +496,8 @@ public class REplican {
 
         if (MIME && yrl.getContentType() != null) {
             tb = EISR(yrl.getContentType(), "MIME",
-                    args.MIMEExamine, args.MIMEIgnore,
-                    args.MIMESave, args.MIMERefuse);
+                    ARGS.MIMEExamine, ARGS.MIMEIgnore,
+                    ARGS.MIMESave, ARGS.MIMERefuse);
             Mexamine = tb[0];
             Msave = tb[1];
         }
@@ -488,7 +507,7 @@ public class REplican {
             try {
                 is.close();
             } catch (IOException IOE) {
-                logger.throwing(IOE);
+                LOGGER.throwing(IOE);
             }
             return;
         }
@@ -498,7 +517,7 @@ public class REplican {
         try {
             is.close();
         } catch (IOException IOE) {
-            logger.throwing(IOE);
+            LOGGER.throwing(IOE);
         }
     }
 
@@ -517,35 +536,35 @@ public class REplican {
                     try {
                         fetch(url);
                     } catch (MalformedURLException | FileNotFoundException e) {
-                        logger.throwing(e);
+                        LOGGER.throwing(e);
                     }
                     urls.put(url, true);
-                    if (args.PauseBetween != 0)
-                        Utils.snooze(args.PauseBetween);
+                    if (ARGS.PauseBetween != 0)
+                        Utils.snooze(ARGS.PauseBetween);
                 }
             }
         }
     }
 
     private static void doit() {
-        final String username = args.Username;
-        final String password = args.Password;
+        final String username = ARGS.Username;
+        final String password = ARGS.Password;
         if (username != null || password != null)
             Authenticator.setDefault(new MyAuthenticator(username, password));
 
         // this is for tests using
         // System.setProperty ("java.protocol.handler.pkgs", "edu.msudenver.cs");
 
-        final String[] add = args.additional;
+        final String[] add = ARGS.additional;
 
         if (add == null) {
-            logger.warn("No URLs specified, exiting");
+            LOGGER.warn("No URLs specified, exiting");
             System.exit(1);
         }
 
         /*
-        ** add the specified URLs to the list to be fetched.
-        */
+         ** add the specified URLs to the list to be fetched.
+         */
         // String[] t = new String[add.length];
         List<String> t = new ArrayList<>();
         for (String s : add) {
@@ -553,8 +572,8 @@ public class REplican {
         }
 
         /*
-        ** add to the URLs, with no base
-        */
+         ** add to the URLs, with no base
+         */
         addToURLs(null, t);
         fetchAll();
 
@@ -573,10 +592,10 @@ public class REplican {
     }
 
     public static void main(String[] arguments) {
-        String aliases[][] =
-            {{"PathDoNotAccept", "PathReject"}, {"PathDoNotSave", "PathRefuse"}, {"PathDoNotExamine", "PathIgnore"},
-             {"MIMEDoNotAccept", "MIMEReject"}, {"MIMEDoNotSave", "MIMERefuse"}, {"MIMEDoNotExamine", "MIMEIgnore"}};
-        JCLO jclo = new JCLO(args, aliases);
+        String[][] aliases =
+                {{"PathDoNotAccept", "PathReject"}, {"PathDoNotSave", "PathRefuse"}, {"PathDoNotExamine", "PathIgnore"},
+                        {"MIMEDoNotAccept", "MIMEReject"}, {"MIMEDoNotSave", "MIMERefuse"}, {"MIMEDoNotExamine", "MIMEIgnore"}};
+        JCLO jclo = new JCLO(ARGS, aliases);
 
         if (arguments.length == 0) {
             System.out.println("Arguments:\n" + jclo.usage() + "URLs...");
@@ -591,12 +610,12 @@ public class REplican {
             System.exit(1);
         }
 
-        if (args.Version) {
+        if (ARGS.Version) {
             System.out.println(Version.getVersion());
             System.exit(0);
         }
 
-        if (args.Help) {
+        if (ARGS.Help) {
             System.out.println("Arguments:\n" + jclo.usage() + "URLs...");
             System.exit(0);
         }
@@ -604,11 +623,11 @@ public class REplican {
         setLogLevel();
         setDefaults();
 
-        if (args.FirefoxCookies != null) loadFirefoxCookies();
-        if (args.NetscapeCookies != null) loadNetscapeCookies();
-        if (args.PlistCookies != null) loadPlistCookies();
+        if (ARGS.FirefoxCookies != null) { loadFirefoxCookies(); }
+        if (ARGS.NetscapeCookies != null) { loadNetscapeCookies(); }
+        if (ARGS.PlistCookies != null) { loadPlistCookies(); }
 
-        if (args.CheckpointEvery != 0) readCheckpointFile();
+        if (ARGS.CheckpointEvery != 0) { readCheckpointFile(); }
 
         doit();
     }

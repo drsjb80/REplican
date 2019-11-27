@@ -8,7 +8,6 @@ import java.net.MalformedURLException;
 import static org.junit.Assert.*;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class WebFileTest {
     private YouAreEll yrl = new YouAreEll("http://localhost:3000");
@@ -23,8 +22,8 @@ public class WebFileTest {
         assertEquals ("localhost", P38.call("getFilePath", webFile, new Object[]{"http://localhost:3000"}));
         assertEquals ("localhost", P38.call("getFilePath", webFile, new Object[]{"http://localhost"}));
         assertEquals ("localhost/foo", P38.call("getFilePath", webFile, new Object[]{"http://localhost/foo"}));
-        assertEquals ("localhost/" + REplican.args.IndexName, P38.call("getFilePath", webFile, new Object[]{"http://localhost/"}));
-        REplican.args.Directory = "/tmp";
+        assertEquals ("localhost/" + REplican.ARGS.IndexName, P38.call("getFilePath", webFile, new Object[]{"http://localhost/"}));
+        REplican.ARGS.Directory = "/tmp";
         assertEquals ("/tmp/localhost", P38.call("getFilePath", webFile, new Object[]{"http://localhost"}));
     }
 

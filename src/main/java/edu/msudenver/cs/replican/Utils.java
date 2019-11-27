@@ -1,15 +1,16 @@
 package edu.msudenver.cs.replican;
 
 import lombok.NonNull;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
-    private static final Logger logger = LogManager.getLogger("edu.msudenver.cs.replican.Utils");
+    private static final Logger LOGGER = REplican.LOGGER;
 
     /**
      * make a String pattern of, e.g.: [Aa][Bb], from a string, ignoring
@@ -19,7 +20,7 @@ public class Utils {
      * @return the initial string with the appropriate brackets
      */
     static String both(String s) {
-        logger.traceEntry(s);
+        LOGGER.traceEntry(s);
         String r = "";
 
         for (int i = 0; i < s.length(); i++) {
@@ -33,7 +34,7 @@ public class Utils {
             }
         }
 
-        logger.traceExit(r);
+        LOGGER.traceExit(r);
         return (r);
     }
 
@@ -46,22 +47,22 @@ public class Utils {
      * @param re the array of regular expressions
      */
     private static boolean matches(String[] re, String s) {
-        logger.traceEntry("re" + java.util.Arrays.toString(re));
-        logger.traceEntry(s);
+        LOGGER.traceEntry("re" + java.util.Arrays.toString(re));
+        LOGGER.traceEntry(s);
 
         for (String value : re) {
-            logger.trace("Matching: '" + s + "' and '" + value + "'");
+            LOGGER.trace("Matching: '" + s + "' and '" + value + "'");
             try {
                 if (s.matches(value)) {
-                    logger.traceExit("true");
+                    LOGGER.traceExit("true");
                     return (true);
                 }
             } catch (java.util.regex.PatternSyntaxException PSE) {
-                logger.warn(PSE);
+                LOGGER.warn(PSE);
             }
         }
 
-        logger.traceExit("false");
+        LOGGER.traceExit("false");
         return (false);
     }
     
@@ -70,15 +71,15 @@ public class Utils {
     ** pairs[0] == "\\.wmv.*" and pairs[1] == ".wmv"
     */
     static String replaceAll(String s, String[] pairs) {
-        logger.traceEntry(s);
-        logger.traceEntry(Arrays.toString(pairs));
+        LOGGER.traceEntry(s);
+        LOGGER.traceEntry(Arrays.toString(pairs));
 
         if (pairs == null)
             return (s);
 
         if ((pairs.length % 2) != 0) {
-            logger.error("pairs not even");
-            logger.traceExit(s);
+            LOGGER.error("pairs not even");
+            LOGGER.traceExit(s);
             return (s);
         }
 
@@ -86,7 +87,7 @@ public class Utils {
             s = s.replaceAll(pairs[i], pairs[i + 1]);
         }
 
-        logger.traceExit(s);
+        LOGGER.traceExit(s);
         return (s);
     }
 
@@ -101,9 +102,9 @@ public class Utils {
      */
     static boolean blurf(String[] yes, String[] no, String s,
                          boolean ifBothNull) {
-        if (yes != null) logger.trace("yes" + java.util.Arrays.toString(yes));
-        if (no != null) logger.trace("no" + java.util.Arrays.toString(no));
-        if (s != null) logger.trace(s);
+        if (yes != null) LOGGER.trace("yes" + java.util.Arrays.toString(yes));
+        if (no != null) LOGGER.trace("no" + java.util.Arrays.toString(no));
+        if (s != null) LOGGER.trace(s);
 
         if (yes == null && no == null) {
             return (ifBothNull);
@@ -111,15 +112,15 @@ public class Utils {
 
         if (yes != null && no != null) {
             boolean ret = matches(yes, s) && !matches(no, s);
-            logger.traceExit(ret);
+            LOGGER.traceExit(ret);
             return (ret);
         } else if (yes == null) {
             boolean ret = !matches(no, s);
-            logger.traceExit(ret);
+            LOGGER.traceExit(ret);
             return (ret);
         } else { // no == null
             boolean ret = matches(yes, s);
-            logger.traceExit(ret);
+            LOGGER.traceExit(ret);
             return (ret);
         }
     }
@@ -148,17 +149,17 @@ public class Utils {
     }
 
     static void snooze(int milliseconds) {
-        logger.traceEntry(Integer.toString(milliseconds));
+        LOGGER.traceEntry(Integer.toString(milliseconds));
 
         if (milliseconds == 0)
             return;
 
-        logger.info("Sleeping for " + milliseconds + " milliseconds");
+        LOGGER.info("Sleeping for " + milliseconds + " milliseconds");
 
         try {
             Thread.sleep(milliseconds);
         } catch (InterruptedException ie) {
-            logger.throwing(ie);
+            LOGGER.throwing(ie);
         }
     }
 
@@ -186,8 +187,8 @@ public class Utils {
      ** concatenation of the capturing groups.
      */
     private static String match(String pattern, String s) {
-        logger.traceEntry(pattern);
-        logger.traceEntry(s);
+        LOGGER.traceEntry(pattern);
+        LOGGER.traceEntry(s);
 
         String ret = null;
 
@@ -199,7 +200,7 @@ public class Utils {
             }
         }
 
-        logger.traceExit(ret);
+        LOGGER.traceExit(ret);
         return (ret);
     }
 
@@ -210,7 +211,7 @@ public class Utils {
     ** The <base> tag goes inside the <head> element."
     */
     static String newBase(String base) {
-        logger.traceEntry(base);
+        LOGGER.traceEntry(base);
 
         if (base == null || base.equals("")) {
             return (null);
@@ -219,7 +220,7 @@ public class Utils {
         String b = "<[bB][aA][sS][eE].*[hH][rR][eE][fF]=[\"']?([^\"'# ]*)";
         String ret = match(b, base);
 
-        logger.traceExit(ret);
+        LOGGER.traceExit(ret);
         return (ret);
     }
 
@@ -230,15 +231,32 @@ public class Utils {
      * @param s the string to examine
      * @return the interesting part if any, and null if none
      */
-    static String[] interesting(@NonNull String s) {
-        logger.traceEntry(s);
+    /*
+    static List<String> interesting(@NonNull String match) {
+        LOGGER.traceEntry(match);
 
-        String[] m = new String[REplican.args.Interesting.length];
+        List<String> ret = new ArrayList<>();
 
-        for (int i = 0; i < REplican.args.Interesting.length; i++) {
-            m[i] = match(REplican.args.Interesting[i], s);
+        for (String string : REplican.ARGS.Interesting) {
+            String m = match(string, match);
+            if (m != null) {
+                ret.add(m);
+            }
         }
+        LOGGER.traceExit(ret);
+        return (ret);
+    }
+    */
 
+    static String[] interesting(@NonNull String s) {
+        LOGGER.traceEntry(s);
+
+        String[] m = new String[REplican.ARGS.Interesting.length];
+
+        for (int i = 0; i < REplican.ARGS.Interesting.length; i++) {
+            m[i] = match(REplican.ARGS.Interesting[i], s);
+        }
+        LOGGER.traceExit(java.util.Arrays.toString(m));
         return (m);
     }
 }

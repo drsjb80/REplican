@@ -9,10 +9,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.Date;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Newest cookie specification https://tools.ietf.org/html/rfc6265
@@ -21,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @ToString
 @EqualsAndHashCode
 class Cookie {
-    private static final Date now = new Date();
+    private static final Date NOW = new Date();
     private static final Date BEGINNINGOFTIME = new Date(0);
     private final Logger logger = LogManager.getLogger(getClass());
     @Getter private final AbstractMap<String, String> keyValuePairs = new ConcurrentHashMap<>();
@@ -140,7 +138,7 @@ class Cookie {
             return;
         }
 
-        Date newMaxAge = new Date(now.getTime() + seconds);
+        Date newMaxAge = new Date(NOW.getTime() + seconds);
 
         // allow extensions to the time
         if (maxAge.before(newMaxAge)) {
