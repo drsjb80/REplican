@@ -248,9 +248,13 @@ class REplican {
                 LOGGER.trace(possible);
                 if (possible != null) {
                     final URL u;
+                    LOGGER.trace(newBase);
+                    LOGGER.trace(baseURL);
                     try {
                         if (newBase != null) {
                             u = new URL(new URL(newBase), possible);
+                        } else if (baseURL != null){
+                            u = new URL(new URL(baseURL), possible);
                         } else {
                             u = new URL(possible);
                         }
@@ -259,8 +263,7 @@ class REplican {
                         continue;
                     }
 
-                    final String total = u.toString();
-                    process(total);
+                    process(u.toString());
                 }
             }
         }
@@ -416,7 +419,7 @@ class REplican {
      ** calculate, given the examine/ignore and save/refuse values, whether
      ** to examine and/or save s.
      */
-    private static boolean[] EISR(@NonNull final String s, @NonNull final String which, String[] examine, String[] ignore, String[] save, String[] refuse) {
+    private static Map.Entry<Boolean, Boolean> EISR(@NonNull final String s, @NonNull final String which, String[] examine, String[] ignore, String[] save, String[] refuse) {
         LOGGER.debug(s);
         LOGGER.debug(which);
         LOGGER.debug(java.util.Arrays.toString(examine));
@@ -441,15 +444,12 @@ class REplican {
             LOGGER.info("Refusing " + which + ": " + s);
         }
 
-        boolean[] ret = new boolean[2];
-        ret[0] = E;
-        ret[1] = S;
-        return (ret);
+        return (Map.entry(E, S));
     }
 
     // accept everything we examine or save
     // reject everything we ignore or refuse
-    private static void fetch(@NonNull final String url) throws MalformedURLException, FileNotFoundException {
+    private static void fetch(@NonNull final String url) throws IOException {
         LOGGER.traceEntry(url);
 
         boolean Path = ARGS.PathExamine != null || ARGS.PathIgnore != null ||
@@ -460,65 +460,43 @@ class REplican {
         LOGGER.debug("Path = " + Path);
         LOGGER.debug("MIME = " + MIME);
 
-        boolean[] tb = EISR(url, "path", ARGS.PathExamine, ARGS.PathIgnore,
+        Map.Entry<Boolean, Boolean> eisr = EISR(url, "path",
+                ARGS.PathExamine, ARGS.PathIgnore,
                 ARGS.PathSave, ARGS.PathRefuse);
 
-        boolean Pexamine = tb[0];
-        boolean Psave = tb[1];
+        boolean pathExamine = eisr.getKey();
+        boolean pathSave = eisr.getValue();
 
         /*
          * if there is no MIME, and the Path doesn't say to examine or save,
          * we're done.
          */
-        if (!MIME && !Pexamine && !Psave)
+        if (!MIME && !pathExamine && !pathSave)
             return;
 
-        /*
-         * otherwise, we need to Path examine or save, or we need the MIME
-         * header.  in either case, we need an InputStream.
-         */
-        InputStream is = null;
-        YouAreEll yrl = null;
-        for (int t = 0; t < ARGS.Tries; t++) {
-            yrl = new YouAreEll(url);
-            is = yrl.getInputStream();
-            if (is != null)
-                break;
-            if (ARGS.Tries > 1)
-                LOGGER.warn("Trying again");
-        }
+        YouAreEll yrl = new YouAreEll(url);
+        InputStream is = yrl.getInputStream();
 
-        if (is == null)
-            return;
-
-        boolean Mexamine = false;
-        boolean Msave = false;
+        boolean mineExamine = false;
+        boolean mimeSave = false;
 
         if (MIME && yrl.getContentType() != null) {
-            tb = EISR(yrl.getContentType(), "MIME",
+            eisr = EISR(yrl.getContentType(), "MIME",
                     ARGS.MIMEExamine, ARGS.MIMEIgnore,
                     ARGS.MIMESave, ARGS.MIMERefuse);
-            Mexamine = tb[0];
-            Msave = tb[1];
+            mineExamine = eisr.getKey();
+            mimeSave = eisr.getValue();
         }
 
         // we've looked at both Path and now MIME and there's nothing to do
-        if (!Pexamine && !Psave && !Mexamine && !Msave) {
-            try {
-                is.close();
-            } catch (IOException IOE) {
-                LOGGER.throwing(IOE);
-            }
+        if (!pathExamine && !pathSave && !mineExamine && !mimeSave) {
+            is.close();
             return;
         }
 
-        fetchOne(Pexamine || Mexamine, Psave || Msave, yrl, is);
+        fetchOne(pathExamine || mineExamine, pathSave || mimeSave, yrl, is);
 
-        try {
-            is.close();
-        } catch (IOException IOE) {
-            LOGGER.throwing(IOE);
-        }
+        is.close();
     }
 
     private static void fetchAll() {
@@ -535,12 +513,13 @@ class REplican {
                 if (!fetched) {
                     try {
                         fetch(url);
-                    } catch (MalformedURLException | FileNotFoundException e) {
+                    } catch (IOException e) {
                         LOGGER.throwing(e);
                     }
                     urls.put(url, true);
-                    if (ARGS.PauseBetween != 0)
+                    if (ARGS.PauseBetween != 0) {
                         Utils.snooze(ARGS.PauseBetween);
+                    }
                 }
             }
         }
@@ -549,11 +528,9 @@ class REplican {
     private static void doit() {
         final String username = ARGS.Username;
         final String password = ARGS.Password;
-        if (username != null || password != null)
+        if (username != null || password != null) {
             Authenticator.setDefault(new MyAuthenticator(username, password));
-
-        // this is for tests using
-        // System.setProperty ("java.protocol.handler.pkgs", "edu.msudenver.cs");
+        }
 
         final String[] add = ARGS.additional;
 

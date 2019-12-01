@@ -34,7 +34,7 @@ class REplicanArgs {
 
     int[] StopOn;
     boolean StopOnnull;
-    int Tries = 1;
+    // int Tries = 1;
 
     LogLevels LogLevel = LogLevels.OFF;
     String Username;

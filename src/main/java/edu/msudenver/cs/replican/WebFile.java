@@ -49,7 +49,9 @@ class WebFile {
             path = dir + path;
         }
 
-        path = Utils.replaceAll(path, REplican.ARGS.FilenameRewrite);
+        if (REplican.ARGS.FilenameRewrite != null) {
+            path = Utils.replaceAll(path, REplican.ARGS.FilenameRewrite);
+        }
         path = path.replaceFirst("^~",System.getProperty("user.home") + "/");
 
         logger.traceExit(path);

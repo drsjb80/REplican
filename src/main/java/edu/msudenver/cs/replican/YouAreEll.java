@@ -179,15 +179,8 @@ public class YouAreEll {
         }
     }
 
-    InputStream getInputStream() {
-        final int returnCode;
-
-        try {
-            returnCode = connect();
-        } catch (IOException e) {
-            logger.warn(e);
-            return (null);
-        }
+    InputStream getInputStream() throws IOException {
+        final int returnCode = connect();
 
         logger.trace(urlConnection.toString());
         logger.trace(urlConnection.getHeaderFields().toString());
