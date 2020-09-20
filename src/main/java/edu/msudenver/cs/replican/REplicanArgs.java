@@ -33,7 +33,6 @@ class REplicanArgs {
     boolean SaveProgress;
 
     int[] StopOn;
-    boolean StopOnnull;
     // int Tries = 1;
 
     LogLevels LogLevel = LogLevels.OFF;

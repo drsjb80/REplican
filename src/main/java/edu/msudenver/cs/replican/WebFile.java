@@ -58,7 +58,7 @@ class WebFile {
         return (path);
     }
 
-    private File openFile() throws MalformedURLException {
+    File openFile() throws MalformedURLException {
         String path = getFilePath(yrl.getUrl());
 
         if(REplican.ARGS.PrintSavePath) {
@@ -101,40 +101,37 @@ class WebFile {
     private void checkIfModifiedSince(final File file, final long LastModified) throws FileAlreadyExistsException {
         logger.traceEntry(String.valueOf(LastModified));
 
-        if (REplican.ARGS.IfModifiedSince) {
-            if (LastModified > 0) {
-                logger.trace("file: " + file.lastModified());
-                logger.trace("URL: " + LastModified);
+        if (LastModified > 0) {
+            logger.trace("file: " + file.lastModified());
+            logger.trace("URL: " + LastModified);
 
-                if (file.lastModified() <= LastModified) {
-                    if (REplican.ARGS.PrintSkip) {
-                        logger.info("Not modified: " + file);
-                    }
-                    throw new FileAlreadyExistsException(file.toString());
+            if (file.lastModified() <= LastModified) {
+                if (REplican.ARGS.PrintSkip) {
+                    logger.info("Not modified: " + file);
                 }
-            } else {
-                logger.info("No last-modified information: " + file);
+                throw new FileAlreadyExistsException(file.toString());
             }
+        } else {
+            logger.info("No last-modified information: " + file);
         }
     }
 
     private void checkIfLargerOrSmaller(final File file) throws FileAlreadyExistsException {
-        if (REplican.ARGS.OverwriteIfLarger || REplican.ARGS.OverwriteIfSmaller) {
-            boolean larger = yrl.getContentLength() > file.length();
-            boolean smaller = yrl.getContentLength() < file.length();
+        boolean larger = yrl.getContentLength() > file.length();
+        boolean smaller = yrl.getContentLength() < file.length();
 
-            if ((REplican.ARGS.OverwriteIfLarger && larger) || (REplican.ARGS.OverwriteIfSmaller && smaller)) {
+        if ((REplican.ARGS.OverwriteIfLarger && larger) || 
+            (REplican.ARGS.OverwriteIfSmaller && smaller)) {
                 logger.info("Overwriting because " +
-                        yrl.getContentLength() + " is " +
-                        (REplican.ARGS.OverwriteIfLarger ? "larger" : "smaller") +
-                        " than " + file.length());
-            } else {
-                logger.info("Not overwriting because " +
-                        yrl.getContentLength() + " is not " +
-                        (REplican.ARGS.OverwriteIfLarger ? "larger" : "smaller") +
-                        " than " + file.length());
-                throw new FileAlreadyExistsException(file.toString());
-            }
+                yrl.getContentLength() + " is " +
+                (REplican.ARGS.OverwriteIfLarger ? "larger" : "smaller") +
+                " than " + file.length());
+        } else {
+            logger.info("Not overwriting because " +
+                yrl.getContentLength() + " is not " +
+                (REplican.ARGS.OverwriteIfLarger ? "larger" : "smaller") +
+                " than " + file.length());
+            throw new FileAlreadyExistsException(file.toString());
         }
     }
 
@@ -160,16 +157,21 @@ class WebFile {
         checkIfNewerThan();
 
         if (file.exists()) {
-            // if one of the three overwrites...
             logger.debug("File exists");
-            checkIfLargerOrSmaller(file);
+
+            if (REplican.ARGS.OverwriteIfLarger || 
+                REplican.ARGS.OverwriteIfSmaller) {
+                checkIfLargerOrSmaller(file);
+            }
 
             if (!REplican.ARGS.Overwrite) {
                 logger.warn("Not overwriting: " + file);
                 throw new FileAlreadyExistsException(file.toString());
             }
 
-            checkIfModifiedSince(file, yrl.getLastModified());
+            if (REplican.ARGS.IfModifiedSince) {
+                checkIfModifiedSince(file, yrl.getLastModified());
+            }
         }
 
         logger.debug("Opened: " + file);

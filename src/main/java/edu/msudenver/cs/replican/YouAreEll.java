@@ -78,7 +78,7 @@ public class YouAreEll {
         for (int stopOn: REplican.ARGS.StopOn) {
             if (code == stopOn) {
                 logger.warn("Stopping on return code: " + code);
-                System.exit(0);
+                System.exit(code);
             }
         }
     }
@@ -104,7 +104,7 @@ public class YouAreEll {
     private InputStream dealWithReturnCode(int code) {
         logger.traceEntry(Integer.toString(code));
 
-        if (REplican.ARGS.StopOnnull)
+        if (REplican.ARGS.StopOn.length > 0)
             dealWithStopOns(code);
 
         switch (code) {

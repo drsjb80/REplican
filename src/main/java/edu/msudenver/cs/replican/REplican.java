@@ -274,27 +274,20 @@ class REplican {
      ** optionally look at all the URL's found in the input stream.
      ** null: yrl, bos
      */
-    private static boolean examineORsave(final YouAreEll yrl, final InputStream is, final BufferedOutputStream bos, final boolean examine, final boolean save, final String url) {
+    private static void examineORsave(final YouAreEll yrl, final InputStream is, final BufferedOutputStream bos, final boolean examine, final boolean save, final String url) throws IOException {
         LOGGER.traceEntry(String.valueOf(examine));
         LOGGER.traceEntry(String.valueOf(save));
         LOGGER.traceEntry(url);
 
-        try {
-            readAndWrite(is, bos, save, yrl.getContentLength());
+        readAndWrite(is, bos, save, yrl.getContentLength());
 
-            if (save && ARGS.PauseAfterSave != 0) {
-                Utils.snooze(ARGS.PauseAfterSave);
-            }
-
-            if (examine) {
-                addToURLs(url, ((DelimitedBufferedInputStream) is).getStrings());
-            }
-        } catch (IOException e) {
-            LOGGER.throwing(e);
-            return false;
+        if (save && ARGS.PauseAfterSave != 0) {
+            Utils.snooze(ARGS.PauseAfterSave);
         }
 
-        return true;
+        if (examine) {
+            addToURLs(url, ((DelimitedBufferedInputStream) is).getStrings());
+        }
     }
 
     private static void readAndWrite(final InputStream is, final BufferedOutputStream bos, final boolean save, final long content_length) throws IOException {
@@ -378,9 +371,7 @@ class REplican {
         File webFile = null;
         if (save) {
             try {
-                LOGGER.debug("before calling createFile");
                 webFile = new WebFile(yrl).createFile();
-                LOGGER.debug("after calling createFile");
                 bos = new BufferedOutputStream(new FileOutputStream(webFile));
             } catch (FileSystemException FSE) {
                 save = false;
@@ -388,8 +379,10 @@ class REplican {
         }
 
         if (examine || save) {
-            if (!examineORsave(yrl, dbis, bos, examine, save, yrl.getUrl())) {
-                LOGGER.error("examineORsave failed");
+            try {
+                examineORsave(yrl, dbis, bos, examine, save, yrl.getUrl());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -417,31 +410,31 @@ class REplican {
 
     /*
      ** calculate, given the examine/ignore and save/refuse values, whether
-     ** to examine and/or save s.
+     ** to examine and/or save url.
      */
-    private static Map.Entry<Boolean, Boolean> EISR(@NonNull final String s, @NonNull final String which, String[] examine, String[] ignore, String[] save, String[] refuse) {
-        LOGGER.debug(s);
+    private static Map.Entry<Boolean, Boolean> EISR(@NonNull final String url, @NonNull final String which, String[] examine, String[] ignore, String[] save, String[] refuse) {
+        LOGGER.debug(url);
         LOGGER.debug(which);
         LOGGER.debug(java.util.Arrays.toString(examine));
         LOGGER.debug(java.util.Arrays.toString(ignore));
         LOGGER.debug(java.util.Arrays.toString(save));
         LOGGER.debug(java.util.Arrays.toString(refuse));
 
-        boolean E = Utils.blurf(examine, ignore, s, false);
-        boolean S = Utils.blurf(save, refuse, s, false);
+        boolean E = Utils.blurf(examine, ignore, url, false);
+        boolean S = Utils.blurf(save, refuse, url, false);
 
         if (ARGS.PrintExamine && E) {
-            LOGGER.info("Examining " + which + ": " + s);
+            LOGGER.info("Examining " + which + ": " + url);
         }
         if (ARGS.PrintIgnore && !E) {
-            LOGGER.info("Ignoring " + which + ": " + s);
+            LOGGER.info("Ignoring " + which + ": " + url);
         }
 
         if (ARGS.PrintSave && S) {
-            LOGGER.info("Saving " + which + ": " + s);
+            LOGGER.info("Saving " + which + ": " + url);
         }
         if (ARGS.PrintRefuse && !S) {
-            LOGGER.info("Refusing " + which + ": " + s);
+            LOGGER.info("Refusing " + which + ": " + url);
         }
 
         return (Map.entry(E, S));
@@ -471,11 +464,24 @@ class REplican {
          * if there is no MIME, and the Path doesn't say to examine or save,
          * we're done.
          */
-        if (!MIME && !pathExamine && !pathSave)
+        if (!MIME && !pathExamine && !pathSave) {
             return;
+        }
 
         YouAreEll yrl = new YouAreEll(url);
+        /*
+        ** quick check before doing anything across the network.
+        */
+        File file = new WebFile(yrl).openFile();
+        if (file.exists() && !REplican.ARGS.Overwrite) {
+            LOGGER.warn("Not overwriting: " + file);
+            return;
+        }
+
         InputStream is = yrl.getInputStream();
+        if (is == null) {
+            return;
+        }
 
         boolean mineExamine = false;
         boolean mimeSave = false;
