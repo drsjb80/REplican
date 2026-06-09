@@ -46,6 +46,21 @@ public class CookieTest {
 
     @Test
     public void testToString() {
+        // Verify toString() returns a string (Lombok @ToString generates the implementation)
+        String str = firstTestCookie.toString();
+        assertNotNull(str);
+        assertTrue(str.length() > 0);
+    }
+
+    @Test
+    public void maxAgeIsInSeconds() {
+        Cookie cookieWithMaxAge = new Cookie("foo.example.com", "/", "SID=x; Max-Age=3600");
+        long maxTime = cookieWithMaxAge.getMaxTime();
+        long now = System.currentTimeMillis();
+        long expectedMin = now + 3_500_000L; // 3500 seconds in millis, accounting for small delays
+        long expectedMax = now + 3_700_000L; // 3700 seconds in millis, allowing some slop
+        assertTrue("maxTime should be roughly 1 hour in the future",
+            maxTime >= expectedMin && maxTime <= expectedMax);
     }
 
     @Test

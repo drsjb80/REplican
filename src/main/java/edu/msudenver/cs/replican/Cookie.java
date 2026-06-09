@@ -157,7 +157,7 @@ class Cookie {
             return;
         }
 
-        Date newMaxAge = new Date(NOW.getTime() + seconds);
+        Date newMaxAge = new Date(NOW.getTime() + seconds * 1000L);
 
         // allow extensions to the time
         if (maxAge.before(newMaxAge)) {
