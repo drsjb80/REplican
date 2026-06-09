@@ -1,7 +1,11 @@
 # REplican
-![alt text](https://travis-ci.org/drsjb80/REplican.svg?branch=dev) [![Coverage Status](https://coveralls.io/repos/github/drsjb80/REplican/badge.svg?branch=master)](https://coveralls.io/github/drsjb80/REplican?branch=dev)
 
-REplican is a powerful web replicator based on regular expressions.
+[![Build & Verify](https://github.com/drsjb80/REplican/actions/workflows/verify.yml/badge.svg?branch=dev)](https://github.com/drsjb80/REplican/actions/workflows/verify.yml)
+[![Java 17](https://img.shields.io/badge/Java-17+-ED8936.svg)](https://www.java.com)
+[![Maven](https://img.shields.io/badge/Maven-3.13.0+-C71A36.svg)](https://maven.apache.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+REplican is a powerful and modern web replicator based on regular expressions.
 
 Regular expressions allow either great specificity or generality, giving
 you a lot of power to retrieve whatever you wish from the web.
@@ -9,6 +13,36 @@ you a lot of power to retrieve whatever you wish from the web.
 Usage: java REplican-*VERSION*.jar [args...] URL [URL...]
 
 N.B.: the URL(s) are automatically added to PathAccept.
+
+## Development
+
+### Building
+
+REplican requires Java 17+ and Maven 3.13.0+.
+
+```bash
+# Build and run all tests with static analysis
+mvn clean verify
+
+# Build the fat JAR
+mvn clean package
+```
+
+### Code Quality
+
+The project enforces:
+- **Checkstyle** 10.13 — code style consistency
+- **JUnit 4** — 42 tests covering core functionality
+- **Log4j 2.20** — modern logging with security patches
+
+All changes must pass:
+```bash
+mvn verify  # Runs compile, test, checkstyle
+```
+
+### CI/CD
+
+GitHub Actions automatically runs `mvn verify` on all pushes and pull requests. View the build status above or check the [Actions tab](https://github.com/drsjb80/REplican/actions).
 
 ## Arguments
 There are a lot of arguments to let you tune exactly what is examined and
