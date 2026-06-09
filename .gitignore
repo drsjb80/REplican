@@ -1,11 +1,3 @@
-# IDE
-.classpath
-.factorypath
-.project
-.settings/
-*.swp
-*.swo
-
 # Build artifacts
 target/
 *.class
@@ -13,24 +5,11 @@ target/
 *.zip
 
 # Maven
-pom.xml.versionsBackup
 .mvn/
 
-# Test artifacts
-test.txt
-diffs.txt
-TEST
-
-# Scratch files
-JSoup.java
-JSoup.class
-install.sh
-Notes
-
-# Downloaded content
-sites.msudenver.edu/
-www.pipes.org/
-news.xml
+# Editor swap files
+*.swp
+*.swo
 
 # OS
 .DS_Store
