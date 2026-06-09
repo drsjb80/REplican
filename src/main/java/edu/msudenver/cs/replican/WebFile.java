@@ -105,7 +105,7 @@ class WebFile {
             logger.trace("file: " + file.lastModified());
             logger.trace("URL: " + LastModified);
 
-            if (file.lastModified() <= LastModified) {
+            if (file.lastModified() >= LastModified) {
                 if (REplican.ARGS.PrintSkip) {
                     logger.info("Not modified: " + file);
                 }
