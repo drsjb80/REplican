@@ -1,7 +1,10 @@
 package edu.msudenver.cs.replican;
 
+import lombok.Getter;
+
 enum LogLevels {OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, ALL}
 
+@Getter
 class REplicanArgs {
     String[] PathAccept;
     String[] PathReject;
