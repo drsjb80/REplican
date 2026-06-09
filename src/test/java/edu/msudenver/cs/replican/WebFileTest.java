@@ -14,7 +14,10 @@ public class WebFileTest {
     private WebFile webFile = new WebFile(yrl);
 
     @Test
-    public void createFile() {
+    public void createFile() throws Throwable {
+        File file = (File) P38.call("openFile", webFile);
+        assertNotNull(file);
+        assertTrue(file.getName().startsWith("localhost") || file.getName().contains("3000"));
     }
 
     @Test

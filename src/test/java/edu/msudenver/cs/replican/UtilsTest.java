@@ -57,6 +57,10 @@ public class UtilsTest {
 
     @Test
     public void snooze() {
+        long before = System.currentTimeMillis();
+        Utils.snooze(50);
+        long after = System.currentTimeMillis();
+        assertTrue("Snooze should take at least 40ms", after - before >= 40);
     }
 
     @Test
@@ -87,5 +91,8 @@ public class UtilsTest {
 
     @Test
     public void interesting() {
+        // interesting() is tightly coupled to REplican.ARGS static state
+        // Skipping this test as it requires global state setup
+        // This should be refactored to be testable in isolation
     }
 }
