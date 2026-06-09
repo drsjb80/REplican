@@ -19,10 +19,8 @@ public class FirefoxCookies {
             return;
         }
 
-        try {
-            final String sql = "SELECT * FROM moz_cookies";
-            final Statement stmt = conn.createStatement();
-            final ResultSet rs = stmt.executeQuery(sql);
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM moz_cookies")) {
 
             while (rs.next()) {
                 final String host = rs.getString("host");

@@ -45,12 +45,12 @@ public class NetscapeCookies {
     }
 
     static void loadCookies(final String file) throws IOException {
-        final BufferedReader in = new BufferedReader(new FileReader(file));
-
-        String line;
-        while ((line = in.readLine()) != null) {
-            if (line.length() > 0) {
-                doNetscapeLine(line);
+        try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.length() > 0) {
+                    doNetscapeLine(line);
+                }
             }
         }
     }

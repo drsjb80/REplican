@@ -329,15 +329,7 @@ public class HttpfileURLConnection extends HttpURLConnection {
     }
 
     private void readHeaders() {
-        BufferedReader br;
-        try {
-            br = new BufferedReader(new FileReader(url.getPath()));
-        } catch (FileNotFoundException e) {
-            logger.finer(e.toString());
-            return;
-        }
-
-        try {
+        try (BufferedReader br = new BufferedReader(new FileReader(url.getPath()))) {
             String s;
             while ((s = br.readLine()) != null) {
                 if (s.trim().equals(""))
@@ -348,7 +340,6 @@ public class HttpfileURLConnection extends HttpURLConnection {
                     logger.warning(s + " is not an HTTP header, assuming no"
                             + " headers at all");
                     headerFields.clear();
-                    br.close();
                     return;
                 }
 
@@ -366,8 +357,8 @@ public class HttpfileURLConnection extends HttpURLConnection {
 
                 headerFields.put(key, v);
             }
-
-            br.close();
+        } catch (FileNotFoundException e) {
+            logger.finer(e.toString());
         } catch (IOException e) {
             logger.finer(e.toString());
         }
