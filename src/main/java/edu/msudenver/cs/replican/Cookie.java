@@ -3,6 +3,7 @@ package edu.msudenver.cs.replican;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
+import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,8 +28,8 @@ class Cookie {
 
     // host comes in via the URL, not used unless there is no domain
     // a path comes in via the URL, not used unless there is no path
-    private String URLHost = null;
-    private String URLPath = null;
+    @Getter private String URLHost = null;
+    @Getter private String URLPath = null;
 
     public AbstractMap<String, String> getKeyValuePairs() {
         return keyValuePairs;
@@ -40,14 +41,6 @@ class Cookie {
 
     public boolean isHttponly() {
         return httponly;
-    }
-
-    public String getURLHost() {
-        return URLHost;
-    }
-
-    public String getURLPath() {
-        return URLPath;
     }
 
     private Date maxAge = BEGINNINGOFTIME;
