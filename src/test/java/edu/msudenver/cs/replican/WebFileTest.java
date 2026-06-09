@@ -44,10 +44,116 @@ public class WebFileTest {
         assertEquals(System.getProperty("user.home") + "/pom.xml", file.toString());
     }
 
-    /*
-            Socket socket = mock(Socket.class);
-            when(socket.getInputStream()).thenReturn(inputstream);
-        when(socket.getOutputStream()).thenReturn(outputstream);
+    @Test
+    public void webFileCanBeConstructed() {
+        YouAreEll yrl = new YouAreEll("http://example.com");
+        assertNotNull(new WebFile(yrl));
+    }
 
-     */
+    @Test
+    public void webFileWithDifferentURLs() {
+        YouAreEll yrl1 = new YouAreEll("http://example.com");
+        YouAreEll yrl2 = new YouAreEll("https://other.com:8080/path");
+        YouAreEll yrl3 = new YouAreEll("http://localhost:3000");
+
+        assertNotNull(new WebFile(yrl1));
+        assertNotNull(new WebFile(yrl2));
+        assertNotNull(new WebFile(yrl3));
+    }
+
+    @Test
+    public void webFileThrowsOnBadURL() throws Throwable {
+        YouAreEll yrl = new YouAreEll("not a valid url");
+        WebFile wf = new WebFile(yrl);
+        assertThrows(MalformedURLException.class, () -> P38.call("openFile", wf));
+    }
+
+    @Test
+    public void webFileOpenFileWithValidURL() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com/path/to/file.html");
+        WebFile wf = new WebFile(yrl);
+        File file = (File) P38.call("openFile", wf);
+        assertNotNull(file);
+        assertTrue(file.getPath().contains("example.com"));
+    }
+
+    @Test
+    public void webFileGetFilePathWithRootPath() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com/");
+        WebFile wf = new WebFile(yrl);
+        String path = (String) P38.call("getFilePath", wf, new Object[]{"http://example.com/"});
+        assertTrue(path.contains("index.html"));
+    }
+
+    @Test
+    public void webFileGetFilePathWithQueryString() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com");
+        WebFile wf = new WebFile(yrl);
+        String path = (String) P38.call("getFilePath", wf, new Object[]{"http://example.com/page?id=123"});
+        assertTrue(path.contains("example.com"));
+    }
+
+    @Test
+    public void webFileGetFilePathWithFragment() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com");
+        WebFile wf = new WebFile(yrl);
+        String path = (String) P38.call("getFilePath", wf, new Object[]{"http://example.com/page#section"});
+        assertTrue(path.contains("example.com"));
+    }
+
+    @Test
+    public void webFileGetFilePathWithIPAddress() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://192.168.1.1");
+        WebFile wf = new WebFile(yrl);
+        String path = (String) P38.call("getFilePath", wf, new Object[]{"http://192.168.1.1/data.html"});
+        assertTrue(path.contains("192.168.1.1"));
+    }
+
+    @Test
+    public void webFileGetFilePathWithPort() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com:8080");
+        WebFile wf = new WebFile(yrl);
+        String path = (String) P38.call("getFilePath", wf, new Object[]{"http://example.com:8080/file.html"});
+        assertTrue(path.contains("example.com"));
+    }
+
+    @Test
+    public void webFileGetFilePathPreservesDirectoryStructure() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com");
+        WebFile wf = new WebFile(yrl);
+        String path = (String) P38.call("getFilePath", wf, new Object[]{"http://example.com/deep/path/to/file.html"});
+        assertTrue(path.contains("/deep/path/to/"));
+    }
+
+    @Test
+    public void webFileGetFilePathWithNestedDirectories() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com");
+        WebFile wf = new WebFile(yrl);
+        String path = (String) P38.call("getFilePath", wf, new Object[]{"http://example.com/a/b/c/d/e/f/file.html"});
+        assertTrue(path.contains("a/b/c/d/e/f"));
+    }
+
+    @Test
+    public void webFileHandlesUrlsWithoutProtocol() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com");
+        WebFile wf = new WebFile(yrl);
+        assertThrows(Exception.class, () -> P38.call("getFilePath", wf, new Object[]{"example.com/file.html"}));
+    }
+
+    @Test
+    public void webFileGetFilePathWithSpecialCharacterFilename() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://example.com");
+        WebFile wf = new WebFile(yrl);
+        String path = (String) P38.call("getFilePath", wf, new Object[]{"http://example.com/file-with-dashes.html"});
+        assertTrue(path.contains("file-with-dashes"));
+    }
+
+    @Test
+    public void webFileOpenFileReturnsFileObject() throws Throwable {
+        YouAreEll yrl = new YouAreEll("http://localhost/test.html");
+        WebFile wf = new WebFile(yrl);
+        File file = (File) P38.call("openFile", wf);
+        assertNotNull(file);
+        assertEquals(File.class, file.getClass());
+    }
 }
