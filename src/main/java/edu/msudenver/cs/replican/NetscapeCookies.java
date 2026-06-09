@@ -27,6 +27,10 @@ public class NetscapeCookies {
 
         final String[] s = line.split("\t");
 
+        if (s.length < 6) {
+            return;
+        }
+
         if (s.length > 6) {
             final Date date = new Date(Long.parseLong(s[4]) * 1000);
             final String expires =
