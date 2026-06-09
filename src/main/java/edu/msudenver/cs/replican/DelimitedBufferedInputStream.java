@@ -38,7 +38,7 @@ public class DelimitedBufferedInputStream extends BufferedInputStream {
     }
 
     public int read(byte[] b, int off, int len) throws IOException {
-        for (int i = off; i <= len; i++) {
+        for (int i = off; i < off + len; i++) {
             int c = read();
 
             if (c == -1) return (-1);
@@ -46,7 +46,7 @@ public class DelimitedBufferedInputStream extends BufferedInputStream {
             b[i] = (byte) c;
         }
 
-        return (len - off);
+        return len;
     }
 
     public int read() throws IOException {
