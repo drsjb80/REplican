@@ -232,4 +232,43 @@ public class YouAreEllTest {
         YouAreEll yae = new YouAreEll(url);
         assertEquals(url, yae.getUrl());
     }
+
+    @Test
+    void youAreEllWithCookiesAndUrl() {
+        Cookies cookies = new Cookies();
+        YouAreEll yae = new YouAreEll("http://example.com", cookies);
+        assertEquals("http://example.com", yae.getUrl());
+        assertNull(yae.getContentType());
+    }
+
+    @Test
+    void getUrlAfterConstruction() {
+        YouAreEll yae = new YouAreEll("http://example.com/test");
+        String url = yae.getUrl();
+        assertEquals("http://example.com/test", url);
+        // Verify URL doesn't change
+        assertEquals(url, yae.getUrl());
+    }
+
+    @Test
+    void multipleInstancesAreIndependent() {
+        YouAreEll yae1 = new YouAreEll("http://first.com");
+        YouAreEll yae2 = new YouAreEll("http://second.com");
+        YouAreEll yae3 = new YouAreEll("http://third.com");
+
+        assertNotEquals(yae1.getUrl(), yae2.getUrl());
+        assertNotEquals(yae2.getUrl(), yae3.getUrl());
+        assertNotEquals(yae1.getUrl(), yae3.getUrl());
+    }
+
+    @Test
+    void contentTypeNullUntilFetched() {
+        YouAreEll yae1 = new YouAreEll("http://example1.com");
+        YouAreEll yae2 = new YouAreEll("http://example2.com");
+        YouAreEll yae3 = new YouAreEll("http://example3.com");
+
+        assertNull(yae1.getContentType());
+        assertNull(yae2.getContentType());
+        assertNull(yae3.getContentType());
+    }
 }
