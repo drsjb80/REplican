@@ -14,7 +14,5 @@ public interface URLFetcher {
         int getContentLength();
 
         long getLastModified();
-
-        int getResponseCode();
     }
 }
