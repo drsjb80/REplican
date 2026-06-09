@@ -176,11 +176,11 @@ public class YouAreEll {
     private void addHeaderLines() {
         if (REplican.ARGS.Header != null) {
             for (String header: REplican.ARGS.Header) {
-                String[] s = header.split(":");
-                if (s[0] != null && s[1] != null) {
-                    urlConnection.setRequestProperty(s[0], s[1]);
+                String[] s = header.split(":", 2);
+                if (s.length == 2) {
+                    urlConnection.setRequestProperty(s[0].trim(), s[1].trim());
                 } else {
-                    logger.trace("Couldn't decipher " + header);
+                    logger.trace("Malformed header (no colon): " + header);
                 }
             }
         }
