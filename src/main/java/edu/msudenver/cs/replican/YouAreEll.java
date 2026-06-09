@@ -155,12 +155,12 @@ public class YouAreEll {
     }
 
     private void setCookies() {
-        String c = null;
+        StringBuilder sb = new StringBuilder();
         if (!REplican.ARGS.IgnoreCookies) {
             try {
                 Queue<Cookie> cookies = REplican.COOKIES.getCookiesForUrl(new URL(url));
                 for (Cookie cookie: cookies) {
-                    c += cookie.getCookieString();
+                    sb.append(cookie.getCookieString());
                 }
             } catch (MalformedURLException MUE) {
                 logger.throwing(MUE);
@@ -168,8 +168,8 @@ public class YouAreEll {
             }
         }
 
-        if (c != null) {
-            urlConnection.setRequestProperty("Cookie", c);
+        if (sb.length() > 0) {
+            urlConnection.setRequestProperty("Cookie", sb.toString());
         }
     }
 
