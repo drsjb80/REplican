@@ -16,7 +16,7 @@ public class ReplicationContextTest {
 
     @BeforeEach
     void setUp() {
-        config = new REplicanConfigProvider(new REplicanArgs());
+        config = new REplicanConfigProvider(REplicanArgs.createDefault());
         cookies = new CookiesAdapter(new Cookies());
         queue = new URLQueue();
         fetcher = null; // Will be mocked in real tests

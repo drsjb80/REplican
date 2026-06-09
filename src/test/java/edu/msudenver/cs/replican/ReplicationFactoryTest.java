@@ -20,14 +20,14 @@ public class ReplicationFactoryTest {
 
     @Test
     void factoryCreatesReplicator() {
-        REplicanArgs args = new REplicanArgs();
+        REplicanArgs args = REplicanArgs.createDefault();
         Replicator replicator = factory.createReplicator(args);
         assertNotNull(replicator);
     }
 
     @Test
     void createdReplicatorIsUsable() {
-        REplicanArgs args = new REplicanArgs();
+        REplicanArgs args = REplicanArgs.createDefault();
         Replicator replicator = factory.createReplicator(args);
         replicator.addURL("http://example.com");
         assertEquals(1, replicator.getQueueSize());
@@ -35,7 +35,7 @@ public class ReplicationFactoryTest {
 
     @Test
     void factoryLoadsNetscapeCookies() {
-        REplicanArgs args = new REplicanArgs();
+        REplicanArgs args = REplicanArgs.createDefault();
         CookieManager cookies = new CookiesAdapter(new Cookies());
 
         // This should not throw even with null cookie files

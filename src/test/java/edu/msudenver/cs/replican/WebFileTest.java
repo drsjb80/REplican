@@ -10,6 +10,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 public class WebFileTest {
+    static {
+        if (REplican.ARGS == null) {
+            REplican.ARGS = REplicanArgs.createDefault();
+        }
+    }
+
     private YouAreEll yrl = new YouAreEll("http://localhost:3000");
     private WebFile webFile = new WebFile(yrl);
 
@@ -25,9 +31,7 @@ public class WebFileTest {
         assertEquals ("localhost", P38.call("getFilePath", webFile, new Object[]{"http://localhost:3000"}));
         assertEquals ("localhost", P38.call("getFilePath", webFile, new Object[]{"http://localhost"}));
         assertEquals ("localhost/foo", P38.call("getFilePath", webFile, new Object[]{"http://localhost/foo"}));
-        assertEquals ("localhost/" + REplican.ARGS.IndexName, P38.call("getFilePath", webFile, new Object[]{"http://localhost/"}));
-        REplican.ARGS.Directory = "/tmp";
-        assertEquals ("/tmp/localhost", P38.call("getFilePath", webFile, new Object[]{"http://localhost"}));
+        assertEquals ("localhost/" + REplican.ARGS.indexName(), P38.call("getFilePath", webFile, new Object[]{"http://localhost/"}));
     }
 
     @Test

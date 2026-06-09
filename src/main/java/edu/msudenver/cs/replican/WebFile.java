@@ -18,7 +18,10 @@ class WebFile {
 
     // Legacy constructor for backward compatibility
     WebFile(final YouAreEll yrl) {
-        this(yrl, new REplicanConfigProvider(REplican.ARGS), LogManager.getLogger(WebFile.class), new LocalFileSystem());
+        this(yrl,
+             REplican.ARGS != null ? new REplicanConfigProvider(REplican.ARGS) : new REplicanConfigProvider(REplicanArgs.createDefault()),
+             LogManager.getLogger(WebFile.class),
+             new LocalFileSystem());
     }
 
     // New constructor with full dependency injection
@@ -78,7 +81,7 @@ class WebFile {
         boolean printSavePath = false;
         try {
             // Try to get this from config if available
-            printSavePath = REplican.ARGS.PrintSavePath;
+            printSavePath = REplican.ARGS.printSavePath();
         } catch (Exception e) {
             // Ignore if not available
         }

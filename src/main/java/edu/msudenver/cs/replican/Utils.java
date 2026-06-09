@@ -236,6 +236,6 @@ public class Utils {
      * @return the interesting parts matching any configured pattern
      */
     static List<String> interesting(@NonNull String content) {
-        return interesting(REplican.ARGS.Interesting, content);
+        return interesting(REplican.ARGS.interesting(), content);
     }
 }

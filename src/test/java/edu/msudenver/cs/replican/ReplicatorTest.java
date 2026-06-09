@@ -21,7 +21,7 @@ public class ReplicatorTest {
     @BeforeEach
     void setUp() {
         queue = new URLQueue();
-        config = new REplicanConfigProvider(new REplicanArgs());
+        config = new REplicanConfigProvider(REplicanArgs.createDefault());
         cookies = new CookiesAdapter(new Cookies());
 
         URLFetcher mockFetcher = new URLFetcher() {

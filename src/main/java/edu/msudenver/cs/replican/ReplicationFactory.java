@@ -14,7 +14,7 @@ public class ReplicationFactory {
         CookieManager cookies = new CookiesAdapter(new Cookies());
         URLQueue queue = new URLQueue();
         URLFetcher fetcher = new HttpURLFetcher();
-        FileSaver saver = new WebFileSaver(args.Directory, args.IndexName);
+        FileSaver saver = new WebFileSaver(args.directory(), args.indexName());
 
         ReplicationContext context = new ReplicationContext(
             config,
@@ -34,8 +34,8 @@ public class ReplicationFactory {
         logger.traceEntry();
 
         CookieLoader netscapeLoader = new NetscapeCookieLoader();
-        if (args.NetscapeCookies != null) {
-            for (String file : args.NetscapeCookies) {
+        if (args.netscapeCookies() != null) {
+            for (String file : args.netscapeCookies()) {
                 try {
                     netscapeLoader.load(file, manager);
                 } catch (Exception e) {
@@ -45,8 +45,8 @@ public class ReplicationFactory {
         }
 
         CookieLoader plistLoader = new PlistCookieLoader();
-        if (args.PlistCookies != null) {
-            for (String file : args.PlistCookies) {
+        if (args.plistCookies() != null) {
+            for (String file : args.plistCookies()) {
                 try {
                     plistLoader.load(file, manager);
                 } catch (Exception e) {
@@ -56,8 +56,8 @@ public class ReplicationFactory {
         }
 
         CookieLoader firefoxLoader = new FirefoxCookieLoader();
-        if (args.FirefoxCookies != null) {
-            for (String file : args.FirefoxCookies) {
+        if (args.firefoxCookies() != null) {
+            for (String file : args.firefoxCookies()) {
                 try {
                     firefoxLoader.load(file, manager);
                 } catch (Exception e) {

@@ -11,256 +11,256 @@ public class REplicanConfigProvider implements ConfigProvider {
 
     @Override
     public String[] getPathAccept() {
-        return args.PathAccept;
+        return args.pathAccept();
     }
 
     @Override
     public String[] getPathReject() {
-        return args.PathReject;
+        return args.pathReject();
     }
 
     @Override
     public String[] getPathExamine() {
-        return args.PathExamine;
+        return args.pathExamine();
     }
 
     @Override
     public String[] getPathIgnore() {
-        return args.PathIgnore;
+        return args.pathIgnore();
     }
 
     @Override
     public String[] getPathSave() {
-        return args.PathSave;
+        return args.pathSave();
     }
 
     @Override
     public String[] getPathRefuse() {
-        return args.PathRefuse;
+        return args.pathRefuse();
     }
 
     @Override
     public String[] getMIMEAccept() {
-        return args.MIMEAccept;
+        return args.mimeAccept();
     }
 
     @Override
     public String[] getMIMEReject() {
-        return args.MIMEReject;
+        return args.mimeReject();
     }
 
     @Override
     public String[] getMIMEExamine() {
-        return args.MIMEExamine;
+        return args.mimeExamine();
     }
 
     @Override
     public String[] getMIMEIgnore() {
-        return args.MIMEIgnore;
+        return args.mimeIgnore();
     }
 
     @Override
     public String[] getMIMESave() {
-        return args.MIMESave;
+        return args.mimeSave();
     }
 
     @Override
     public String[] getMIMERefuse() {
-        return args.MIMERefuse;
+        return args.mimeRefuse();
     }
 
     @Override
     public String[] getInteresting() {
-        return args.Interesting;
+        return args.interesting();
     }
 
     @Override
     public String[] getURLFixUp() {
-        return args.URLFixUp;
+        return args.urlFixUp();
     }
 
     @Override
     public String[] getURLRewrite() {
-        return args.URLRewrite;
+        return args.urlRewrite();
     }
 
     @Override
     public String[] getFilenameRewrite() {
-        return args.FilenameRewrite;
+        return args.filenameRewrite();
     }
 
     @Override
     public boolean isOverwrite() {
-        return args.Overwrite;
+        return args.overwrite();
     }
 
     @Override
     public boolean isSetLastModified() {
-        return args.SetLastModified;
+        return args.setLastModified();
     }
 
     @Override
     public boolean isIfModifiedSince() {
-        return args.IfModifiedSince;
+        return args.ifModifiedSince();
     }
 
     @Override
     public boolean isPrintAccept() {
-        return args.PrintAccept;
+        return args.printAccept();
     }
 
     @Override
     public boolean isPrintReject() {
-        return args.PrintReject;
+        return args.printReject();
     }
 
     @Override
     public boolean isPrintExamine() {
-        return args.PrintExamine;
+        return args.printExamine();
     }
 
     @Override
     public boolean isPrintIgnore() {
-        return args.PrintIgnore;
+        return args.printIgnore();
     }
 
     @Override
     public boolean isPrintSave() {
-        return args.PrintSave;
+        return args.printSave();
     }
 
     @Override
     public boolean isPrintRefuse() {
-        return args.PrintRefuse;
+        return args.printRefuse();
     }
 
     @Override
     public boolean isPrintAdd() {
-        return args.PrintAdd;
+        return args.printAdd();
     }
 
     @Override
     public boolean isPrintAll() {
-        return args.PrintAll;
+        return args.printAll();
     }
 
     @Override
     public boolean isIgnoreCookies() {
-        return args.IgnoreCookies;
+        return args.ignoreCookies();
     }
 
     @Override
     public boolean isFollowRedirects() {
-        return args.FollowRedirects;
+        return args.followRedirects();
     }
 
     @Override
     public boolean isSaveProgress() {
-        return args.SaveProgress;
+        return args.saveProgress();
     }
 
     @Override
     public int getPauseBetween() {
-        return args.PauseBetween;
+        return args.pauseBetween();
     }
 
     @Override
     public int getPauseAfterSave() {
-        return args.PauseAfterSave;
+        return args.pauseAfterSave();
     }
 
     @Override
     public int getCheckpointEvery() {
-        return args.CheckpointEvery;
+        return args.checkpointEvery();
     }
 
     @Override
     public String getCheckpointFile() {
-        return args.CheckpointFile;
+        return args.checkpointFile();
     }
 
     @Override
     public String getIndexName() {
-        return args.IndexName;
+        return args.indexName();
     }
 
     @Override
     public String getDirectory() {
-        return args.Directory;
+        return args.directory();
     }
 
     @Override
     public String getUsername() {
-        return args.Username;
+        return args.username();
     }
 
     @Override
     public String getPassword() {
-        return args.Password;
+        return args.password();
     }
 
     @Override
     public String[] getAdditionalURLs() {
-        return args.additional;
+        return args.additional();
     }
 
     @Override
     public String[] getNetscapeCookieFiles() {
-        return args.NetscapeCookies;
+        return args.netscapeCookies();
     }
 
     @Override
     public String[] getPlistCookieFiles() {
-        return args.PlistCookies;
+        return args.plistCookies();
     }
 
     @Override
     public String[] getFirefoxCookieFiles() {
-        return args.FirefoxCookies;
+        return args.firefoxCookies();
     }
 
     @Override
     public int[] getStopOnStatusCodes() {
-        return args.StopOn;
+        return args.stopOn();
     }
 
     @Override
     public LogLevels getLogLevel() {
-        return args.LogLevel;
+        return args.logLevel();
     }
 
     @Override
     public String[] getHeader() {
-        return args.Header;
+        return args.header();
     }
 
     @Override
     public boolean isPrintRedirects() {
-        return args.PrintRedirects;
+        return args.printRedirects();
     }
 
     @Override
     public String getIfNewerThan() {
-        return args.IfNewerThan;
+        return args.ifNewerThan();
     }
 
     @Override
     public boolean isPrintSkip() {
-        return args.PrintSkip;
+        return args.printSkip();
     }
 
     @Override
     public boolean isPrintSavePath() {
-        return args.PrintSavePath;
+        return args.printSavePath();
     }
 
     @Override
     public boolean isOverwriteIfLarger() {
-        return args.OverwriteIfLarger;
+        return args.overwriteIfLarger();
     }
 
     @Override
     public boolean isOverwriteIfSmaller() {
-        return args.OverwriteIfSmaller;
+        return args.overwriteIfSmaller();
     }
 }

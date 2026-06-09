@@ -11,7 +11,7 @@ import java.net.Authenticator;
 
 class REplican {
     static final Logger LOGGER = LogManager.getLogger();
-    static final REplicanArgs ARGS = new REplicanArgs();
+    static REplicanArgs ARGS;
 
     static {
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
@@ -19,13 +19,13 @@ class REplican {
 
 
 
-    private static void setLogLevel() {
+    private static void setLogLevel(REplicanArgsMutable args) {
         Level level = Level.OFF;
 
-        if (ARGS.LogLevel == null) {
+        if (args.LogLevel == null) {
             level = Level.WARN;
         } else {
-            switch (ARGS.LogLevel) {
+            switch (args.LogLevel) {
                 case FATAL:
                     level = Level.FATAL;
                     break;
@@ -65,66 +65,66 @@ class REplican {
         return escapedURL;
     }
 
-    private static void setDefaults() {
-        if (ARGS.Interesting == null) {
+    private static void setDefaults(REplicanArgsMutable args) {
+        if (args.Interesting == null) {
             final String urlref = "\\s*=\\s*[\"']?([^\"'>]*)";
             final String href = "[hH][rR][eE][fF]";
             final String src = "[sS][rR][cC]";
 
-            ARGS.Interesting = new String[]{href + urlref, src + urlref};
+            args.Interesting = new String[]{href + urlref, src + urlref};
         }
 
-        if (ARGS.URLFixUp == null) {
-            ARGS.URLFixUp = new String[]{"\\s+", " ", "\\\\", "", "\'", "%27"};
+        if (args.URLFixUp == null) {
+            args.URLFixUp = new String[]{"\\s+", " ", "\\\\", "", "\'", "%27"};
         }
 
         // if they don't specify anything, look at only text.
-        if (ARGS.MIMEExamine == null
-                && ARGS.MIMEIgnore == null
-                && ARGS.PathExamine == null
-                && ARGS.PathIgnore == null) {
-            ARGS.MIMEExamine = new String[]{"text/.*"};
-            if (ARGS.PrintExamine) {
-                LOGGER.warn("--MIMEExamine=" + java.util.Arrays.toString(ARGS.MIMEExamine));
+        if (args.MIMEExamine == null
+                && args.MIMEIgnore == null
+                && args.PathExamine == null
+                && args.PathIgnore == null) {
+            args.MIMEExamine = new String[]{"text/.*"};
+            if (args.PrintExamine) {
+                LOGGER.warn("--MIMEExamine=" + java.util.Arrays.toString(args.MIMEExamine));
             }
         }
 
         // if they don't specify anything, save only what is specified on
         // the command line.
-        if (ARGS.MIMESave == null
-                && ARGS.MIMERefuse == null
-                && ARGS.PathSave == null
-                && ARGS.PathRefuse == null) {
-            if (ARGS.additional == null) {
+        if (args.MIMESave == null
+                && args.MIMERefuse == null
+                && args.PathSave == null
+                && args.PathRefuse == null) {
+            if (args.additional == null) {
                 LOGGER.error("No URLs specified");
                 System.exit(1);
             }
 
-            ARGS.PathSave = new String[ARGS.additional.length];
+            args.PathSave = new String[args.additional.length];
 
-            for (int i = 0; i < ARGS.additional.length; i++) {
-                ARGS.PathSave[i] = escapeURL(ARGS.additional[i]);
+            for (int i = 0; i < args.additional.length; i++) {
+                args.PathSave[i] = escapeURL(args.additional[i]);
             }
 
-            if (ARGS.PrintSave) {
-                LOGGER.warn("--PathSave=" + java.util.Arrays.toString(ARGS.PathSave));
+            if (args.PrintSave) {
+                LOGGER.warn("--PathSave=" + java.util.Arrays.toString(args.PathSave));
             }
         }
 
-        if (ARGS.PrintAll) {
-            ARGS.PrintAccept = ARGS.PrintReject =
-                    ARGS.PrintSave = ARGS.PrintRefuse =
-                            ARGS.PrintExamine = ARGS.PrintIgnore =
-                                    ARGS.PrintRedirects = true;
+        if (args.PrintAll) {
+            args.PrintAccept = args.PrintReject =
+                    args.PrintSave = args.PrintRefuse =
+                            args.PrintExamine = args.PrintIgnore =
+                                    args.PrintRedirects = true;
         }
 
         /*
          ** make sure we accept everything we examine, save, and the initial
          ** URLs
          */
-        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.PathExamine);
-        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.PathSave);
-        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.additional);
+        args.PathAccept = Utils.combineArrays(args.PathAccept, args.PathExamine);
+        args.PathAccept = Utils.combineArrays(args.PathAccept, args.PathSave);
+        args.PathAccept = Utils.combineArrays(args.PathAccept, args.additional);
     }
 
 
@@ -137,7 +137,9 @@ class REplican {
             {"MIMEDoNotSave", "MIMERefuse"},
             {"MIMEDoNotExamine", "MIMEIgnore"}
         };
-        JCLO jclo = new JCLO(ARGS, aliases);
+
+        REplicanArgsMutable argsMutable = new REplicanArgsMutable();
+        JCLO jclo = new JCLO(argsMutable, aliases);
 
         if (arguments.length == 0) {
             System.out.println("Arguments:\n" + jclo.usage() + "URLs...");
@@ -152,32 +154,34 @@ class REplican {
             System.exit(1);
         }
 
-        if (ARGS.Version) {
+        if (argsMutable.Version) {
             System.out.println(Version.getVersion());
             System.exit(0);
         }
 
-        if (ARGS.Help) {
+        if (argsMutable.Help) {
             System.out.println("Arguments:\n" + jclo.usage() + "URLs...");
             System.exit(0);
         }
 
-        setLogLevel();
-        setDefaults();
+        setLogLevel(argsMutable);
+        setDefaults(argsMutable);
+        ARGS = REplicanArgs.fromMutable(argsMutable);
+
         setupAuthenticator();
         replicate();
     }
 
     private static void setupAuthenticator() {
-        String username = ARGS.Username;
-        String password = ARGS.Password;
+        String username = ARGS.username();
+        String password = ARGS.password();
         if (username != null || password != null) {
             Authenticator.setDefault(new MyAuthenticator(username, password));
         }
     }
 
     private static void replicate() {
-        if (ARGS.additional == null) {
+        if (ARGS.additional() == null) {
             LOGGER.error("No URLs specified");
             System.exit(1);
         }
@@ -189,7 +193,7 @@ class REplican {
         factory.loadCookies(ARGS, cookies);
 
         try {
-            for (String url : ARGS.additional) {
+            for (String url : ARGS.additional()) {
                 replicator.addURL(url);
             }
 
