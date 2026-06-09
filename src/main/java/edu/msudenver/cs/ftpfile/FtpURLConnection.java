@@ -84,7 +84,6 @@ public class FtpURLConnection extends URLConnection {
         connected = false;
         doInput = true;
         doOutput = false;
-        allowUserInteraction = false;
 
         setUserPass(url);
     }

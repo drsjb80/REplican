@@ -1,0 +1,100 @@
+[1mdiff --git a/.idea/compiler.xml b/.idea/compiler.xml[m
+[1mindex 266bdc0..5df3d12 100644[m
+[1m--- a/.idea/compiler.xml[m
+[1m+++ b/.idea/compiler.xml[m
+[36m@@ -13,4 +13,7 @@[m
+       <module name="REplican" target="1.8" />[m
+     </bytecodeTargetLevel>[m
+   </component>[m
+[32m+[m[32m  <component name="JavacSettings">[m
+[32m+[m[32m    <option name="ADDITIONAL_OPTIONS_STRING" value="-Xlint:unchecked" />[m
+[32m+[m[32m  </component>[m
+ </project>[m
+\ No newline at end of file[m
+[1mdiff --git a/README.md b/README.md[m
+[1mindex 21ca5c8..90489db 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -29,6 +29,7 @@[m [mArgument|Explanation[m
+ --MIMEIgnore=*RE*   | a *RE* of MIME types to ignore for other links.[m
+ --MIMESave=*RE*     | a *RE* of MIME types to save.[m
+ --MIMERefuse=*RE*   | a *RE* of MIME types not to save.[m
+[32m+[m[32m--Threads=NUM       | The number of threads you want to start REplican with.[m
+ --LogLevel=LEVEL    | Possible values for LEVEL are: SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL, OFF. Default: INFO.[m
+ --Username=NAME | A username to provide if requested by server.[m
+ --Password=PASSWORD | A password to provide if requested by server.[m
+[1mdiff --git a/REplican.iml b/REplican.iml[m
+[1mindex 55064b5..dacfed3 100644[m
+[1m--- a/REplican.iml[m
+[1m+++ b/REplican.iml[m
+[36m@@ -13,11 +13,16 @@[m
+     <orderEntry type="inheritedJdk" />[m
+     <orderEntry type="sourceFolder" forTests="false" />[m
+     <orderEntry type="library" name="Maven: edu.msudenver.cs:JCLO:1.3.6" level="project" />[m
+[32m+[m[32m    <orderEntry type="library" name="Maven: org.javatuples:javatuples:1.2" level="project" />[m
+[32m+[m[32m    <orderEntry type="library" name="Maven: edu.msudenver.cs:JCLO:1.3.6" level="project" />[m
+[32m+[m[32m    <orderEntry type="library" name="Maven: org.javatuples:javatuples:1.2" level="project" />[m
+[32m+[m[32m    <orderEntry type="library" name="Maven: edu.msudenver.cs:JCLO:1.3.6" level="project" />[m
+     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.8.1" level="project" />[m
+     <orderEntry type="library" name="Maven: org.jsoup:jsoup:1.9.1" level="project" />[m
+     <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.16.16" level="project" />[m
+     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.8.1" level="project" />[m
+     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.8.1" level="project" />[m
+     <orderEntry type="library" name="Maven: org.xerial:sqlite-jdbc:3.20.0" level="project" />[m
+[32m+[m[32m    <orderEntry type="library" name="Maven: org.javatuples:javatuples:1.2" level="project" />[m
+   </component>[m
+ </module>[m
+\ No newline at end of file[m
+[1mdiff --git a/pom.xml b/pom.xml[m
+[1mindex f961a3c..8b25a4a 100644[m
+[1m--- a/pom.xml[m
+[1m+++ b/pom.xml[m
+[36m@@ -38,6 +38,13 @@[m
+                     </execution>[m
+                 </executions>[m
+             </plugin>[m
+[32m+[m[32m            <plugin>[m
+[32m+[m[32m                <artifactId>maven-surefire-plugin</artifactId>[m
+[32m+[m[32m                <version>2.8.1</version>[m
+[32m+[m[32m                <configuration>[m
+[32m+[m[32m                    <redirectTestOutputToFile>true</redirectTestOutputToFile>[m
+[32m+[m[32m                </configuration>[m
+[32m+[m[32m            </plugin>[m
+             <plugin>[m
+                 <groupId>org.apache.maven.plugins</groupId>[m
+                 <artifactId>maven-compiler-plugin</artifactId>[m
+[36m@@ -47,7 +54,6 @@[m
+                     <target>1.8</target>[m
+                 </configuration>[m
+             </plugin>[m
+[31m-<!--[m
+             <plugin>[m
+                 <groupId>org.jacoco</groupId>[m
+                 <artifactId>jacoco-maven-plugin</artifactId>[m
+[36m@@ -67,7 +73,6 @@[m
+                     </execution>[m
+                 </executions>[m
+             </plugin>[m
+[31m--->[m
+             <plugin>[m
+                 <groupId>com.github.spotbugs</groupId>[m
+                 <artifactId>spotbugs-maven-plugin</artifactId>[m
+[36m@@ -97,7 +102,7 @@[m
+         <dependency>[m
+             <groupId>org.projectlombok</groupId>[m
+             <artifactId>lombok</artifactId>[m
+[31m-            <version>1.18.8</version>[m
+[32m+[m[32m            <version>1.16.16</version>[m
+         </dependency>[m
+         <dependency>[m
+             <groupId>org.apache.logging.log4j</groupId>[m
+[36m@@ -114,5 +119,12 @@[m
+             <artifactId>sqlite-jdbc</artifactId>[m
+             <version>3.20.0</version>[m
+         </dependency>[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>org.javatuples</groupId>[m
+[32m+[m[32m            <artifactId>javatuples</artifactId>[m
+[32m+[m[32m            <version>1.2</version>[m
+[32m+[m[32m            <scope>compile</scope>[m
+[32m+[m[32m        </dependency>[m

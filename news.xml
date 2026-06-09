@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:og="http://ogp.me/ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:schema="http://schema.org/" xmlns:sioc="http://rdfs.org/sioc/ns#" xmlns:sioct="http://rdfs.org/sioc/types#" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:xsd="http://www.w3.org/2001/XMLSchema#" version="2.0" xml:base="https://www.cisa.gov/">
+  <channel>
+    <title>CISA News</title>
+    <link>https://www.cisa.gov/</link>
+    <description/>
+    <language>en</language>
+    
+    <item>
+  <title><a href="/news-events/news/cisa-and-women-cybersecurity-strengthen-partnership-bridge-gender-gap-cyber-and-tech" hreflang="en">​​​​​​​CISA and Women in CyberSecurity Strengthen Partnership to Bridge Gender Gap in Cyber and Tech</a></title>
+  <link>https://www.cisa.gov/news-events/news/cisa-and-women-cybersecurity-strengthen-partnership-bridge-gender-gap-cyber-and-tech</link>
+  <description>Today, in recognition of International Women’s Day, CISA is pleased to announce the signing of a Memorandum of Understanding (MOU) with Women in CyberSecurity (WiCyS) in order to work even closer together to bridge the gender gap in cybersecurity.  </description>
+  <pubDate><time datetime="2023-03-08T12:00:00Z">Wed, 08 Mar 23 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/17542</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/readout-director-easterly-visits-carnegie-mellon-university-calls-radical-change-technology-product" hreflang="en">Readout: Director Easterly Visits Carnegie Mellon University, Calls for “Radical Change” for Technology Product Safety in Major Address </a></title>
+  <link>https://www.cisa.gov/news-events/news/readout-director-easterly-visits-carnegie-mellon-university-calls-radical-change-technology-product</link>
+  <description/>
+  <pubDate><time datetime="2023-02-27T12:00:00Z">Mon, 27 Feb 23 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/17480</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/cisa-releases-2022-year-review" hreflang="en">CISA Releases 2022 Year in Review</a></title>
+  <link>https://www.cisa.gov/news-events/news/cisa-releases-2022-year-review</link>
+  <description>CISA released its 2022 Year in Review, highlighting the extensive work of CISA and its partners over the past year to protect the nation’s critical infrastructure.</description>
+  <pubDate><time datetime="2023-01-31T12:00:00Z">Tue, 31 Jan 23 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/17123</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/cisa-releases-report-k-12-schools-help-address-evolving-cybersecurity-threats" hreflang="en">CISA Releases Report for K-12 Schools to Help Address Evolving Cybersecurity Threats</a></title>
+  <link>https://www.cisa.gov/news-events/news/cisa-releases-report-k-12-schools-help-address-evolving-cybersecurity-threats</link>
+  <description>Report and Corresponding Toolkit Provides Simple and Prioritized Recommendations for the K-12 Community.</description>
+  <pubDate><time datetime="2023-01-24T12:00:00Z">Tue, 24 Jan 23 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/17170</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/readout-second-joint-ransomware-task-force-meeting" hreflang="en">Readout of Second Joint Ransomware Task Force Meeting</a></title>
+  <link>https://www.cisa.gov/news-events/news/readout-second-joint-ransomware-task-force-meeting</link>
+  <description>The Joint Ransomware Task Force (JRTF) reviewed efforts and actions aimed at reducing the prevalence and impact of ransomware incidents. JRTF members discussed activities undertaken by Working Groups.</description>
+  <pubDate><time datetime="2022-12-14T12:00:00Z">Wed, 14 Dec 22 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/16185</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/dhs-announces-new-cybersecurity-performance-goals-critical-infrastructure" hreflang="en">DHS Announces New Cybersecurity Performance Goals for Critical Infrastructure</a></title>
+  <link>https://www.cisa.gov/news-events/news/dhs-announces-new-cybersecurity-performance-goals-critical-infrastructure</link>
+  <description>CISA developed cross-sector recommendations to help organizations prioritize cybersecurity investments.</description>
+  <pubDate><time datetime="2022-12-08T12:00:00Z">Thu, 08 Dec 22 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/16173</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/readout-cisas-fifth-cybersecurity-advisory-committee-meeting" hreflang="en">Readout from CISA's Fifth Cybersecurity Advisory Committee Meeting</a></title>
+  <link>https://www.cisa.gov/news-events/news/readout-cisas-fifth-cybersecurity-advisory-committee-meeting</link>
+  <description>At the 5th Cybersecurity Advisory Committee (CSAC), Director Easterly led a discussion with committee members on the CSAC’s strategic focus for 2023.</description>
+  <pubDate><time datetime="2022-12-06T12:00:00Z">Tue, 06 Dec 22 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/15895</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/stopransomware-cuba-ransomware" hreflang="en">#StopRansomware: Cuba Ransomware </a></title>
+  <link>https://www.cisa.gov/news-events/news/stopransomware-cuba-ransomware</link>
+  <description/>
+  <pubDate><time datetime="2022-12-01T12:00:00Z">Thu, 01 Dec 22 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/16411</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/cisa-reminds-online-shoppers-stay-vigilant-cyber-threats-holiday-season" hreflang="en">CISA Reminds Online Shoppers to Stay Vigilant to Cyber Threats This Holiday Season</a></title>
+  <link>https://www.cisa.gov/news-events/news/cisa-reminds-online-shoppers-stay-vigilant-cyber-threats-holiday-season</link>
+  <description>By checking your devices, shopping from trusted sources, and using safe purchasing methods, shoppers can stay safe online</description>
+  <pubDate><time datetime="2022-11-23T12:00:00Z">Wed, 23 Nov 22 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/15831</guid>
+    </item>
+<item>
+  <title><a href="/news-events/news/cisa-updates-infrastructure-resilience-planning-framework" hreflang="en">CISA Updates the Infrastructure Resilience Planning Framework</a></title>
+  <link>https://www.cisa.gov/news-events/news/cisa-updates-infrastructure-resilience-planning-framework</link>
+  <description>The Infrastructure Resilience Planning Framework helps SLTT partners to incorporate critical infrastructure resilience considerations into planning activities.</description>
+  <pubDate><time datetime="2022-11-22T12:00:00Z">Tue, 22 Nov 22 12:00:00 +0000</time>
+</pubDate>
+    <dc:creator>CISA</dc:creator>
+    <guid isPermaLink="false">/node/15893</guid>
+    </item>
+
+  </channel>
+</rss>

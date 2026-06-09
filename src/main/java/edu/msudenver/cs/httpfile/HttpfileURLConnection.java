@@ -27,7 +27,7 @@ import java.text.ParseException;
  * @author Steve Beaty
  */
 public class HttpfileURLConnection extends HttpURLConnection {
-    private final Map<String, List<String>> headerFields = new Hashtable<>();
+    private final Map<String, List<String>> headerFields = new HashMap<>();
     private static final Logger logger = Logger.getLogger("global");
     private InputStream is;
     private int code = HTTP_OK;
@@ -347,7 +347,7 @@ public class HttpfileURLConnection extends HttpURLConnection {
 
                 List<String> v = headerFields.get(key);
                 if (v == null)
-                    v = new Vector<>();
+                    v = new ArrayList<>();
 
                 String a[] = split[1].split(";");
 

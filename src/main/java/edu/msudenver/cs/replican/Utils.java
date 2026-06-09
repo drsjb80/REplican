@@ -104,7 +104,7 @@ public class Utils {
     }
 
     static String hostToDomain(@NonNull final String host) {
-        return host.replaceFirst("[^.]+.", "");
+        return host.replaceFirst("[^.]+\\.", "");
     }
 
     //combining two String arrays
@@ -178,10 +178,11 @@ public class Utils {
                 return new String(s.substring(matcher.start(), matcher.end()));
             }
 
-            ret = "";
+            StringBuilder sb = new StringBuilder();
             for (int i = 1; i <= matcher.groupCount(); i++) {
-                ret += (matcher.group(i));
+                sb.append(matcher.group(i));
             }
+            ret = sb.toString();
         }
 
         LOGGER.traceExit(ret);

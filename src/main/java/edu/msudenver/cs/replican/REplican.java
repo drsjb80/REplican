@@ -299,15 +299,16 @@ class REplican {
         long written = 0;
         long read = 0;
         long count = 1;
-        int c;
-        while ((c = is.read()) != -1) {
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = is.read(buf)) != -1) {
             if (save) {
-                bos.write((char) c);
-                written++;
+                bos.write(buf, 0, n);
+                written += n;
 
                 count = pacifier(ten_percent, percent, spin, written, count);
             }
-            read++;
+            read += n;
         }
 
         finalizeReadAndWrite(percent, spin, startTime, read);
@@ -332,7 +333,7 @@ class REplican {
     private static long startReadAndWrite(boolean percent, boolean spin) {
         long startTime = 0L;
         if (spin || percent) {
-            startTime = new java.util.Date().getTime();
+            startTime = System.currentTimeMillis();
         }
 
         if (percent) System.out.print("0..");
@@ -349,7 +350,7 @@ class REplican {
                 System.out.println();
             }
 
-            long stopTime = new java.util.Date().getTime();
+            long stopTime = System.currentTimeMillis();
             System.out.println(Utils.speed(startTime, stopTime, read));
         }
     }

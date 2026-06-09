@@ -78,7 +78,6 @@ public class Cookies {
 
     void addCookie(@NonNull final Cookie cookie) {
         logger.traceEntry(cookie.toString());
-        System.out.println(cookie.toString());
 
         Pair<String, String> pair = new Pair<>(cookie.getDomain(), cookie.getPath());
         if (cookies.containsKey(pair)) {

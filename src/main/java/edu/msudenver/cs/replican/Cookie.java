@@ -166,8 +166,6 @@ class Cookie {
     }
 
     private void setExpiry (@NonNull final String value) {
-        Date date = null;
-
         // try it both ways; if neither work, give up. go with the newest on we see.
         try {
             maxAge = new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").parse(value);
