@@ -32,7 +32,7 @@ mvn clean package
 
 The project enforces:
 - **Checkstyle** 10.13 — code style consistency
-- **JUnit 4** — 42 tests covering core functionality
+- **JUnit 5** — 42 tests covering core functionality
 - **Log4j 2.20** — modern logging with security patches
 
 All changes must pass:

@@ -1,11 +1,11 @@
 package edu.msudenver.cs.replican;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CookieTest {
     // if there aren't a path and domain in the cookie, use the URL host and path
@@ -31,11 +31,10 @@ public class CookieTest {
         assertEquals("/", fifthTestCookie.getPath());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNull() {
-        new Cookie(null, null, null);
-        new Cookie("foo.bar", null, null);
-
+        assertThrows(NullPointerException.class, () -> new Cookie(null, null, null));
+        assertThrows(NullPointerException.class, () -> new Cookie("foo.bar", null, null));
     }
 
     @Test
@@ -59,8 +58,8 @@ public class CookieTest {
         long now = System.currentTimeMillis();
         long expectedMin = now + 3_500_000L; // 3500 seconds in millis, accounting for small delays
         long expectedMax = now + 3_700_000L; // 3700 seconds in millis, allowing some slop
-        assertTrue("maxTime should be roughly 1 hour in the future",
-            maxTime >= expectedMin && maxTime <= expectedMax);
+        assertTrue(maxTime >= expectedMin && maxTime <= expectedMax,
+            "maxTime should be roughly 1 hour in the future");
     }
 
     @Test
@@ -108,11 +107,9 @@ public class CookieTest {
         assertEquals(true, thirdTestCookie.isHttponly());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void badDomain() {
-        new Cookie("foo.example.com", "/","lang=en-US; Path=/; Domain=bad.com");
-        new Cookie("baz", "foo", "/bar", 0, true, "key", "value");
-        new Cookie("baz", "foo.bar", "/bar", 0, true, "domain", "fu.bar");
-        new Cookie("foo.bar", "/bar", "domain=fu.bar");
+        assertThrows(IllegalArgumentException.class,
+            () -> new Cookie("foo.example.com", "/","lang=en-US; Path=/; Domain=bad.com"));
     }
 }

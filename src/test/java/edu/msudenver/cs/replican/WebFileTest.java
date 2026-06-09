@@ -1,11 +1,11 @@
 package edu.msudenver.cs.replican;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.MalformedURLException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import static org.mockito.Mockito.mock;
 
@@ -30,9 +30,10 @@ public class WebFileTest {
         assertEquals ("/tmp/localhost", P38.call("getFilePath", webFile, new Object[]{"http://localhost"}));
     }
 
-    @Test(expected = MalformedURLException.class)
+    @Test
     public void getFilePathBadURL() throws Throwable {
-        assertEquals ("localhost", P38.call("getFilePath", webFile, new Object[]{"bad://localhost:3000"}));
+        assertThrows(MalformedURLException.class,
+            () -> P38.call("getFilePath", webFile, new Object[]{"bad://localhost:3000"}));
     }
 
     @Test

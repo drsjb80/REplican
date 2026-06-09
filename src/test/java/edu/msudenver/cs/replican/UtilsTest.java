@@ -1,8 +1,8 @@
 package edu.msudenver.cs.replican;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilsTest {
     private final Utils utils = new Utils();
@@ -60,7 +60,7 @@ public class UtilsTest {
         long before = System.currentTimeMillis();
         Utils.snooze(50);
         long after = System.currentTimeMillis();
-        assertTrue("Snooze should take at least 40ms", after - before >= 40);
+        assertTrue(after - before >= 40, "Snooze should take at least 40ms");
     }
 
     @Test
