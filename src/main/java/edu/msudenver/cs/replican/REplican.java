@@ -127,10 +127,6 @@ class REplican {
         }
 
         if (ARGS.URLFixUp == null) {
-            // so, i don't remember why i collapsed multiple spaces and
-            // removed \'s. must have been important and i should have
-            // documented. 's confuse URLs...
-            // args.URLFixUp = new String[]{"\\s+", " ", "\\\\", ""};
             ARGS.URLFixUp = new String[]{"\\s+", " ", "\\\\", "", "\'", "%27"};
         }
 
@@ -357,7 +353,6 @@ class REplican {
 
     private static void fetchOne(final boolean examine, boolean save, @NonNull final YouAreEll yrl, @NonNull final InputStream is)
             throws MalformedURLException, FileNotFoundException {
-        // System.err.println(is);
         LOGGER.traceEntry(String.valueOf(examine));
         LOGGER.traceEntry(String.valueOf(save));
         LOGGER.traceEntry(yrl.toString());
@@ -546,10 +541,6 @@ class REplican {
             System.exit(1);
         }
 
-        /*
-         ** add the specified URLs to the list to be fetched.
-         */
-        // String[] t = new String[add.length];
         List<String> t = new ArrayList<>();
         for (String s : add) {
             t.add("<a href=\"" + s + "\">");
@@ -560,19 +551,6 @@ class REplican {
          */
         addToURLs(null, t);
         fetchAll();
-
-        /*
-        ** shall we save the cookies to a file?
-
-        String savecookies = args.SaveCookies;
-        if (savecookies != null) {
-            try {
-                NetscapeCookies.loadCookies(savecookies);
-            } catch (IOException IOE) {
-                logger.throwing(IOE);
-            }
-        }
-        */
     }
 
     public static void main(String[] arguments) {
