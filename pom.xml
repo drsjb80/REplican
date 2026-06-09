@@ -9,7 +9,7 @@
     <name>REplican</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <project.java.version>8</project.java.version>
+        <project.java.version>17</project.java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -56,8 +56,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -82,16 +82,17 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.2.3</version>
-                <!-- Binding disabled: upgrade Java target to 11+ to enable SpotBugs analysis -->
+                <version>4.7.3.6</version>
+                <!-- TODO: SpotBugs ASM compatibility issue with Java 17 bytecode
+                     Consider: eclipse-collections-spotbugs-rules or use individual analysis tools -->
             </plugin>
             <!-- Maven Checkstyle Plugin
-                 Note: checkstyle.xml needs updating for modern Checkstyle versions.
-                 Disabled pending Java upgrade to 11+ and checkstyle.xml refactor.
+                 TODO: Update checkstyle.xml for modern Checkstyle 10.x
+                 Current config has incompatible property names (e.g., 'scope' in JavadocMethod)
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.3.1</version>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
                     <failOnViolation>false</failOnViolation>
@@ -123,6 +124,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.30</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
