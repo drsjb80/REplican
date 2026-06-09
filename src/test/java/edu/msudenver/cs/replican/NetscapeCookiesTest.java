@@ -1,14 +1,21 @@
 package edu.msudenver.cs.replican;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.lang.reflect.Method;
 
 public class NetscapeCookiesTest {
+    private Cookies cookies;
+
+    @BeforeEach
+    void setUp() {
+        cookies = new Cookies();
+    }
 
     private void callDoNetscapeLine(String line) throws Throwable {
-        Method m = NetscapeCookies.class.getDeclaredMethod("doNetscapeLine", String.class);
+        Method m = NetscapeCookies.class.getDeclaredMethod("doNetscapeLine", String.class, Cookies.class);
         m.setAccessible(true);
-        m.invoke(null, line);
+        m.invoke(null, line, cookies);
     }
 
     @Test

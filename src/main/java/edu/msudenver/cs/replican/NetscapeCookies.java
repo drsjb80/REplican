@@ -1,5 +1,7 @@
 package edu.msudenver.cs.replican;
 
+import lombok.NonNull;
+
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,7 +22,7 @@ public class NetscapeCookies {
 
     separated by TABS
     */
-    static private void doNetscapeLine(final String line) {
+    static private void doNetscapeLine(@NonNull final String line, @NonNull Cookies cookies) {
         if (line.charAt(0) == '#') {
             return;
         }
@@ -37,19 +39,19 @@ public class NetscapeCookies {
                     new SimpleDateFormat("EEE, dd-MMM-yyyy hh:mm:ss zzz").
                             format(date);
 
-            REplican.COOKIES.addCookie(s[0], s[2], s[5] + "=" + s[6]
+            cookies.addCookie(s[0], s[2], s[5] + "=" + s[6]
                     + "; Expires=" + expires);
         } else {
-            REplican.COOKIES.addCookie(s[0], s[2], s[5]);
+            cookies.addCookie(s[0], s[2], s[5]);
         }
     }
 
-    static void loadCookies(final String file) throws IOException {
+    static void loadCookies(@NonNull final String file, @NonNull Cookies cookies) throws IOException {
         try (BufferedReader in = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = in.readLine()) != null) {
                 if (line.length() > 0) {
-                    doNetscapeLine(line);
+                    doNetscapeLine(line, cookies);
                 }
             }
         }

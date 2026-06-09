@@ -1,5 +1,6 @@
 package edu.msudenver.cs.replican;
 
+import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -8,9 +9,7 @@ import java.sql.*;
 public class FirefoxCookies {
     private final Logger logger = LogManager.getLogger(getClass());
 
-    static void loadCookies(final String file) {
-        // /Users/beatys/Library/Application Support/Firefox/Profiles/rnwwcxjq.default/cookies.sqlite
-
+    static void loadCookies(final String file, @NonNull Cookies cookies) {
         Connection conn = null;
         try {
             conn = DriverManager.getConnection("jdbc:sqlite:" + file);
@@ -32,7 +31,7 @@ public class FirefoxCookies {
                 final boolean isSecure = rs.getInt("isSecure") != 0;
 
                 final Cookie cookie = new Cookie(host, domain, path, expiry, isSecure, name, value);
-                REplican.COOKIES.addCookie(cookie);
+                cookies.addCookie(cookie);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());

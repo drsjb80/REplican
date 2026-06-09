@@ -19,10 +19,16 @@ public class YouAreEll {
     private URLConnection urlConnection;
     private String ContentType;
     private final String url;
-    private final Cookies cookies = REplican.COOKIES;
+    private Cookies cookies;
 
     public YouAreEll(final String url) {
         this.url = url;
+        this.cookies = null;
+    }
+
+    public YouAreEll(final String url, Cookies cookies) {
+        this.url = url;
+        this.cookies = cookies;
     }
 
     public String getContentType() {
@@ -50,35 +56,14 @@ public class YouAreEll {
     }
 
     private void dealWithRedirects() {
-        /*
-        HTTP/1.1 301 Moved Permanently
-        Date: Wed, 16 May 2007 19:18:57 GMT
-        Server: Apache/2.0.53 (Fedora)
-        Location: http://emess.mscd.edu/~beaty/Pictures/
-        Content-Length: 326
-        Connection: close
-        Content-Type: text/html; charset=iso-8859-1
-        */
-
         if (!REplican.ARGS.FollowRedirects) {
             return;
         }
 
         String redirected = urlConnection.getHeaderField("Location");
-        if (REplican.ARGS.PrintRedirects)
+        if (REplican.ARGS.PrintRedirects && redirected != null) {
             logger.info("Redirected to: " + redirected);
-
-        URL newURL;
-
-        try {
-            newURL = new URL(new URL(url), redirected);
-        } catch (MalformedURLException e) {
-            logger.throwing(e);
-            return;
         }
-
-        REplican.urls.put(newURL.toString(), Boolean.FALSE);
-        REplican.URLcount.incrementAndGet();
     }
 
     private void dealWithStopOns(final int code) {
@@ -155,17 +140,19 @@ public class YouAreEll {
     }
 
     private void setCookies() {
+        if (cookies == null || REplican.ARGS.IgnoreCookies) {
+            return;
+        }
+
         StringBuilder sb = new StringBuilder();
-        if (!REplican.ARGS.IgnoreCookies) {
-            try {
-                Queue<Cookie> cookies = REplican.COOKIES.getCookiesForUrl(new URL(url));
-                for (Cookie cookie: cookies) {
-                    sb.append(cookie.getCookieString());
-                }
-            } catch (MalformedURLException MUE) {
-                logger.throwing(MUE);
-                return;
+        try {
+            Queue<Cookie> cookieQueue = cookies.getCookiesForUrl(new URL(url));
+            for (Cookie cookie : cookieQueue) {
+                sb.append(cookie.getCookieString());
             }
+        } catch (MalformedURLException e) {
+            logger.throwing(e);
+            return;
         }
 
         if (sb.length() > 0) {

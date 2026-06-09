@@ -12,6 +12,10 @@ public class CookiesAdapter implements CookieManager {
         this.cookies = cookies;
     }
 
+    public Cookies getCookies() {
+        return cookies;
+    }
+
     @Override
     public Queue<Cookie> getCookiesForUrl(URL url) {
         return cookies.getCookiesForUrl(url);
