@@ -19,8 +19,7 @@ class MyAuthenticator extends Authenticator {
     protected PasswordAuthentication getPasswordAuthentication() {
         char[] p = new char[password.length()];
 
-        logger.info(username);
-        logger.info(password);
+        logger.debug(username);
 
         password.getChars(0, password.length(), p, 0);
 
