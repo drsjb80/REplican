@@ -1,9 +1,0 @@
-#! /usr/bin/env bash
-
-rm -rf sites.msudenver.edu
-
-java -jar ~/src/REplican/target/REplican-1.5.2-jar-with-dependencies.jar \
---PauseAfterSave=6000 \
---PathSave='http://sites.msudenver.edu/beatys/wp-content/uploads/sites/461/.*' \
---LogLevel=ALL \
-https://sites.msudenver.edu/beatys/
