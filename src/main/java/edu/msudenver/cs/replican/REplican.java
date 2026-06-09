@@ -591,7 +591,32 @@ class REplican {
 
         if (ARGS.CheckpointEvery != 0) { readCheckpointFile(); }
 
-        doit();
+        runNewArchitecture();
+    }
+
+    private static void runNewArchitecture() {
+        LOGGER.info("Starting replication with new architecture");
+
+        ReplicationFactory factory = new ReplicationFactory();
+        Replicator replicator = factory.createReplicator(ARGS);
+
+        try {
+            if (ARGS.additional == null) {
+                LOGGER.warn("No URLs specified, exiting");
+                System.exit(1);
+            }
+
+            for (String url : ARGS.additional) {
+                replicator.addURL(url);
+            }
+
+            replicator.fetchAll();
+
+            LOGGER.info("Replication complete: " + replicator.getFetchedCount() + " URLs fetched");
+        } catch (Exception e) {
+            LOGGER.error("Replication failed", e);
+            System.exit(1);
+        }
     }
 
 }
