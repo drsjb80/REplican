@@ -206,24 +206,36 @@ public class Utils {
     }
 
     /**
-     * look for "interesting" parts of a HTML string.  interesting thus far
-     * means href's, src's, img's etc.
+     * look for "interesting" parts of a HTML string using provided patterns.
+     * interesting thus far means href's, src's, img's etc.
      *
-     * @param match the string to examine
-     * @return the interesting part if any, and null if none
+     * @param patterns the regex patterns to match against
+     * @param content the string to examine
+     * @return the interesting parts matching any pattern, or empty list if none
      */
-    static List<String> interesting(@NonNull String match) {
-        LOGGER.traceEntry(match);
+    static List<String> interesting(@NonNull String[] patterns, @NonNull String content) {
+        LOGGER.traceEntry(content);
 
         List<String> ret = new ArrayList<>();
 
-        for (String string : REplican.ARGS.Interesting) {
-            String m = match(string, match);
+        for (String pattern : patterns) {
+            String m = match(pattern, content);
             if (m != null) {
                 ret.add(m);
             }
         }
         LOGGER.traceExit(ret);
-        return (ret);
+        return ret;
+    }
+
+    /**
+     * look for "interesting" parts of a HTML string using REplican.ARGS patterns.
+     * Convenience method that wraps interesting(String[], String).
+     *
+     * @param content the string to examine
+     * @return the interesting parts matching any configured pattern
+     */
+    static List<String> interesting(@NonNull String content) {
+        return interesting(REplican.ARGS.Interesting, content);
     }
 }

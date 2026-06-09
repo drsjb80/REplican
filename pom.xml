@@ -58,6 +58,11 @@
                 <configuration>
                     <source>17</source>
                     <target>17</target>
+                    <!-- Lombok annotation processing note:
+                         Lombok 1.18.30 has Java 17 compatibility issues with javac.
+                         Explicit getters/setters are preferred for reliability.
+                         When Lombok 1.18.32+ becomes available with better Java 17 support,
+                         add annotationProcessorPaths here: -->
                 </configuration>
             </plugin>
             <plugin>
@@ -79,16 +84,16 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- SpotBugs Plugin
+                 Note: SpotBugs 4.7.x has Java 17 bytecode compatibility issues.
+                 Use Java code analysis via Checkstyle and IDE inspections instead.
+                 Future: Monitor SpotBugs 5.0+ for Java 17 support.
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>4.7.3.6</version>
-                <!-- TODO: SpotBugs ASM compatibility issue with Java 17 bytecode
-                     Consider: eclipse-collections-spotbugs-rules or use individual analysis tools -->
             </plugin>
-            <!-- Maven Checkstyle Plugin
-                 TODO: Update checkstyle.xml for modern Checkstyle 10.x
-                 Current config has incompatible property names (e.g., 'scope' in JavadocMethod)
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -96,9 +101,25 @@
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
                     <failOnViolation>false</failOnViolation>
+                    <consoleOutput>true</consoleOutput>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>10.13.0</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>checkstyle-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
-            -->
         </plugins>
     </build>
 

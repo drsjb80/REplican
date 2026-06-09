@@ -91,8 +91,9 @@ public class UtilsTest {
 
     @Test
     public void interesting() {
-        // interesting() is tightly coupled to REplican.ARGS static state
-        // Skipping this test as it requires global state setup
-        // This should be refactored to be testable in isolation
+        String[] patterns = {"test", "foo.*"};
+        assertTrue(Utils.interesting(patterns, "test content here").size() > 0);
+        assertTrue(Utils.interesting(patterns, "foobar is interesting").size() > 0);
+        assertEquals(0, Utils.interesting(patterns, "baz qux").size());
     }
 }
