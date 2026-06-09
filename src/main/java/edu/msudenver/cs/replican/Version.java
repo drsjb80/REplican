@@ -2,6 +2,6 @@ package edu.msudenver.cs.replican;
 
 public class Version {
     public static String getVersion() {
-        return "1.5.2";
+        return "2.0.0";
     }
 }
