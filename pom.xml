@@ -49,6 +49,7 @@
                 <version>3.2.5</version>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <argLine>--enable-native-access=ALL-UNNAMED</argLine>
                 </configuration>
             </plugin>
             <plugin>
