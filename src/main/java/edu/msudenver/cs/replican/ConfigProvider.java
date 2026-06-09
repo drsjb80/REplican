@@ -92,4 +92,14 @@ public interface ConfigProvider {
     String[] getHeader();
 
     boolean isPrintRedirects();
+
+    String getIfNewerThan();
+
+    boolean isPrintSkip();
+
+    boolean isPrintSavePath();
+
+    boolean isOverwriteIfLarger();
+
+    boolean isOverwriteIfSmaller();
 }

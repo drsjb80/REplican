@@ -238,4 +238,29 @@ public class REplicanConfigProvider implements ConfigProvider {
     public boolean isPrintRedirects() {
         return args.PrintRedirects;
     }
+
+    @Override
+    public String getIfNewerThan() {
+        return args.IfNewerThan;
+    }
+
+    @Override
+    public boolean isPrintSkip() {
+        return args.PrintSkip;
+    }
+
+    @Override
+    public boolean isPrintSavePath() {
+        return args.PrintSavePath;
+    }
+
+    @Override
+    public boolean isOverwriteIfLarger() {
+        return args.OverwriteIfLarger;
+    }
+
+    @Override
+    public boolean isOverwriteIfSmaller() {
+        return args.OverwriteIfSmaller;
+    }
 }
