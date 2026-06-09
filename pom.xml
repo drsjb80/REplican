@@ -88,7 +88,8 @@
                  Note: SpotBugs 4.7.x has Java 17 bytecode compatibility issues.
                  Use Java code analysis via Checkstyle and IDE inspections instead.
                  Future: Monitor SpotBugs 5.0+ for Java 17 support.
-            <plugin>
+            -->
+            <!-- <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>4.7.3.6</version>
