@@ -72,7 +72,8 @@ public class HttpfileURLConnection extends HttpURLConnection {
 
     @Override
     public int getContentLength() {
-        return (Integer.parseInt(getValue("content-length")));
+        String v = getValue("content-length");
+        return v != null ? Integer.parseInt(v) : 0;
     }
 
     @Override
@@ -82,17 +83,20 @@ public class HttpfileURLConnection extends HttpURLConnection {
 
     @Override
     public long getDate() {
-        return (Long.parseLong(getValue("date")));
+        String v = getValue("date");
+        return v != null ? Long.parseLong(v) : 0;
     }
 
     @Override
     public long getExpiration() {
-        return (Long.parseLong(getValue("expires")));
+        String v = getValue("expires");
+        return v != null ? Long.parseLong(v) : 0;
     }
 
     @Override
     public long getIfModifiedSince() {
-        return (Long.parseLong(getValue("if-modified-since")));
+        String v = getValue("if-modified-since");
+        return v != null ? Long.parseLong(v) : 0;
     }
     //---->
 
