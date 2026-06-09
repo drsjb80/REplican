@@ -31,15 +31,16 @@ import java.util.logging.Logger;
  * 227 Entering Passive Mode (147,153,1,3,6,192)
  * HELP
  * 214-The following commands are recognized (* =>'s unimplemented).
- *    USER    PORT    STOR    MSAM*   RNTO    NLST    MKD     CDUP    LPSV 
- *    PASS    PASV    APPE    MRSQ*   ABOR    SITE    XMKD    XCUP    EPRT 
- *    ACCT    TYPE    MLFL*   MRCP*   DELE    SYST    RMD     STOU    EPSV 
- *    SMNT*   STRU    MAIL*   ALLO    CWD     STAT    XRMD    SIZE 
- *    REIN*   MODE    MSND*   REST    XCWD    HELP    PWD     MDTM 
- *    QUIT    RETR    MSOM*   RNFR    LIST    NOOP    XPWD    LPRT 
+ *    USER    PORT    STOR    MSAM*   RNTO    NLST    MKD     CDUP    LPSV
+ *    PASS    PASV    APPE    MRSQ*   ABOR    SITE    XMKD    XCUP    EPRT
+ *    ACCT    TYPE    MLFL*   MRCP*   DELE    SYST    RMD     STOU    EPSV
+ *    SMNT*   STRU    MAIL*   ALLO    CWD     STAT    XRMD    SIZE
+ *    REIN*   MODE    MSND*   REST    XCWD    HELP    PWD     MDTM
+ *    QUIT    RETR    MSOM*   RNFR    LIST    NOOP    XPWD    LPRT
  * 214 End of help
  */
 public class FtpURLConnection extends URLConnection {
+    // THREADSAFE_LEVEL_GREY
     private static final Logger logger = Logger.getLogger("global");
     private InputStream cis;    // command input stream
     private OutputStream cos;
@@ -65,6 +66,7 @@ public class FtpURLConnection extends URLConnection {
      * decode = anonymous:beaty@mscd.edu
      * hostname = emess.mscd.edu
      */
+    // THREADSAFE_LEVEL_GREY
     public FtpURLConnection(URL url) {
         super(url);
 
@@ -82,7 +84,6 @@ public class FtpURLConnection extends URLConnection {
         connected = false;
         doInput = true;
         doOutput = false;
-        allowUserInteraction = false;
 
         setUserPass(url);
     }
@@ -99,6 +100,7 @@ public class FtpURLConnection extends URLConnection {
         return (responseMessage);
     }
 
+    // THREADSAFE_LEVEL_GREY
     private void setUserPass(URL url) {
         String localUser = System.getProperty("user.name");
         if (localUser == null)
@@ -138,6 +140,7 @@ public class FtpURLConnection extends URLConnection {
         }
     }
 
+    // THREADSAFE_LEVEL_GREY
     private String sendCommand(String command, char expect) throws IOException {
         logger.finest(command);
         logger.finest("" + expect);
@@ -182,6 +185,7 @@ public class FtpURLConnection extends URLConnection {
         return (line);
     }
 
+    // THREADSAFE_LEVEL_GREY
     private void connectToDataSocket() throws
             IOException {
         String p = sendCommand("PASV\r\n", '2');
@@ -210,6 +214,7 @@ public class FtpURLConnection extends URLConnection {
         connected = true;
     }
 
+    // THREADSAFE_LEVEL_GREY
     public void connect() throws IOException {
         int port = url.getPort() != -1 ? url.getPort() : 21;
         commandSocket = new Socket(url.getHost(), port);
@@ -237,6 +242,7 @@ public class FtpURLConnection extends URLConnection {
         sendCommand("RETR " + url.getPath() + "\r\n", '1');
     }
 
+    // THREADSAFE_LEVEL_GREY
     private void disconnect() throws IOException {
         try {
             sendCommand("QUIT\r\n", '2');
@@ -255,30 +261,6 @@ public class FtpURLConnection extends URLConnection {
             dos = null;
             commandSocket = null;
             dataSocket = null;
-        }
-    }
-
-    public static void main(String args[]) throws IOException {
-        logger.setLevel(java.util.logging.Level.FINEST);
-        java.util.logging.ConsoleHandler ch =
-                new java.util.logging.ConsoleHandler();
-        ch.setLevel(java.util.logging.Level.FINEST);
-        logger.addHandler(ch);
-
-        for (String arg : args) {
-            FtpURLConnection fuc = new FtpURLConnection(new URL(arg));
-
-            fuc.connect();
-
-            BufferedInputStream bis =
-                    new BufferedInputStream(fuc.getInputStream());
-
-            int c;
-            while ((c = bis.read()) != -1) {
-                System.out.print((char) c);
-            }
-
-            fuc.disconnect();
         }
     }
 }

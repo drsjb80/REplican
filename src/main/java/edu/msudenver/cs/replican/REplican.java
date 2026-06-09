@@ -1,71 +1,83 @@
 package edu.msudenver.cs.replican;
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-
-import java.net.Authenticator;
-
+import edu.msudenver.cs.jclo.JCLO;
+import lombok.NonNull;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
-import edu.msudenver.cs.jclo.JCLO;
 import org.apache.logging.log4j.core.config.Configurator;
 
+import java.io.*;
+import java.net.Authenticator;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.FileSystemException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 // http://java.sun.com/j2se/1.4.2/docs/api/java/util/regex/Pattern.html
-
-public class REplican {
-    static final Logger logger = LogManager.getLogger("REplican");
-    static final REplicanArgs args = new REplicanArgs();
+class REplican {
+    static final Logger LOGGER = LogManager.getLogger();
+    static final REplicanArgs ARGS = new REplicanArgs();
     static Map<String, Boolean> urls = new ConcurrentHashMap<>();
-    private final Cookies cookies = new Cookies();
-    private int URLcount = 0;
+    static final Cookies COOKIES = new Cookies();
+    static AtomicInteger URLcount = new AtomicInteger(0);
 
-    private void loadCookies() {
-        for (String cookieFile : args.LoadCookies) {
-            logger.info("Loading cookies from " + cookieFile);
-            cookies.loadNetscapeCookies(cookieFile);
+    // turn on assert for every class *but this one*.
+    static {
+        ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
+    }
+
+    private static void loadNetscapeCookies() {
+        for (String cookieFile : ARGS.NetscapeCookies) {
+            try {
+                NetscapeCookies.loadCookies(cookieFile);
+            } catch (IOException IOE) {
+                LOGGER.throwing(IOE);
+            }
         }
     }
 
-    private void loadPlistCookies() {
-        for (String cookieFile : args.PlistCookies) {
-            logger.info("Loading cookies from " + cookieFile);
-            new Plist("file:" + cookieFile, cookies);
+    private static void loadPlistCookies() {
+        for (String cookieFile : ARGS.PlistCookies) {
+            LOGGER.info("Loading cookies from " + cookieFile);
+            new Plist("file:" + cookieFile, COOKIES);
+        }
+    }
+
+    private static void loadFirefoxCookies() {
+        for (String cookieFile : ARGS.FirefoxCookies) {
+            LOGGER.info("Loading cookies from " + cookieFile);
+            FirefoxCookies.loadCookies(cookieFile);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void readCheckpointFile() {
-        logger.info("Loading urls from " + args.CheckpointFile);
+    private static void readCheckpointFile() {
+        LOGGER.info("Loading urls from " + ARGS.CheckpointFile);
 
         try {
-            ObjectInputStream ois =
+            final ObjectInputStream ois =
                     new ObjectInputStream(
-                            new FileInputStream(args.CheckpointFile));
-            urls = (Hashtable<String, Boolean>) ois.readObject();
+                            new FileInputStream(ARGS.CheckpointFile));
+            urls = (Map<String, Boolean>) ois.readObject();
             ois.close();
         } catch (IOException | ClassNotFoundException ioe) {
-            logger.throwing(ioe);
+            LOGGER.throwing(ioe);
         }
     }
 
-    private void setLogLevel() {
+
+    private static void setLogLevel() {
         Level level = Level.OFF;
 
-        if (args.logLevel == null) {
+        if (ARGS.LogLevel == null) {
             level = Level.WARN;
         } else {
-            switch (args.logLevel) {
-                case OFF:
-                    level = Level.OFF;
-                    break;
+            switch (ARGS.LogLevel) {
                 case FATAL:
                     level = Level.FATAL;
                     break;
@@ -90,505 +102,406 @@ public class REplican {
             }
         }
 
-        Configurator.setLevel("REplican", level);
+        Configurator.setLevel(LOGGER.getName(), level);
     }
 
-    private String escapeURL(String URL) {
-        logger.traceEntry(URL);
+    private static String escapeURL(@NonNull final String URL) {
+        LOGGER.traceEntry(URL);
+        String escapedURL = URL;
 
         for (char c : "^.[]$()|*+?{}".toCharArray()) {
-            URL = URL.replaceAll("\\" + c, "\\\\" + c);
+            escapedURL = escapedURL.replaceAll("\\" + c, "\\\\" + c);
         }
 
-        logger.traceExit(URL);
-        return (URL);
+        LOGGER.traceExit(escapedURL);
+        return escapedURL;
     }
 
-    private void setDefaults() {
-        if (args.Interesting == null) {
-            String urlref = "\\s*=\\s*[\"']?([^\"'>]*)";
-            String href = "[hH][rR][eE][fF]";
-            String src = "[sS][rR][cC]";
+    private static void setDefaults() {
+        if (ARGS.Interesting == null) {
+            final String urlref = "\\s*=\\s*[\"']?([^\"'>]*)";
+            final String href = "[hH][rR][eE][fF]";
+            final String src = "[sS][rR][cC]";
 
-            args.Interesting = new String[]{
-                    href + urlref,
-                    src + urlref,
-            };
+            ARGS.Interesting = new String[]{href + urlref, src + urlref};
         }
 
-        if (args.URLFixUp == null) {
-            // so, i don't remember why i collapsed multiple spaces and
-            // removed \'s. must have been important and i should have
-            // documented. 's confuse URLs...
-            // args.URLFixUp = new String[]{"\\s+", " ", "\\\\", ""};
-            args.URLFixUp = new String[]{"\\s+", " ", "\\\\", "",
-                    "\'", "%27"};
+        if (ARGS.URLFixUp == null) {
+            ARGS.URLFixUp = new String[]{"\\s+", " ", "\\\\", "", "\'", "%27"};
         }
 
         // if they don't specify anything, look at only text.
-        if (args.MIMEExamine == null && args.MIMEIgnore == null &&
-                args.PathExamine == null && args.PathIgnore == null) {
-            args.MIMEExamine = new String[]{"text/.*"};
-            if (args.PrintExamine)
-                logger.warn("--MIMEExamine=" +
-                        java.util.Arrays.toString(args.MIMEExamine));
+        if (ARGS.MIMEExamine == null
+                && ARGS.MIMEIgnore == null
+                && ARGS.PathExamine == null
+                && ARGS.PathIgnore == null) {
+            ARGS.MIMEExamine = new String[]{"text/.*"};
+            if (ARGS.PrintExamine) {
+                LOGGER.warn("--MIMEExamine=" + java.util.Arrays.toString(ARGS.MIMEExamine));
+            }
         }
 
         // if they don't specify anything, save only what is specified on
         // the command line.
-        if (args.MIMESave == null && args.MIMERefuse == null &&
-                args.PathSave == null && args.PathRefuse == null) {
-            if (args.additional.length == 0) {
-                logger.error("No URLs specified");
+        if (ARGS.MIMESave == null
+                && ARGS.MIMERefuse == null
+                && ARGS.PathSave == null
+                && ARGS.PathRefuse == null) {
+            if (ARGS.additional == null) {
+                LOGGER.error("No URLs specified");
                 System.exit(1);
             }
 
-            args.PathSave = new String[args.additional.length];
+            ARGS.PathSave = new String[ARGS.additional.length];
 
-            for (int i = 0; i < args.additional.length; i++)
-                args.PathSave[i] = escapeURL(args.additional[i]);
+            for (int i = 0; i < ARGS.additional.length; i++) {
+                ARGS.PathSave[i] = escapeURL(ARGS.additional[i]);
+            }
 
-            if (args.PrintSave)
-                logger.warn("--PathSave=" +
-                        java.util.Arrays.toString(args.PathSave));
+            if (ARGS.PrintSave) {
+                LOGGER.warn("--PathSave=" + java.util.Arrays.toString(ARGS.PathSave));
+            }
         }
 
-        if (args.PrintAll)
-            args.PrintAccept = args.PrintReject =
-                    args.PrintSave = args.PrintRefuse =
-                            args.PrintExamine = args.PrintIgnore =
-                                    args.PrintRedirects = true;
+        if (ARGS.PrintAll) {
+            ARGS.PrintAccept = ARGS.PrintReject =
+                    ARGS.PrintSave = ARGS.PrintRefuse =
+                            ARGS.PrintExamine = ARGS.PrintIgnore =
+                                    ARGS.PrintRedirects = true;
+        }
 
         /*
-        ** make sure we accept everything we examine, save, and the initial
-        ** URLs
-        */
-        args.PathAccept = Utils.combineArrays(args.PathAccept,
-                args.PathExamine);
-        args.PathAccept = Utils.combineArrays(args.PathAccept,
-                args.PathSave);
-        args.PathAccept = Utils.combineArrays(args.PathAccept,
-                args.additional);
+         ** make sure we accept everything we examine, save, and the initial
+         ** URLs
+         */
+        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.PathExamine);
+        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.PathSave);
+        ARGS.PathAccept = Utils.combineArrays(ARGS.PathAccept, ARGS.additional);
     }
 
-    /**
-     * look for "interesting" parts of a HTML string.  interesting thus far
-     * means href's, src's, img's etc.
-     *
-     * @param s the string to examine
-     * @return the interesting part if any, and null if none
-     */
-    private String[] interesting(String s) {
-        logger.traceEntry(s);
+    private static void checkpoint() {
+        final String checkpointFile = ARGS.CheckpointFile;
 
-        if (s == null)
-            return (null);
-
-        String m[] = new String[args.Interesting.length];
-
-        for (int i = 0; i < args.Interesting.length; i++) {
-            m[i] = match(args.Interesting[i], s);
-        }
-
-        return (m);
-    }
-
-    private void checkpoint() {
-        String checkpointFile = args.CheckpointFile;
-
-        logger.trace("writing to " + checkpointFile);
+        LOGGER.trace("writing to " + checkpointFile);
 
         try {
-            ObjectOutputStream oos =
-                    new ObjectOutputStream(new FileOutputStream(checkpointFile));
+            final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(checkpointFile));
             oos.writeObject(urls);
             oos.close();
         } catch (IOException e) {
-            logger.throwing(e);
+            LOGGER.throwing(e);
         }
     }
 
-    /*
-    ** add a URL to the list of those to be processed
-    */
-    private void addOne(String total) {
-        logger.traceEntry(total);
-
-        urls.put(total, Boolean.FALSE);
-
-        URLcount++;
-
-        int checkpointEvery = args.CheckpointEvery;
-        if (checkpointEvery != 0 && URLcount % checkpointEvery == 0)
-            checkpoint();
-    }
-
-    /*
-    ** create a valid URL, paying attenting to a base if there is one.
-    */
-    private URL makeURL(String baseURL, String s) {
-        logger.traceEntry(baseURL);
-        logger.traceEntry(s);
-
-        URL u = null;
-
-        try {
-            if (baseURL != null)
-                u = new URL(new URL(baseURL), s);
-            else
-                u = new URL(s);
-        } catch (MalformedURLException e) {
-            logger.throwing(e);
-        }
-
-        logger.traceExit(u);
-        return (u);
-    }
-
-    /*
-    ** In the given string s, look for pattern.  If found, return the
-    ** concatenation of the capturing groups.
-    */
-    private String match(String pattern, String s) {
-        logger.traceEntry(pattern);
-        logger.traceEntry(s);
-
-        String ret = null;
-
-        Matcher matcher = Pattern.compile(pattern).matcher(s);
-        if (matcher.find()) {
-            ret = "";
-            for (int i = 1; i <= matcher.groupCount(); i++) {
-                ret += (matcher.group(i));
-            }
-        }
-
-        logger.traceExit(ret);
-        return (ret);
-    }
-
-    /*
-    ** http://www.w3schools.com/tags/tag_base.asp
-    ** "The <base> tag specifies the base URL/target for all relative URLs
-    ** in a document.
-    ** The <base> tag goes inside the <head> element."
-    */
-    private String newBase(String base) {
-        logger.traceEntry(base);
-
-        if (base == null)
-            return (null);
-
-        String b = "<[bB][aA][sS][eE].*[hH][rR][eE][fF]=[\"']?([^\"'# ]*)";
-        String ret = match(b, base);
-
-        logger.traceExit(ret);
-        return (ret);
-    }
-
-    // Process a single URL and see if we need to add it to the todo
+    // Process a single URL and see if we need to add it to the to do
     // list.
-    private void process(String total) {
-        String PathAccept[] = args.PathAccept;
-        String PathReject[] = args.PathReject;
+    private static void process(@NonNull String total) {
+        LOGGER.traceEntry(total);
+        final boolean accept = Utils.blurf(ARGS.PathAccept, ARGS.PathReject, total, true);
 
-        boolean accept = Utils.blurf(PathAccept, PathReject, total, true);
+        if (ARGS.PrintAccept && accept) {
+            LOGGER.info("Accepting path: " + total);
+        }
 
-        if (args.PrintAccept && accept) logger.info("Accepting path: " + total);
-        if (args.PrintReject && !accept) logger.info("Rejecting path: " + total);
+        if (ARGS.PrintReject && !accept) {
+            LOGGER.info("Rejecting path: " + total);
+        }
 
         if (accept) {
-            if (args.URLRewrite != null)
-                total = Utils.replaceAll(total, args.URLRewrite);
+            if (ARGS.URLRewrite != null) {
+                total = Utils.replaceAll(total, ARGS.URLRewrite);
+            }
 
-            // if we don't already have it
-            if (urls.get(total) == null) {
-                if (args.PrintAdd)
-                    logger.info("Adding: " + total);
-                addOne(total);
+            if (urls.putIfAbsent(total, false) == null) {
+                if (ARGS.PrintAdd) {
+                    LOGGER.info("Adding: " + total);
+                }
+                URLcount.incrementAndGet();
+            }
+
+            final int checkpointEvery = ARGS.CheckpointEvery;
+            if (checkpointEvery != 0 && URLcount.get() % checkpointEvery == 0) {
+                checkpoint();
             }
         }
     }
 
-    private void addToURLs(String baseURL, List<String> strings) {
-        logger.traceEntry(baseURL);
-        logger.traceEntry(strings.toString());
+    // all all the URLs from a file.
+    private static void addToURLs(final String baseURL, @NonNull final List<String> strings) {
+        LOGGER.traceEntry(baseURL);
+        LOGGER.traceEntry(strings.toString());
 
-        for (String s : strings) {
-            String next = Utils.replaceAll(s, args.URLFixUp);
+        for (String string : strings) {
+            final String next = Utils.replaceAll(string, ARGS.URLFixUp);
+            LOGGER.trace(next);
 
-            // is this resetting the base?
-            String newBase = newBase(next);
+            final String newBase = Utils.newBase(next);
             if (newBase != null) {
-                logger.debug("Setting base to " + baseURL);
-                baseURL = newBase;
+                LOGGER.debug("Setting base to " + newBase);
             }
 
-            for (String possible : interesting(next)) {
+            for (String possible : Utils.interesting(next)) {
+                LOGGER.trace(possible);
                 if (possible != null) {
-                    URL u = makeURL(baseURL, possible);
-
-                    if (u == null)
+                    final URL u;
+                    LOGGER.trace(newBase);
+                    LOGGER.trace(baseURL);
+                    try {
+                        if (newBase != null) {
+                            u = new URL(new URL(newBase), possible);
+                        } else if (baseURL != null){
+                            u = new URL(new URL(baseURL), possible);
+                        } else {
+                            u = new URL(possible);
+                        }
+                    } catch (MalformedURLException MUE) {
+                        LOGGER.error(MUE);
                         continue;
+                    }
 
-                    String total = u.toString();
-                    process(total);
+                    process(u.toString());
                 }
             }
         }
-    }
-
-    private void snooze(int milliseconds) {
-        logger.traceEntry(Integer.toString(milliseconds));
-
-        if (milliseconds == 0)
-            return;
-
-        logger.info("Sleeping for " + milliseconds + " milliseconds");
-
-        try {
-            Thread.sleep(milliseconds);
-        } catch (InterruptedException ie) {
-            logger.throwing(ie);
-        }
-    }
-
-    private String speed(long start, long stop, long read) {
-        long seconds = (stop - start) / 1000;
-        long BPS = read / (seconds == 0 ? 1 : seconds);
-
-        if (BPS > 1000000000000000L)
-            return (BPS / 1000000000000000L + " EBps");
-        else if (BPS > 1000000000000L)
-            return (BPS / 1000000000000L + " TBps");
-        else if (BPS > 1000000000)
-            return (BPS / 1000000000 + " GBps");
-        else if (BPS > 1000000)
-            return (BPS / 1000000 + " MBps");
-        else if (BPS > 1000)
-            return (BPS / 1000 + " KBps");
-        else
-            return (BPS + " Bps");
     }
 
     /*
-    ** read from an input stream, optionally write to an output stream, and
-    ** optionally look at all the URL's found in the input stream.
-    */
-    private boolean examineORsave(YouAreEll yrl, InputStream is,
-                                  BufferedOutputStream bos, boolean examine, boolean save, String url) {
-        // logger.traceEntry ((Message) is);
-        // logger.traceEntry ((Message) bos);
-        logger.traceEntry(String.valueOf(examine));
-        logger.traceEntry(String.valueOf(save));
-        logger.traceEntry(url);
+     ** read from an input stream, optionally write to an output stream, and
+     ** optionally look at all the URL's found in the input stream.
+     ** null: yrl, bos
+     */
+    private static void examineORsave(final YouAreEll yrl, final InputStream is, final BufferedOutputStream bos, final boolean examine, final boolean save, final String url) throws IOException {
+        LOGGER.traceEntry(String.valueOf(examine));
+        LOGGER.traceEntry(String.valueOf(save));
+        LOGGER.traceEntry(url);
 
-        try {
-            long read = 0;
-            long written = 0;
-            long content_length = yrl.getContentLength();
-            long ten_percent = content_length > 0 ? content_length / 10 : 0;
-            long count = 1;
-            boolean percent = args.SaveProgress && save && ten_percent > 0;
-            boolean spin = args.SaveProgress && save && ten_percent == 0;
-            long start = new java.util.Date().getTime();
+        readAndWrite(is, bos, save, yrl.getContentLength());
 
-            if (percent) System.out.print("0..");
-            if (spin) System.out.print("|");
-
-            int c;
-            while ((c = is.read()) != -1) {
-                if (save) {
-                    bos.write((char) c);
-                    written++;
-
-                    if (percent && count < 10 && written > count * ten_percent) {
-                        System.out.print(count * 10 + "..");
-                        count++;
-                    }
-                    // spin every 1000 bytes read -- we don't know how long
-                    // the file is.
-                    else if (spin && written % 1000 == 0) {
-                        // it'd be nice if Java know a long % 4 will always
-                        // be between 0 and 3 -- an integer...
-                        int where = (int) count % 4;
-                        System.out.print("\b" + "|/-\\".charAt(where));
-                        count++;
-                    }
-                }
-                read++;
-            }
-
-            long stop = new java.util.Date().getTime();
-
-            if (percent) System.out.println("100");
-            if (spin) System.out.println("");
-            if (spin || percent) {
-                System.out.println(speed(start, stop, read));
-            }
-
-            if (save && args.PauseAfterSave != 0) snooze(args.PauseAfterSave);
-
-            if (examine)
-                addToURLs(url, ((DelimitedBufferedInputStream) is).getStrings());
-        } catch (IOException e) {
-            logger.throwing(e);
-            return (false);
+        if (save && ARGS.PauseAfterSave != 0) {
+            Utils.snooze(ARGS.PauseAfterSave);
         }
 
-        return (true);
+        if (examine) {
+            addToURLs(url, ((DelimitedBufferedInputStream) is).getStrings());
+        }
     }
 
-    private void fetchOne(boolean examine, boolean save, YouAreEll yrl,
-                          InputStream is) {
-        logger.traceEntry(String.valueOf(examine));
-        logger.traceEntry(String.valueOf(save));
-        logger.traceEntry(yrl.toString());
+    private static void readAndWrite(final InputStream is, final BufferedOutputStream bos, final boolean save, final long content_length) throws IOException {
+        final long ten_percent = content_length > 0 ? content_length / 10 : 0;
+        final boolean percent = ARGS.SaveProgress && save && ten_percent > 0;
+        final boolean spin = ARGS.SaveProgress && save && ten_percent == 0;
+        final long startTime = startReadAndWrite(percent, spin);
 
-        if (examine)
-            is = new DelimitedBufferedInputStream(is, '<', '>');
+        long written = 0;
+        long read = 0;
+        long count = 1;
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = is.read(buf)) != -1) {
+            if (save) {
+                bos.write(buf, 0, n);
+                written += n;
 
-        BufferedOutputStream bos = null;
-        WebFile wf = null;
-        if (save) {
-            wf = new WebFile(yrl, args);
-            bos = wf.getBOS();
-
-            if (bos == null)
-                save = false;
+                count = pacifier(ten_percent, percent, spin, written, count);
+            }
+            read += n;
         }
 
-        if (save || examine) {
-            if (!examineORsave(yrl, is, bos, examine, save, yrl.getUrl())) {
-                logger.error("examineORsave failed");
+        finalizeReadAndWrite(percent, spin, startTime, read);
+    }
+
+    private static long pacifier(long ten_percent, boolean percent, boolean spin, long written, long count) {
+        if (percent && count < 10 && written > count * ten_percent) {
+            System.out.print(count * 10 + "..");
+            count++;
+        } else if (spin && written % 1000 == 0) {
+            // spin every 1000 bytes read -- we don't know how long
+            // the file is.
+            // it'd be nice if Java know a long % 4 will always
+            // be between 0 and 3 -- an integer...
+            final int where = (int) count % 4;
+            System.out.print("\b" + "|/-\\".charAt(where));
+            count++;
+        }
+        return count;
+    }
+
+    private static long startReadAndWrite(boolean percent, boolean spin) {
+        long startTime = 0L;
+        if (spin || percent) {
+            startTime = System.currentTimeMillis();
+        }
+
+        if (percent) System.out.print("0..");
+        if (spin) System.out.print("|");
+        return startTime;
+    }
+
+    private static void finalizeReadAndWrite(final boolean percent, final boolean spin, final long startTime, final long read) {
+        if (spin || percent) {
+            if (percent) {
+                System.out.println("100");
+            }
+            if (spin) {
+                System.out.println();
+            }
+
+            long stopTime = System.currentTimeMillis();
+            System.out.println(Utils.speed(startTime, stopTime, read));
+        }
+    }
+
+    private static void fetchOne(final boolean examine, boolean save, @NonNull final YouAreEll yrl, @NonNull final InputStream is)
+            throws MalformedURLException, FileNotFoundException {
+        LOGGER.traceEntry(String.valueOf(examine));
+        LOGGER.traceEntry(String.valueOf(save));
+        LOGGER.traceEntry(yrl.toString());
+
+        InputStream dbis = is;
+
+        if (examine) {
+            dbis = new DelimitedBufferedInputStream(is, '<', '>');
+        }
+
+        BufferedOutputStream bos = null;
+        File webFile = null;
+        if (save) {
+            try {
+                webFile = new WebFile(yrl).createFile();
+                bos = new BufferedOutputStream(new FileOutputStream(webFile));
+            } catch (FileSystemException FSE) {
+                save = false;
+            }
+        }
+
+        if (examine || save) {
+            try {
+                examineORsave(yrl, dbis, bos, examine, save, yrl.getUrl());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
         if (bos != null) {
             try {
                 bos.close();
-                if (args.SetLastModified)
-                    if (!wf.getFile().setLastModified(yrl.getLastModified()))
-                        logger.warn("Couldn't set last modified");
+                if (ARGS.SetLastModified) {
+                    if (!webFile.setLastModified(yrl.getLastModified())) {
+                        LOGGER.warn("Couldn't set last modified");
+                    }
+                }
             } catch (IOException e) {
-                logger.throwing(e);
+                LOGGER.throwing(e);
             }
         }
 
         if (examine) {
             try {
-                is.close();
+                dbis.close();
             } catch (IOException e) {
-                logger.throwing(e);
+                LOGGER.throwing(e);
             }
         }
     }
 
     /*
-    ** calculate, given the examine/ignore and save/refuse values, whether
-    ** to examine and/or save s.
-    */
-    private boolean[] EISR(String s, String which,
-                           String examine[], String ignore[], String save[], String refuse[]) {
-        if (s == null)
-            return (null);
+     ** calculate, given the examine/ignore and save/refuse values, whether
+     ** to examine and/or save url.
+     */
+    private static Map.Entry<Boolean, Boolean> EISR(@NonNull final String url, @NonNull final String which, String[] examine, String[] ignore, String[] save, String[] refuse) {
+        LOGGER.debug(url);
+        LOGGER.debug(which);
+        LOGGER.debug(java.util.Arrays.toString(examine));
+        LOGGER.debug(java.util.Arrays.toString(ignore));
+        LOGGER.debug(java.util.Arrays.toString(save));
+        LOGGER.debug(java.util.Arrays.toString(refuse));
 
-        logger.debug(s);
-        logger.debug(which);
-        logger.debug(java.util.Arrays.toString(examine));
-        logger.debug(java.util.Arrays.toString(ignore));
-        logger.debug(java.util.Arrays.toString(save));
-        logger.debug(java.util.Arrays.toString(refuse));
+        boolean E = Utils.blurf(examine, ignore, url, false);
+        boolean S = Utils.blurf(save, refuse, url, false);
 
-        boolean E = Utils.blurf(examine, ignore, s, false);
-        boolean S = Utils.blurf(save, refuse, s, false);
+        if (ARGS.PrintExamine && E) {
+            LOGGER.info("Examining " + which + ": " + url);
+        }
+        if (ARGS.PrintIgnore && !E) {
+            LOGGER.info("Ignoring " + which + ": " + url);
+        }
 
-        if (args.PrintExamine && E)
-            logger.info("Examining " + which + ": " + s);
-        if (args.PrintIgnore && !E)
-            logger.info("Ignoring " + which + ": " + s);
+        if (ARGS.PrintSave && S) {
+            LOGGER.info("Saving " + which + ": " + url);
+        }
+        if (ARGS.PrintRefuse && !S) {
+            LOGGER.info("Refusing " + which + ": " + url);
+        }
 
-        if (args.PrintSave && S)
-            logger.info("Saving " + which + ": " + s);
-        if (args.PrintRefuse && !S)
-            logger.info("Refusing " + which + ": " + s);
-
-        boolean ret[] = new boolean[2];
-        ret[0] = E;
-        ret[1] = S;
-        return (ret);
+        return (Map.entry(E, S));
     }
 
     // accept everything we examine or save
     // reject everything we ignore or refuse
+    private static void fetch(@NonNull final String url) throws IOException {
+        LOGGER.traceEntry(url);
 
-    private void fetch(String url) {
-        logger.traceEntry(url);
+        boolean Path = ARGS.PathExamine != null || ARGS.PathIgnore != null ||
+                ARGS.PathSave != null || ARGS.PathRefuse != null;
+        boolean MIME = ARGS.MIMEExamine != null || ARGS.MIMEIgnore != null ||
+                ARGS.MIMESave != null || ARGS.MIMERefuse != null;
 
-        boolean Path = args.PathExamine != null || args.PathIgnore != null ||
-                args.PathSave != null || args.PathRefuse != null;
-        boolean MIME = args.MIMEExamine != null || args.MIMEIgnore != null ||
-                args.MIMESave != null || args.MIMERefuse != null;
+        LOGGER.debug("Path = " + Path);
+        LOGGER.debug("MIME = " + MIME);
 
-        logger.debug("Path = " + Path);
-        logger.debug("MIME = " + MIME);
+        Map.Entry<Boolean, Boolean> eisr = EISR(url, "path",
+                ARGS.PathExamine, ARGS.PathIgnore,
+                ARGS.PathSave, ARGS.PathRefuse);
 
-        boolean tb[] = EISR(url, "path", args.PathExamine, args.PathIgnore,
-                args.PathSave, args.PathRefuse);
-
-        boolean Pexamine = tb[0];
-        boolean Psave = tb[1];
+        boolean pathExamine = eisr.getKey();
+        boolean pathSave = eisr.getValue();
 
         /*
          * if there is no MIME, and the Path doesn't say to examine or save,
          * we're done.
          */
-        if (!MIME && !Pexamine && !Psave)
+        if (!MIME && !pathExamine && !pathSave) {
             return;
-
-        /*
-         * otherwise, we need to Path examine or save, or we need the MIME
-         * header.  in either case, we need an InputStream.
-         */
-        InputStream is = null;
-        YouAreEll yrl = null;
-        for (int t = 0; t < args.Tries; t++) {
-            yrl = new YouAreEll(url, cookies);
-            is = yrl.getInputStream();
-            if (is != null)
-                break;
-            if (args.Tries > 1)
-                logger.warn("Trying again");
         }
 
-        if (is == null)
+        YouAreEll yrl = new YouAreEll(url);
+        /*
+        ** quick check before doing anything across the network.
+        */
+        File file = new WebFile(yrl).openFile();
+        if (file.exists() && !REplican.ARGS.Overwrite) {
+            LOGGER.warn("Not overwriting: " + file);
             return;
+        }
 
-        boolean Mexamine = false;
-        boolean Msave = false;
+        InputStream is = yrl.getInputStream();
+        if (is == null) {
+            return;
+        }
+
+        boolean mineExamine = false;
+        boolean mimeSave = false;
 
         if (MIME && yrl.getContentType() != null) {
-            tb = EISR(yrl.getContentType(), "MIME",
-                    args.MIMEExamine, args.MIMEIgnore,
-                    args.MIMESave, args.MIMERefuse);
-            Mexamine = tb[0];
-            Msave = tb[1];
+            eisr = EISR(yrl.getContentType(), "MIME",
+                    ARGS.MIMEExamine, ARGS.MIMEIgnore,
+                    ARGS.MIMESave, ARGS.MIMERefuse);
+            mineExamine = eisr.getKey();
+            mimeSave = eisr.getValue();
         }
 
         // we've looked at both Path and now MIME and there's nothing to do
-        if (!Pexamine && !Psave && !Mexamine && !Msave)
-            return;
-
-        fetchOne(Pexamine || Mexamine, Psave || Msave, yrl, is);
-
-        try {
+        if (!pathExamine && !pathSave && !mineExamine && !mimeSave) {
             is.close();
-        } catch (IOException IOE) {
-            logger.throwing(IOE);
+            return;
         }
+
+        fetchOne(pathExamine || mineExamine, pathSave || mimeSave, yrl, is);
+
+        is.close();
     }
 
-    private void fetchAll() {
+    private static void fetchAll() {
         boolean done = false;
 
         while (!done) {
@@ -600,56 +513,51 @@ public class REplican {
                 done &= fetched;
 
                 if (!fetched) {
-                    fetch(url);
+                    try {
+                        fetch(url);
+                    } catch (IOException e) {
+                        LOGGER.throwing(e);
+                    }
                     urls.put(url, true);
-                    if (args.PauseBetween != 0)
-                        snooze(args.PauseBetween);
+                    if (ARGS.PauseBetween != 0) {
+                        Utils.snooze(ARGS.PauseBetween);
+                    }
                 }
             }
         }
     }
 
-    private void doit() {
-        String username = args.Username;
-        String password = args.Password;
-        if (username != null || password != null)
+    private static void doit() {
+        final String username = ARGS.Username;
+        final String password = ARGS.Password;
+        if (username != null || password != null) {
             Authenticator.setDefault(new MyAuthenticator(username, password));
+        }
 
-        // this is for tests using
-        // System.setProperty ("java.protocol.handler.pkgs", "edu.msudenver.cs");
-
-        String[] add = args.additional;
+        final String[] add = ARGS.additional;
 
         if (add == null) {
-            logger.warn("No URLs specified, exiting");
+            LOGGER.warn("No URLs specified, exiting");
             System.exit(1);
         }
 
-        /*
-        ** add the specified URLs to the list to be fetched.
-        */
-        // String[] t = new String[add.length];
         List<String> t = new ArrayList<>();
         for (String s : add) {
             t.add("<a href=\"" + s + "\">");
         }
 
         /*
-        ** add to the URLs, with no base
-        */
+         ** add to the URLs, with no base
+         */
         addToURLs(null, t);
         fetchAll();
-
-        /*
-        ** shall we save the cookies to a file?
-        */
-        String savecookies = args.SaveCookies;
-        if (savecookies != null)
-            cookies.saveNetscapeCookies(savecookies);
     }
 
-    public static void main(String[] arguments) throws FileNotFoundException {
-        JCLO jclo = new JCLO(args);
+    public static void main(String[] arguments) {
+        String[][] aliases =
+                {{"PathDoNotAccept", "PathReject"}, {"PathDoNotSave", "PathRefuse"}, {"PathDoNotExamine", "PathIgnore"},
+                        {"MIMEDoNotAccept", "MIMEReject"}, {"MIMEDoNotSave", "MIMERefuse"}, {"MIMEDoNotExamine", "MIMEIgnore"}};
+        JCLO jclo = new JCLO(ARGS, aliases);
 
         if (arguments.length == 0) {
             System.out.println("Arguments:\n" + jclo.usage() + "URLs...");
@@ -664,24 +572,51 @@ public class REplican {
             System.exit(1);
         }
 
-        if (args.Version) {
+        if (ARGS.Version) {
             System.out.println(Version.getVersion());
             System.exit(0);
         }
 
-        if (args.Help) {
+        if (ARGS.Help) {
             System.out.println("Arguments:\n" + jclo.usage() + "URLs...");
             System.exit(0);
         }
 
-        REplican r = new REplican();
-        r.setLogLevel();
-        r.setDefaults();
+        setLogLevel();
+        setDefaults();
 
-        if (args.LoadCookies != null) r.loadCookies();
-        if (args.PlistCookies != null) r.loadPlistCookies();
-        if (args.CheckpointEvery != 0) r.readCheckpointFile();
+        if (ARGS.FirefoxCookies != null) { loadFirefoxCookies(); }
+        if (ARGS.NetscapeCookies != null) { loadNetscapeCookies(); }
+        if (ARGS.PlistCookies != null) { loadPlistCookies(); }
 
-        r.doit();
+        if (ARGS.CheckpointEvery != 0) { readCheckpointFile(); }
+
+        runNewArchitecture();
     }
+
+    private static void runNewArchitecture() {
+        LOGGER.info("Starting replication with new architecture");
+
+        ReplicationFactory factory = new ReplicationFactory();
+        Replicator replicator = factory.createReplicator(ARGS);
+
+        try {
+            if (ARGS.additional == null) {
+                LOGGER.warn("No URLs specified, exiting");
+                System.exit(1);
+            }
+
+            for (String url : ARGS.additional) {
+                replicator.addURL(url);
+            }
+
+            replicator.fetchAll();
+
+            LOGGER.info("Replication complete: " + replicator.getFetchedCount() + " URLs fetched");
+        } catch (Exception e) {
+            LOGGER.error("Replication failed", e);
+            System.exit(1);
+        }
+    }
+
 }

@@ -1,114 +1,67 @@
 package edu.msudenver.cs.replican;
 
-import java.util.Arrays;
-import java.util.logging.Level;
-
+import lombok.NonNull;
 import org.apache.logging.log4j.Logger;
-/*
- * SEVERE
- * WARNING
- * INFO
- * CONFIG
- * FINE
- * FINER        (entering and exiting)
- * FINEST
- */
 
-public class Utils
-{
-    private static final Logger logger = REplican.logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-    /**
-     * make a String pattern of, e.g.: [Aa][Bb], from a string, ignoring
-     * non-alpha characters.
-     *
-     * @param        s        the initial string
-     * @return                the initial string with the appropriate brackets
-     */
-    static String both (String s)
-    {
-        logger.traceEntry (s);
-        String r = "";
-
-        for (int i = 0; i < s.length(); i++)
-        {
-            char c = s.charAt(i);
-
-            if (Character.isLetter (c))
-            {
-                r += "[" + Character.toLowerCase (c) +
-                     Character.toUpperCase (c) + "]";
-            }
-            else
-            {
-                r += c;
-            }
-        }
-
-        logger.traceExit (r);
-        return (r);
-    }
+public class Utils {
+    private static final Logger LOGGER = REplican.LOGGER;
 
     /**
      * Check if a string matches one of an array of regular
      * expressions.  The string must not have the dots escaped, while
      * the regular expression must.
      *
-     * @param        s        the string to check
-     * @param        re        the array of regular expressions
+     * @param s  the string to check
+     * @param re the array of regular expressions
      */
-    private static boolean matches (String re[], String s)
-    {
-        logger.traceEntry ("re" + java.util.Arrays.toString (re));
-        logger.traceEntry (s);
+    private static boolean matches(String[] re, String s) {
+        LOGGER.traceEntry("re" + java.util.Arrays.toString(re));
+        LOGGER.traceEntry(s);
 
-        for (int i = 0; i < re.length; i++)
-        {
-            logger.trace ("Matching: '" + s + "' and '" + re[i] + "'");
-            try
-            {
-                if (s.matches (re[i]))
-                {
-                    logger.traceExit ("true");
+        for (String value : re) {
+            LOGGER.trace("Matching: '" + s + "' and '" + value + "'");
+            try {
+                if (s.matches(value)) {
+                    LOGGER.traceExit("true");
                     return (true);
                 }
-            }
-            catch (java.util.regex.PatternSyntaxException PSE)
-            {
-                logger.warn (PSE);
+            } catch (java.util.regex.PatternSyntaxException PSE) {
+                LOGGER.warn(PSE);
             }
         }
 
-        logger.traceExit ("false");
+        LOGGER.traceExit("false");
         return (false);
     }
-    
+
     /*
-    ** Use the array pairs as pattern and replacement pairs.  E.g.:
-    ** pairs[0] == "\\.wmv.*" and pairs[1] == ".wmv"
-    */
-    static String replaceAll (String s, String pairs[])
-    {
-        logger.traceEntry (s);
-        logger.traceEntry (Arrays.toString(pairs));
+     ** Use the array pairs as pattern and replacement pairs.  E.g.:
+     ** pairs[0] == "\\.wmv.*" and pairs[1] == ".wmv"
+     */
+    static String replaceAll(@NonNull final String string, @NonNull final String[] pairs) {
+        LOGGER.traceEntry(string);
+        LOGGER.traceEntry(Arrays.toString(pairs));
 
-        if (pairs == null)
-            return (s);
-
-        if ((pairs.length % 2) != 0)
-        {
-            logger.error ("pairs not even");
-            logger.traceExit (s);
-            return (s);
+        if ((pairs.length % 2) != 0) {
+            LOGGER.error("pairs not even");
+            LOGGER.traceExit(string);
+            return (string);
         }
 
-        for (int i = 0; i < pairs.length; i += 2)
-        {
-            s = s.replaceAll (pairs[i], pairs[i+1]);
+        String ret = string;
+
+        for (int i = 0; i < pairs.length; i += 2) {
+            ret = ret.replaceAll(pairs[i], pairs[i + 1]);
         }
 
-        logger.traceExit (s);
-        return (s);
+        LOGGER.traceExit(ret);
+        return ret;
     }
 
 
@@ -116,74 +69,173 @@ public class Utils
      * Match a string first against an accepting condition; if that
      * matches, check against a rejecting condition.
      *
-     * @param        yes        an array of accepting regular expressions
-     * @param        no        an array of rejecting regular expressions
-     * @param        s        the string to compare
+     * @param acceptRE an array of accepting regular expressions
+     * @param rejectRE an array of rejecting regular expressions
+     * @param string   the string to compare
      */
-    static boolean blurf (String[] yes, String[] no, String s,
-        boolean ifBothNull)
-    {
-        if (yes != null) logger.trace ("yes" + java.util.Arrays.toString(yes));
-        if (no != null) logger.trace ("no" + java.util.Arrays.toString (no));
-        if (s != null) logger.trace (s);
+    static boolean blurf(final String[] acceptRE, final String[] rejectRE, final String string, final boolean ifBothNull) {
+        if (acceptRE != null) {
+            LOGGER.trace("acceptRE" + Arrays.toString(acceptRE));
+        }
+        if (rejectRE != null) {
+            LOGGER.trace("rejectRE" + Arrays.toString(rejectRE));
+        }
+        if (string != null) {
+            LOGGER.trace(string);
+        }
 
-        if (yes == null && no == null)
-        {
+        if (acceptRE == null && rejectRE == null) {
             return (ifBothNull);
         }
 
-        if (yes != null && no != null)
-        {
-            boolean ret = matches (yes, s) && ! matches (no, s);
-            logger.traceExit (ret);
+        if (acceptRE != null && rejectRE != null) {
+            boolean ret = matches(acceptRE, string) && !matches(rejectRE, string);
+            LOGGER.traceExit(ret);
             return (ret);
-        }
-        else if (yes == null)
-        {
-            boolean ret = ! matches (no, s);
-            logger.traceExit (ret);
+        } else if (acceptRE == null) {
+            boolean ret = !matches(rejectRE, string);
+            LOGGER.traceExit(ret);
             return (ret);
-        }
-        else // no == null
-        {
-            boolean ret = matches (yes, s);
-            logger.traceExit (ret);
+        } else { // rejectRE == null
+            boolean ret = matches(acceptRE, string);
+            LOGGER.traceExit(ret);
             return (ret);
         }
     }
 
-    private static Level getLevel (String s)
-    {
-        if (s == null) return (Level.OFF);
-
-        if (s.equals ("")) return (Level.INFO);
-
-        if (s.equalsIgnoreCase ("SEVERE"))  return (Level.SEVERE);
-        if (s.equalsIgnoreCase ("WARNING")) return (Level.WARNING);
-        if (s.equalsIgnoreCase ("INFO"))    return (Level.INFO);
-        if (s.equalsIgnoreCase ("CONFIG"))  return (Level.CONFIG);
-        if (s.equalsIgnoreCase ("FINE"))    return (Level.FINE);
-        if (s.equalsIgnoreCase ("FINER"))   return (Level.FINER);
-        if (s.equalsIgnoreCase ("FINEST"))  return (Level.FINEST);
-        if (s.equalsIgnoreCase ("ALL"))     return (Level.ALL);
-        if (s.equalsIgnoreCase ("OFF"))     return (Level.OFF);
-
-        return (Level.ALL);
+    static String hostToDomain(@NonNull final String host) {
+        return host.replaceFirst("[^.]+\\.", "");
     }
 
-    static String[] combineArrays (String one[], String two[])
-    {
-        if (one == null && two == null)
+    //combining two String arrays
+    static String[] combineArrays(final String[] one, final String[] two) {
+        if (one == null && two == null) {
             return (null);
-        if (two == null)
+        }
+        if (two == null) {
             return (one);
-        if (one == null)
+        }
+        if (one == null) {
             return (two);
+        }
 
-        String ret[] = new String[one.length + two.length];
-        System.arraycopy (one, 0, ret, 0, one.length);
-        System.arraycopy (two, 0, ret, one.length, two.length);
+        String[] ret = new String[one.length + two.length];
+        System.arraycopy(one, 0, ret, 0, one.length);
+        System.arraycopy(two, 0, ret, one.length, two.length);
 
         return (ret);
+    }
+
+    static void snooze(int milliseconds) {
+        LOGGER.traceEntry(Integer.toString(milliseconds));
+
+        if (milliseconds == 0)
+            return;
+
+        LOGGER.info("Sleeping for " + milliseconds + " milliseconds");
+
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException ie) {
+            LOGGER.throwing(ie);
+        }
+    }
+
+    static String speed(long start, long stop, long read) {
+        long seconds = (stop - start) / 1000;
+        long BPS = read / (seconds == 0 ? 1 : seconds);
+
+        if (BPS > 1000000000000000L) {
+            return BPS / 1000000000000000L + " EBps";
+        } else if (BPS > 1000000000000L) {
+            return BPS / 1000000000000L + " TBps";
+        } else if (BPS > 1000000000) {
+            return BPS / 1000000000 + " GBps";
+        } else if (BPS >1000000) {
+            return BPS /1000000+" MBps";
+        } else if (BPS > 1000) {
+            return BPS / 1000 + " KBps";
+        } else {
+            return BPS + " Bps";
+        }
+    }
+
+
+    /*
+     ** In the given string s, look for pattern.  If found, return the
+     ** concatenation of the capturing groups.
+     */
+    private static String match(String pattern, String s) {
+        LOGGER.traceEntry(pattern);
+        LOGGER.traceEntry(s);
+
+        String ret = null;
+
+        Matcher matcher = Pattern.compile(pattern).matcher(s);
+        if (matcher.find()) {
+            final int count = matcher.groupCount();
+            if (count == 0) {
+                return new String(s.substring(matcher.start(), matcher.end()));
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 1; i <= matcher.groupCount(); i++) {
+                sb.append(matcher.group(i));
+            }
+            ret = sb.toString();
+        }
+
+        LOGGER.traceExit(ret);
+        return (ret);
+    }
+
+    /*
+    ** http://www.w3schools.com/tags/tag_base.asp
+    ** "The <base> tag specifies the base URL/target for all relative URLs
+    ** in a document.
+    ** The <base> tag goes inside the <head> element."
+    */
+    static String newBase(@NonNull final String base) {
+        LOGGER.traceEntry(base);
+
+        String b = "<[bB][aA][sS][eE].*[hH][rR][eE][fF]=[\"']?([^\"'# ]*)";
+        String ret = match(b, base);
+
+        LOGGER.traceExit(ret);
+        return (ret);
+    }
+
+    /**
+     * look for "interesting" parts of a HTML string using provided patterns.
+     * interesting thus far means href's, src's, img's etc.
+     *
+     * @param patterns the regex patterns to match against
+     * @param content the string to examine
+     * @return the interesting parts matching any pattern, or empty list if none
+     */
+    static List<String> interesting(@NonNull String[] patterns, @NonNull String content) {
+        LOGGER.traceEntry(content);
+
+        List<String> ret = new ArrayList<>();
+
+        for (String pattern : patterns) {
+            String m = match(pattern, content);
+            if (m != null) {
+                ret.add(m);
+            }
+        }
+        LOGGER.traceExit(ret);
+        return ret;
+    }
+
+    /**
+     * look for "interesting" parts of a HTML string using REplican.ARGS patterns.
+     * Convenience method that wraps interesting(String[], String).
+     *
+     * @param content the string to examine
+     * @return the interesting parts matching any configured pattern
+     */
+    static List<String> interesting(@NonNull String content) {
+        return interesting(REplican.ARGS.Interesting, content);
     }
 }

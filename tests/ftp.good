@@ -1,5 +1,0 @@
---PathAccept=[ftp://anonymous@clem.mscd.edu/outgoing/csi1300/Web/index.htm]
---MIMEExamine=[text/.*]
---PathSave=[.*]
-Accepting path: ftp://anonymous@clem.mscd.edu/outgoing/csi1300/Web/index.htm
-Saving path: ftp://anonymous@clem.mscd.edu/outgoing/csi1300/Web/index.htm

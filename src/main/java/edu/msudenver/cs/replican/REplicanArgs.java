@@ -2,8 +2,7 @@ package edu.msudenver.cs.replican;
 
 enum LogLevels {OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, ALL}
 
-class REplicanArgs
-{
+class REplicanArgs {
     String[] PathAccept;
     String[] PathReject;
     String[] PathSave;
@@ -34,36 +33,34 @@ class REplicanArgs
     boolean SaveProgress;
 
     int[] StopOn;
-    boolean StopOnnull;
-    final int Tries = 1;
+    // int Tries = 1;
 
-    LogLevels logLevel = LogLevels.OFF;
-    String UserAgent;
+    LogLevels LogLevel = LogLevels.OFF;
     String Username;
     String Password;
-    String Referer;
-    String LoadCookies[];
-    String PlistCookies[];
-    String SaveCookies;
+    String[] NetscapeCookies;
+    String[] PlistCookies;
+    String[] FirefoxCookies;
     final String IndexName = "index.html";
     boolean IgnoreCookies;
     boolean Overwrite;
     boolean OverwriteIfLarger;
     boolean OverwriteIfSmaller;
-    final boolean FollowRedirects = true;
+    boolean FollowRedirects = true;
     boolean SetLastModified;
     boolean IfModifiedSince;
     final String CheckpointFile = "REplican.cp";
     int CheckpointEvery;
     int PauseBetween;
     int PauseAfterSave;
+    int Threads = 1;
     String Directory;
     String IfNewerThan;
-    String FilenameRewrite[];
-    String URLRewrite[];
-    String URLFixUp[];
-    String Interesting[];
-    String Header[];
+    String[] FilenameRewrite;
+    String[] URLRewrite;
+    String[] URLFixUp;
+    String[] Interesting;
+    String[] Header;
 
     boolean Version;
     boolean Help;
