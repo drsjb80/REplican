@@ -11,19 +11,26 @@ import java.util.Map;
 import java.util.List;
 import java.util.Queue;
 
-import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class YouAreEll {
     private final Logger logger = LogManager.getLogger(getClass());
     private URLConnection urlConnection;
-    @Getter private String ContentType;
-    @Getter private final String url;
+    private String ContentType;
+    private final String url;
     private final Cookies cookies = REplican.COOKIES;
 
     public YouAreEll(final String url) {
         this.url = url;
+    }
+
+    public String getContentType() {
+        return ContentType;
+    }
+
+    public String getUrl() {
+        return url;
     }
 
     int getContentLength() {

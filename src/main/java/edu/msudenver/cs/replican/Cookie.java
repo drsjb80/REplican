@@ -1,7 +1,6 @@
 package edu.msudenver.cs.replican;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import org.apache.logging.log4j.LogManager;
@@ -22,14 +21,34 @@ class Cookie {
     private static final Date NOW = new Date();
     private static final Date BEGINNINGOFTIME = new Date(0);
     private final Logger logger = LogManager.getLogger(getClass());
-    @Getter private final AbstractMap<String, String> keyValuePairs = new ConcurrentHashMap<>();
-    @Getter private boolean secure;
-    @Getter private boolean httponly;
+    private final AbstractMap<String, String> keyValuePairs = new ConcurrentHashMap<>();
+    private boolean secure;
+    private boolean httponly;
 
     // host comes in via the URL, not used unless there is no domain
     // a path comes in via the URL, not used unless there is no path
-    @Getter private String URLHost = null;
-    @Getter private String URLPath = null;
+    private String URLHost = null;
+    private String URLPath = null;
+
+    public AbstractMap<String, String> getKeyValuePairs() {
+        return keyValuePairs;
+    }
+
+    public boolean isSecure() {
+        return secure;
+    }
+
+    public boolean isHttponly() {
+        return httponly;
+    }
+
+    public String getURLHost() {
+        return URLHost;
+    }
+
+    public String getURLPath() {
+        return URLPath;
+    }
 
     private Date maxAge = BEGINNINGOFTIME;
     long getMaxTime() {
