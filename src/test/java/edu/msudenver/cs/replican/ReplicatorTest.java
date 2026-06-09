@@ -139,4 +139,105 @@ public class ReplicatorTest {
         List<String> lines = new ArrayList<>();
         assertDoesNotThrow(() -> replicator.addURLsFromHTML("http://example.com", lines));
     }
+
+    @Test
+    void fetchAllReturnsWhenQueueEmpty() throws Exception {
+        replicator.fetchAll();
+        assertEquals(0, replicator.getFetchedCount());
+    }
+
+    @Test
+    void fetchAllFetchesAllURLs() throws Exception {
+        replicator.addURL("http://example.com");
+        replicator.addURL("http://example2.com");
+
+        replicator.fetchAll();
+
+        assertEquals(2, replicator.getFetchedCount());
+        assertEquals(0, replicator.getUnfetchedCount());
+    }
+
+    @Test
+    void getQueueSizeReturnsAccurateCount() {
+        assertEquals(0, replicator.getQueueSize());
+        replicator.addURL("http://example.com");
+        replicator.addURL("http://example2.com");
+        replicator.addURL("http://example3.com");
+        assertEquals(3, replicator.getQueueSize());
+    }
+
+    @Test
+    void getFetchedCountStartsAtZeroAfterInit() {
+        replicator.addURL("http://example.com");
+        replicator.addURL("http://example2.com");
+        assertEquals(0, replicator.getFetchedCount());
+    }
+
+    @Test
+    void getUnfetchedCountIncludesAllNewURLs() {
+        replicator.addURL("http://example.com");
+        replicator.addURL("http://example2.com");
+        replicator.addURL("http://example3.com");
+        assertEquals(3, replicator.getUnfetchedCount());
+    }
+
+    @Test
+    void addURLWithNullURLThrowsException() {
+        assertThrows(NullPointerException.class, () -> replicator.addURL(null));
+    }
+
+    @Test
+    void addURLWithEmptyStringAddsToQueue() {
+        replicator.addURL("");
+        assertEquals(1, replicator.getQueueSize());
+    }
+
+    @Test
+    void addURLsFromHTMLWithNullBaseURL() {
+        List<String> lines = new ArrayList<>();
+        lines.add("<a href=\"http://example.com\">Link</a>");
+        assertDoesNotThrow(() -> replicator.addURLsFromHTML(null, lines));
+    }
+
+    @Test
+    void addURLsFromHTMLWithMultipleLines() {
+        List<String> lines = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            lines.add("<a href=\"http://example.com/page" + i + "\">Link</a>");
+        }
+        assertDoesNotThrow(() -> replicator.addURLsFromHTML("http://example.com", lines));
+    }
+
+    @Test
+    void replicatorMaintainsQueueConsistency() throws Exception {
+        replicator.addURL("http://example.com");
+        assertEquals(1, replicator.getQueueSize());
+        assertEquals(1, replicator.getUnfetchedCount());
+        assertEquals(0, replicator.getFetchedCount());
+
+        replicator.fetchAll();
+
+        assertEquals(1, replicator.getQueueSize());
+        assertEquals(0, replicator.getUnfetchedCount());
+        assertEquals(1, replicator.getFetchedCount());
+    }
+
+    @Test
+    void addURLPreservesDuplicateDetection() {
+        replicator.addURL("http://example.com");
+        replicator.addURL("http://example.com");
+        replicator.addURL("http://example.com");
+        assertEquals(1, replicator.getQueueSize());
+    }
+
+    @Test
+    void fetchAllWithMixedURLs() throws Exception {
+        replicator.addURL("http://example.com");
+        replicator.addURL("http://other.com");
+        replicator.addURL("http://third.org");
+
+        assertEquals(3, replicator.getQueueSize());
+        replicator.fetchAll();
+        assertEquals(3, replicator.getFetchedCount());
+    }
 }
