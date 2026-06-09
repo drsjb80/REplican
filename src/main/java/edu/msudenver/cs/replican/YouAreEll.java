@@ -1,34 +1,43 @@
 package edu.msudenver.cs.replican;
 
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-
-import java.io.*;
-
-import java.util.Map;
-import java.util.List;
-import java.util.Queue;
-
+import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class YouAreEll {
-    private final Logger logger = LogManager.getLogger(getClass());
-    private URLConnection urlConnection;
+    private final Logger logger;
+    private HttpConnection httpConnection;
     private String ContentType;
     private final String url;
-    private Cookies cookies;
+    private final Cookies cookies;
+    private final ConfigProvider config;
+    private final HttpConnectionFactory connectionFactory;
 
+    // Legacy constructors for backward compatibility
     public YouAreEll(final String url) {
-        this.url = url;
-        this.cookies = null;
+        this(url, null);
     }
 
     public YouAreEll(final String url, Cookies cookies) {
+        this(url, cookies, new REplicanConfigProvider(REplican.ARGS),
+             new StandardHttpConnectionFactory(), LogManager.getLogger(YouAreEll.class));
+    }
+
+    // New constructor with full dependency injection
+    public YouAreEll(@NonNull final String url,
+                     Cookies cookies,
+                     @NonNull ConfigProvider config,
+                     @NonNull HttpConnectionFactory connectionFactory,
+                     @NonNull Logger logger) {
         this.url = url;
         this.cookies = cookies;
+        this.config = config;
+        this.connectionFactory = connectionFactory;
+        this.logger = logger;
     }
 
     public String getContentType() {
@@ -40,7 +49,10 @@ public class YouAreEll {
     }
 
     int getContentLength() {
-        String cl = urlConnection.getHeaderField("Content-Length");
+        if (httpConnection == null) {
+            return 0;
+        }
+        String cl = httpConnection.getHeaderField("Content-Length");
         if (cl != null) {
             try {
                 return Integer.parseInt(cl);
@@ -52,33 +64,39 @@ public class YouAreEll {
     }
 
     long getLastModified() {
-        return (urlConnection.getLastModified());
+        if (httpConnection == null) {
+            return 0;
+        }
+        return (httpConnection.getLastModified());
     }
 
     private void dealWithRedirects() {
-        if (!REplican.ARGS.FollowRedirects) {
+        if (!config.isFollowRedirects()) {
             return;
         }
 
-        String redirected = urlConnection.getHeaderField("Location");
-        if (REplican.ARGS.PrintRedirects && redirected != null) {
+        String redirected = httpConnection.getHeaderField("Location");
+        if (config.isPrintRedirects() && redirected != null) {
             logger.info("Redirected to: " + redirected);
         }
     }
 
     private void dealWithStopOns(final int code) {
-        for (int stopOn: REplican.ARGS.StopOn) {
-            if (code == stopOn) {
-                logger.warn("Stopping on return code: " + code);
-                System.exit(code);
+        int[] stopCodes = config.getStopOnStatusCodes();
+        if (stopCodes != null) {
+            for (int stopOn : stopCodes) {
+                if (code == stopOn) {
+                    logger.warn("Stopping on return code: " + code);
+                    System.exit(code);
+                }
             }
         }
     }
 
     private InputStream HUC() {
-        ContentType = urlConnection.getHeaderField("Content-Type");
-        String[] MIMEAccept = REplican.ARGS.MIMEAccept;
-        String[] MIMEReject = REplican.ARGS.MIMEReject;
+        ContentType = httpConnection.getHeaderField("Content-Type");
+        String[] MIMEAccept = config.getMIMEAccept();
+        String[] MIMEReject = config.getMIMEReject();
 
         // here, if MIME has no input on the matter, assume Path has
         // already spoken so return true from blurf.
@@ -86,7 +104,7 @@ public class YouAreEll {
             return (null);
 
         try {
-            return (urlConnection.getInputStream());
+            return (httpConnection.getInputStream());
         } catch (IOException e) {
             logger.throwing(e);
             return (null);
@@ -96,25 +114,28 @@ public class YouAreEll {
     private InputStream dealWithReturnCode(int code) {
         logger.traceEntry(Integer.toString(code));
 
-        if (REplican.ARGS.StopOn.length > 0)
+        int[] stopCodes = config.getStopOnStatusCodes();
+        if (stopCodes != null && stopCodes.length > 0)
             dealWithStopOns(code);
 
         switch (code) {
-            case HttpURLConnection.HTTP_OK:
+            case HttpConnection.HTTP_OK:
                 return (HUC());
-            case HttpURLConnection.HTTP_MOVED_PERM:
-            case HttpURLConnection.HTTP_MOVED_TEMP:
+            case HttpConnection.HTTP_MOVED_PERM:
+            case HttpConnection.HTTP_MOVED_TEMP:
                 dealWithRedirects();
                 return (null);
             default: {
                 try {
                     String message = "";
-
-                    if (urlConnection instanceof HttpURLConnection)
-                        message = ((HttpURLConnection) urlConnection).getResponseMessage();
+                    try {
+                        message = httpConnection.getResponseMessage();
+                    } catch (IOException e) {
+                        // Ignore
+                    }
                     logger.warn("For: " + url + " server returned: " +
                             code + " " + message);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     logger.throwing(e);
                 }
 
@@ -124,29 +145,26 @@ public class YouAreEll {
     }
 
     private int connect() throws IOException {
-        urlConnection = new URL(url).openConnection();
+        httpConnection = connectionFactory.createConnection(url);
         addHeaderLines();
         setCookies();
 
-        int returnCode = HttpURLConnection.HTTP_OK;
+        int returnCode = httpConnection.getResponseCode();
 
-        if (urlConnection instanceof HttpURLConnection)
-            returnCode = ((HttpURLConnection) urlConnection).getResponseCode();
-
-        urlConnection.connect();
+        httpConnection.connect();
 
         logger.traceExit(returnCode);
         return returnCode;
     }
 
     private void setCookies() {
-        if (cookies == null || REplican.ARGS.IgnoreCookies) {
+        if (cookies == null || config.isIgnoreCookies()) {
             return;
         }
 
         StringBuilder sb = new StringBuilder();
         try {
-            Queue<Cookie> cookieQueue = cookies.getCookiesForUrl(new URL(url));
+            java.util.Queue<Cookie> cookieQueue = cookies.getCookiesForUrl(new URL(url));
             for (Cookie cookie : cookieQueue) {
                 sb.append(cookie.getCookieString());
             }
@@ -156,16 +174,17 @@ public class YouAreEll {
         }
 
         if (sb.length() > 0) {
-            urlConnection.setRequestProperty("Cookie", sb.toString());
+            httpConnection.setRequestProperty("Cookie", sb.toString());
         }
     }
 
     private void addHeaderLines() {
-        if (REplican.ARGS.Header != null) {
-            for (String header: REplican.ARGS.Header) {
+        String[] headers = config.getHeader();
+        if (headers != null) {
+            for (String header : headers) {
                 String[] s = header.split(":", 2);
                 if (s.length == 2) {
-                    urlConnection.setRequestProperty(s[0].trim(), s[1].trim());
+                    httpConnection.setRequestProperty(s[0].trim(), s[1].trim());
                 } else {
                     logger.trace("Malformed header (no colon): " + header);
                 }
@@ -176,8 +195,8 @@ public class YouAreEll {
     InputStream getInputStream() throws IOException {
         final int returnCode = connect();
 
-        logger.trace(urlConnection.toString());
-        logger.trace(urlConnection.getHeaderFields().toString());
+        logger.trace(httpConnection.toString());
+        logger.trace(httpConnection.getHeaderFields().toString());
 
         return (dealWithReturnCode(returnCode));
     }

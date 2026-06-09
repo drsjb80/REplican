@@ -88,4 +88,8 @@ public interface ConfigProvider {
     int[] getStopOnStatusCodes();
 
     LogLevels getLogLevel();
+
+    String[] getHeader();
+
+    boolean isPrintRedirects();
 }

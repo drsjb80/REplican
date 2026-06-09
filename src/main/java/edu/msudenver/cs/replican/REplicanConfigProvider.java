@@ -228,4 +228,14 @@ public class REplicanConfigProvider implements ConfigProvider {
     public LogLevels getLogLevel() {
         return args.LogLevel;
     }
+
+    @Override
+    public String[] getHeader() {
+        return args.Header;
+    }
+
+    @Override
+    public boolean isPrintRedirects() {
+        return args.PrintRedirects;
+    }
 }
