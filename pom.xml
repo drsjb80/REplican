@@ -60,9 +60,8 @@
                     <target>17</target>
                     <!-- Lombok annotation processing note:
                          Lombok 1.18.30 has Java 17 compatibility issues with javac.
-                         Explicit getters/setters are preferred for reliability.
-                         When Lombok 1.18.32+ becomes available with better Java 17 support,
-                         add annotationProcessorPaths here: -->
+                         Explicit annotationProcessorPaths cause fatal TypeTag::UNKNOWN errors.
+                         Without explicit paths, @Getter works on 1-2 fields per class only. -->
                 </configuration>
             </plugin>
             <plugin>
