@@ -363,26 +363,4 @@ public class HttpfileURLConnection extends HttpURLConnection {
             logger.finer(e.toString());
         }
     }
-
-    public static void main(String args[]) throws IOException {
-        // System.setProperty ("java.protocol.handler.pkgs", "edu.mscd.cs");
-        URL.setURLStreamHandlerFactory(new HandlerFactory());
-
-        HttpURLConnection fuc = new HttpfileURLConnection
-                (new URL("httpfile:tests/Cookies/CookieExpires.httpfile"));
-        fuc.connect();
-        System.out.println(fuc.getContentType());
-        System.out.println(fuc.getHeaderFields());
-        System.out.println(fuc.getDoInput());
-        System.out.println("k(0)" + fuc.getHeaderFieldKey(0));
-        System.out.println("v(0)" + fuc.getHeaderField(0));
-        System.out.println("k(1)" + fuc.getHeaderFieldKey(1));
-        System.out.println("v(1)" + fuc.getHeaderField(1));
-        System.out.println(fuc.getHeaderField("set-cookie"));
-
-        InputStream is = fuc.getInputStream();
-        int i;
-        while ((i = is.read()) != -1)
-            System.out.print((char) i);
-    }
 }

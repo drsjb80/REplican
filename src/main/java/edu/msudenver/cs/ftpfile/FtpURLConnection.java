@@ -263,29 +263,4 @@ public class FtpURLConnection extends URLConnection {
             dataSocket = null;
         }
     }
-
-    // THREADSAFE_LEVEL_GREY
-    public static void main(String args[]) throws IOException {
-        logger.setLevel(java.util.logging.Level.FINEST);
-        java.util.logging.ConsoleHandler ch =
-                new java.util.logging.ConsoleHandler();
-        ch.setLevel(java.util.logging.Level.FINEST);
-        logger.addHandler(ch);
-
-        for (String arg : args) {
-            FtpURLConnection fuc = new FtpURLConnection(new URL(arg));
-
-            fuc.connect();
-
-            BufferedInputStream bis =
-                    new BufferedInputStream(fuc.getInputStream());
-
-            int c;
-            while ((c = bis.read()) != -1) {
-                System.out.print((char) c);
-            }
-
-            fuc.disconnect();
-        }
-    }
 }

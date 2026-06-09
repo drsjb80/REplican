@@ -139,9 +139,4 @@ class Plist extends DefaultHandler {
     public void characters(char[] buf, int offset, int len) {
         current += new String(buf, offset, len);
     }
-
-    public static void main(String[] args) {
-        Cookies cookies = new Cookies();
-        new Plist(args[0], cookies);
-    }
 }

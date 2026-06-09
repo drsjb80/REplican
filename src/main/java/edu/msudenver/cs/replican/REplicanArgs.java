@@ -41,7 +41,6 @@ class REplicanArgs {
     String[] NetscapeCookies;
     String[] PlistCookies;
     String[] FirefoxCookies;
-    String SaveCookies;
     final String IndexName = "index.html";
     boolean IgnoreCookies;
     boolean Overwrite;

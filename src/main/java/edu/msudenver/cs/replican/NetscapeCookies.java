@@ -55,56 +55,6 @@ public class NetscapeCookies {
         }
     }
 
-    static void saveCookies(String filename) throws IOException {
-        FileWriter fw = new FileWriter(filename);
-
-        fw.write("# HTTP Cookie File\n");
-        fw.write("# This is a generated file!  Do not edit.\n");
-
-        // FIXME
-        /*
-        for (Cookie cookie: REplican.cookies.getAllCookies()) {
-            fw.write(getSave(cookie));
-        }
-        */
-
-        fw.close();
-    }
-
-    /**
-     * Get a string of the correct form to save in a Netscape file.
-     *
-     * @return the formatted string
-     */
-    static String getSave(final Cookie cookie) {
-        final Date now = new Date();
-        /* FIXME
-        if (now.after(cookie.getMaxAge())) {
-            return "";
-        }
-        */
-
-        String ret = "";
-        ret += cookie.getDomain() + "\t";
-        ret += cookie.getDomain().startsWith(".") ? "TRUE\t" : "FALSE\t";
-        ret += cookie.getPath() + "\t";
-        ret += cookie.isSecure() ? "TRUE\t" : "FALSE\t";
-        // FIXME ret += cookie.getMaxTime() + "\t";
-
-        /* FIXME
-        for (String key : cookie.getKeyValuePairs().keySet()) {
-            final String value = cookie.getKeyValuePairs().get(key);
-            if (value != null) {
-                ret += key + "\t" + value + "\n";
-            } else {
-                ret += key + "\n";
-            }
-        }
-        */
-
-        return ret;
-    }
-
     /*
     public String getCookieStringsForURL(final URL url) {
         String ret = null;

@@ -98,22 +98,4 @@ public class DelimitedBufferedInputStream extends BufferedInputStream {
     public List<String> getStrings() {
         return (strings);
     }
-
-    public static void main(String args[])
-            throws IOException {
-        DelimitedBufferedInputStream tfis = new DelimitedBufferedInputStream
-                (new FileInputStream(args[0]), '<', '>');
-
-        int c;
-        while ((c = tfis.read()) != -1) {
-            System.out.print((char) c);
-        }
-
-        List<String> strings = tfis.getStrings();
-        for (String s : strings) {
-            System.out.println(s);
-        }
-
-        tfis.close();
-    }
 }

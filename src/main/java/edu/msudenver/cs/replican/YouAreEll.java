@@ -195,18 +195,4 @@ public class YouAreEll {
         return (dealWithReturnCode(returnCode));
     }
 
-    private void getCookies() {
-        if (!REplican.ARGS.IgnoreCookies) {
-            Map<String, List<String>> m = urlConnection.getHeaderFields();
-            List<String> list = m.get("Set-Cookie");
-            for (String cookie : list) {
-                logger.trace("Adding cookie: " + cookie);
-                try {
-                    cookies.addCookie(new URL(url), cookie);
-                } catch (MalformedURLException MUE) {
-                    logger.throwing(MUE);
-                }
-            }
-        }
-    }
 }
